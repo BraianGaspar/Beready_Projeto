@@ -1,0 +1,364 @@
+2026-04-01 00:49:19 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-04-01 00:49:20 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\webroot\index.php, line 37
+[main]
+
+Request URL: /login
+Referer URL: http://localhost:8765/
+2026-04-01 00:49:22 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\webroot\index.php, line 37
+[main]
+
+Request URL: /users/index/home
+Referer URL: http://localhost:8765/
+2026-04-01 00:51:55 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-04-01 00:51:57 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\webroot\index.php, line 37
+[main]
+
+Request URL: /login
+Referer URL: http://localhost:8765/
+2026-04-01 00:51:58 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\webroot\index.php, line 37
+[main]
+
+Request URL: /users/index/home
+Referer URL: http://localhost:8765/
+2026-03-31 22:01:22 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-03-31 22:05:22 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-03-31 22:05:42 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/login.json
+2026-03-31 22:05:48 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/register.json
+2026-03-31 22:07:12 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:07:22 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/register
+2026-03-31 22:09:33 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:09:36 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-03-31 22:09:45 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/register
+2026-03-31 22:09:50 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/login
+2026-03-31 22:12:20 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:12:47 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:13:00 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-03-31 22:13:08 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:14:15 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-03-31 22:14:16 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /
+2026-03-31 22:14:30 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:14:54 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/register
+2026-03-31 22:15:07 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:15:09 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/register
+2026-03-31 22:15:18 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/test
+2026-03-31 22:15:23 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/register
+2026-03-31 22:15:30 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /users/login
+2026-03-31 22:16:53 notice: Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php on line 45
+Trace:
+Cake\Error\ErrorTrap->handleError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Panel\MailPanel.php, line 45
+DebugKit\Panel\MailPanel->initialize() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\ToolbarService.php, line 232
+DebugKit\ToolbarService->initializePanels() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php, line 58
+DebugKit\Middleware\DebugKitMiddleware->process() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 82
+Cake\Http\Runner->handle() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Runner.php, line 60
+Cake\Http\Runner->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\Server.php, line 104
+Cake\Http\Server->run() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\webroot\index.php, line 37
+[main]
+
+Request URL: /

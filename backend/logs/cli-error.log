@@ -1,0 +1,54 @@
+2026-04-01 00:43:57 error: [TypeError] Cake\Utility\Security::setSalt(): Argument #1 ($salt) must be of type string, null given, called in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\config\bootstrap.php on line 188 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Utility\Security.php on line 303
+Stack Trace:
+- ROOT\config\bootstrap.php:188
+- CORE\src\Http\BaseApplication.php:186
+- APP/Application.php:14
+- CORE\src\Console\CommandRunner.php:190
+- CORE\src\Console\CommandRunner.php:137
+- ROOT\bin\cake.php:10
+- [main]:
+
+2026-04-01 00:44:18 error: [TypeError] Cake\Utility\Security::setSalt(): Argument #1 ($salt) must be of type string, null given, called in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\config\bootstrap.php on line 188 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Utility\Security.php on line 303
+Stack Trace:
+- ROOT\config\bootstrap.php:188
+- CORE\src\Http\BaseApplication.php:186
+- APP/Application.php:14
+- CORE\src\Console\CommandRunner.php:190
+- CORE\src\Console\CommandRunner.php:137
+- ROOT\bin\cake.php:10
+- [main]:
+
+2026-04-01 00:46:42 error: [TypeError] Cake\Utility\Security::setSalt(): Argument #1 ($salt) must be of type string, null given, called in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\config\bootstrap.php on line 188 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Utility\Security.php on line 303
+Stack Trace:
+- ROOT\config\bootstrap.php:188
+- CORE\src\Http\BaseApplication.php:186
+- APP/Application.php:14
+- CORE\src\Console\CommandRunner.php:190
+- CORE\src\Console\CommandRunner.php:137
+- ROOT\bin\cake.php:10
+- [main]:
+
+2026-04-01 00:47:41 error: [TypeError] Cake\Utility\Security::setSalt(): Argument #1 ($salt) must be of type string, null given, called in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\config\bootstrap.php on line 188 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Utility\Security.php on line 303
+Stack Trace:
+- ROOT\config\bootstrap.php:188
+- CORE\src\Http\BaseApplication.php:186
+- APP/Application.php:14
+- CORE\src\Console\CommandRunner.php:190
+- CORE\src\Console\CommandRunner.php:137
+- ROOT\bin\cake.php:10
+- [main]:
+
+2026-04-01 00:47:52 error: [TypeError] Cake\Utility\Security::setSalt(): Argument #1 ($salt) must be of type string, null given, called in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\config\bootstrap.php on line 188 in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\vendor\cakephp\cakephp\src\Utility\Security.php on line 303
+Stack Trace:
+- ROOT\config\bootstrap.php:188
+- CORE\src\Http\BaseApplication.php:186
+- APP/Application.php:14
+- CORE\src\Console\CommandRunner.php:190
+- CORE\src\Console\CommandRunner.php:137
+- ROOT\bin\cake.php:10
+- [main]:
+
+2026-04-01 00:49:17 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:51:53 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:01:20 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:12:54 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.

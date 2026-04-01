@@ -1,0 +1,429 @@
+2026-04-01 00:49:19 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:49:19 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-04-01 00:49:19 warning: The datasource configuration `debug_kit` was not found.
+2026-04-01 00:49:20 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:49:22 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-04-01 00:49:22 warning: The datasource configuration `debug_kit` was not found.
+2026-04-01 00:49:22 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:49:22 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-04-01 00:49:22 warning: The datasource configuration `debug_kit` was not found.
+2026-04-01 00:51:55 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:51:55 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-04-01 00:51:55 warning: The datasource configuration `debug_kit` was not found.
+2026-04-01 00:51:57 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:51:58 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-04-01 00:51:58 warning: The datasource configuration `debug_kit` was not found.
+2026-04-01 00:51:58 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-04-01 00:51:58 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-04-01 00:51:58 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:01:22 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:01:22 error: [Cake\View\Exception\MissingTemplateException] Template file `Users\login.php` could not be found.
+
+The following paths were searched:
+
+- `C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\templates\Users\login.php`
+- `C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\templates\Users\login.php`
+ in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\View\View.php on line 1376
+Exception Attributes: array (
+  'file' => 'Users\\login.php',
+  'paths' => 
+  array (
+    0 => 'C:\\Users\\ALUNO\\Documents\\GitHub\\t03-arquitetura-de-software-S1-2026\\t03-arquitetura-de-software-S1-2026\\Beready_Projeto\\templates\\',
+    1 => 'C:\\Users\\ALUNO\\Documents\\GitHub\\t03-arquitetura-de-software-S1-2026\\t03-arquitetura-de-software-S1-2026\\Beready_Projeto\\backend\\vendor\\cakephp\\cakephp\\templates\\',
+  ),
+)
+Stack Trace:
+- CORE\src\View\View.php:782
+- CORE\src\Controller\Controller.php:712
+- CORE\src\Controller\Controller.php:516
+- CORE\src\Controller\ControllerFactory.php:166
+- CORE\src\Controller\ControllerFactory.php:141
+- CORE\src\Http\BaseApplication.php:362
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /
+2026-03-31 22:05:22 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:05:22 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\UsersController.php:19
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /
+2026-03-31 22:05:42 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:05:42 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\UsersController.php:19
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/login.json
+2026-03-31 22:05:48 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:05:48 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\UsersController.php:19
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/register.json
+2026-03-31 22:07:12 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:07:12 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:07:12 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:07:22 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:07:22 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:07:22 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:09:33 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:09:33 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- APP/Controller\UsersController.php:16
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/test
+2026-03-31 22:09:36 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:09:36 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- APP/Controller\UsersController.php:16
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /
+2026-03-31 22:09:45 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:09:45 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- APP/Controller\UsersController.php:16
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/register
+2026-03-31 22:09:50 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:09:50 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- APP/Controller\UsersController.php:16
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/login
+2026-03-31 22:12:20 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:12:20 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/test
+2026-03-31 22:12:47 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:12:47 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/test
+2026-03-31 22:13:00 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:13:00 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /
+2026-03-31 22:13:08 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:13:08 error: [Cake\Controller\Exception\MissingComponentException] Component class `RequestHandlerComponent` could not be found. in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Controller\ComponentRegistry.php on line 135
+Exception Attributes: array (
+  'class' => 'RequestHandlerComponent',
+  'plugin' => NULL,
+)
+Stack Trace:
+- CORE\src\Core\ObjectRegistry.php:111
+- CORE\src\Controller\Controller.php:284
+- APP/Controller\AppController.php:46
+- CORE\src\Controller\Controller.php:238
+- [internal]:??
+- CORE\src\Controller\ControllerFactory.php:111
+- CORE\src\Http\BaseApplication.php:360
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /users/test
+2026-03-31 22:14:15 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:14:15 error: [Cake\Http\Exception\MethodNotAllowedException] Method Not Allowed in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\ServerRequest.php on line 1450
+Stack Trace:
+- APP/Controller\UsersController.php:114
+- CORE\src\Controller\Controller.php:505
+- CORE\src\Controller\ControllerFactory.php:166
+- CORE\src\Controller\ControllerFactory.php:141
+- CORE\src\Http\BaseApplication.php:362
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /
+2026-03-31 22:14:15 warning: [Cake\View\Exception\MissingTemplateException] Template file `Error\error500.php` could not be found.
+
+The following paths were searched:
+
+- `C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\templates\Error\error500.php`
+- `C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\templates\Error\error500.php`
+ (C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\View\View.php:1376) in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php on line 378
+Trace:
+Cake\Error\ErrorTrap->handleError() [internal], line ??
+C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php, line 378
+Cake\Error\ExceptionTrap->logInternalError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php, line 242
+Cake\Error\ExceptionTrap->handleException() [internal], line ??
+[main]
+
+Request URL: /
+2026-03-31 22:14:16 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:14:16 error: [Cake\Http\Exception\MethodNotAllowedException] Method Not Allowed in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Http\ServerRequest.php on line 1450
+Stack Trace:
+- APP/Controller\UsersController.php:114
+- CORE\src\Controller\Controller.php:505
+- CORE\src\Controller\ControllerFactory.php:166
+- CORE\src\Controller\ControllerFactory.php:141
+- CORE\src\Http\BaseApplication.php:362
+- CORE\src\Http\Runner.php:86
+- CORE\src\Routing\Middleware\RoutingMiddleware.php:117
+- CORE\src\Http\Runner.php:82
+- ROOT\backend\vendor\cakephp\debug_kit\src\Middleware\DebugKitMiddleware.php:60
+- CORE\src\Http\Runner.php:82
+- CORE\src\Http\Runner.php:60
+- CORE\src\Http\Server.php:104
+- ROOT\backend\webroot\index.php:37
+- [main]:
+
+Request URL: /
+2026-03-31 22:14:16 warning: [Cake\View\Exception\MissingTemplateException] Template file `Error\error500.php` could not be found.
+
+The following paths were searched:
+
+- `C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\templates\Error\error500.php`
+- `C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\templates\Error\error500.php`
+ (C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\View\View.php:1376) in C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php on line 378
+Trace:
+Cake\Error\ErrorTrap->handleError() [internal], line ??
+C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php, line 378
+Cake\Error\ExceptionTrap->logInternalError() C:\Users\ALUNO\Documents\GitHub\t03-arquitetura-de-software-S1-2026\t03-arquitetura-de-software-S1-2026\Beready_Projeto\backend\vendor\cakephp\cakephp\src\Error\ExceptionTrap.php, line 242
+Cake\Error\ExceptionTrap->handleException() [internal], line ??
+[main]
+
+Request URL: /
+2026-03-31 22:14:30 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:14:30 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:14:30 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:14:54 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:14:54 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:14:54 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:15:07 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:15:07 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:15:07 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:15:09 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:15:09 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:15:09 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:15:18 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:15:18 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:15:18 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:15:23 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:15:23 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:15:23 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:15:30 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:15:30 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:15:30 warning: The datasource configuration `debug_kit` was not found.
+2026-03-31 22:16:53 warning: DebugKit not enabled. You need to either install pdo_sqlite, or define the "debug_kit" connection name.
+2026-03-31 22:16:53 warning: Unable to save request. Check your debug_kit datasource connection or ensure that PDO SQLite extension is enabled.
+2026-03-31 22:16:53 warning: The datasource configuration `debug_kit` was not found.

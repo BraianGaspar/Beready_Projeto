@@ -65,8 +65,9 @@ require CAKE . 'functions.php';
  * security risks. See https://github.com/josegonzalez/php-dotenv#general-security-information
  * for more information for recommended practices.
 */
-if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
-    $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
+// ALTERADO: Agora o .env está na RAIZ do projeto (fora de backend)
+if (!env('APP_NAME') && file_exists(ROOT . DS . '.env')) {
+    $dotenv = new \josegonzalez\Dotenv\Loader([ROOT . DS . '.env']);
     $dotenv->parse()
         ->putenv()
         ->toEnv()
@@ -185,7 +186,16 @@ ConnectionManager::setConfig(Configure::consume('Datasources'));
 TransportFactory::setConfig(Configure::consume('EmailTransport'));
 Mailer::setConfig(Configure::consume('Email'));
 Log::setConfig(Configure::consume('Log'));
-Security::setSalt(Configure::consume('Security.salt'));
+
+// ALTERADO: Adicionar fallback para o salt
+$salt = Configure::consume('Security.salt');
+if (empty($salt)) {
+    $salt = env('SECURITY_SALT');
+    if (empty($salt)) {
+        $salt = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0';
+    }
+}
+Security::setSalt($salt);
 
 /*
  * Setup detectors for mobile and tablet.
