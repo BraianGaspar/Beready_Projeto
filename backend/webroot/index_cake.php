@@ -15,13 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // ============================================
-// CakePHP Bootstrap
+// CakePHP Bootstrap - CAMINHOS CORRIGIDOS
 // ============================================
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
 
+// 🔥 CORRIGIDO: ROOT aponta para a pasta backend
 define('ROOT', dirname(__DIR__));
+
 define('APP_DIR', 'src');
 define('APP', ROOT . DS . APP_DIR . DS);
 define('CONFIG', ROOT . DS . 'config' . DS);
@@ -33,6 +35,7 @@ define('CAKE_CORE_INCLUDE_PATH', ROOT . DS . 'vendor' . DS . 'cakephp' . DS . 'c
 define('CORE_PATH', CAKE_CORE_INCLUDE_PATH . DS);
 define('CAKE', CORE_PATH . 'src' . DS);
 
+// 🔥 CORRIGIDO: Caminho correto para o autoload
 require ROOT . DS . 'vendor' . DS . 'autoload.php';
 
 use App\Application;
