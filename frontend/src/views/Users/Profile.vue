@@ -1,8 +1,7 @@
 <template>
   <div class="profile-container">
-    <!-- Header -->
     <div class="profile-header">
-      <div class="header-background"></div>
+      <div class="profile-header-background"></div>
       <div class="profile-content">
         <div class="profile-avatar">
           <div class="avatar-placeholder">
@@ -27,7 +26,7 @@
           <p class="profile-email">{{ user?.email || '' }}</p>
         </div>
         <div class="profile-actions">
-          <button @click="$router.push('/profile/edit')" class="btn btn-edit">
+          <button class="btn-profile btn-outline" @click="$router.push('/profile/edit')">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -44,7 +43,24 @@
             </svg>
             Editar Perfil
           </button>
-          <button @click="$router.push('/dashboard')" class="btn btn-back">
+          <button class="btn-profile btn-danger" @click="showDeleteModal = true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Excluir Conta
+          </button>
+          <button class="btn-profile btn-secondary" @click="$router.push('/dashboard')">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -67,8 +83,7 @@
 
     <div class="profile-body">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Informações Pessoais -->
-        <div class="card profile-card">
+        <div class="profile-card">
           <div class="card-header">
             <h3 class="card-title">
               <svg
@@ -89,23 +104,22 @@
             </h3>
           </div>
           <div class="card-body">
-            <div class="info-group">
-              <label class="info-label">Nome Completo</label>
-              <p class="info-value">{{ user?.nome || '-' }}</p>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Nome Completo</label>
+              <p class="profile-info-value">{{ user?.nome || '-' }}</p>
             </div>
-            <div class="info-group">
-              <label class="info-label">E-mail</label>
-              <p class="info-value">{{ user?.email || '-' }}</p>
+            <div class="profile-info-group">
+              <label class="profile-info-label">E-mail</label>
+              <p class="profile-info-value">{{ user?.email || '-' }}</p>
             </div>
-            <div class="info-group">
-              <label class="info-label">Telefone</label>
-              <p class="info-value">{{ user?.telefone || 'Não informado' }}</p>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Telefone</label>
+              <p class="profile-info-value">{{ user?.telefone || 'Não informado' }}</p>
             </div>
           </div>
         </div>
 
-        <!-- Preferências de Aprendizado -->
-        <div class="card profile-card">
+        <div class="profile-card">
           <div class="card-header">
             <h3 class="card-title">
               <svg
@@ -126,20 +140,22 @@
             </h3>
           </div>
           <div class="card-body">
-            <div class="info-group">
-              <label class="info-label">Nível de Inglês</label>
-              <p class="info-value">{{ getNivelIngles(user?.nivel_ingles) }}</p>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Nível de Inglês</label>
+              <p class="profile-info-value">{{ getNivelIngles(user?.nivel_ingles) }}</p>
             </div>
-            <div class="info-group">
-              <label class="info-label">Idioma Preferido</label>
-              <p class="info-value">{{ getIdiomaPreferido(user?.idioma_preferido) }}</p>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Idioma Preferido</label>
+              <p class="profile-info-value">{{ getIdiomaPreferido(user?.idioma_preferido) }}</p>
             </div>
-            <div class="info-group">
-              <label class="info-label">Status</label>
-              <p class="info-value">
+            <div class="profile-info-group">
+              <label class="profile-info-label">Status</label>
+              <p class="profile-info-value">
                 <span
-                  class="status-badge"
-                  :class="user?.status === 'ativo' ? 'status-active' : 'status-inactive'"
+                  class="profile-status-badge"
+                  :class="
+                    user?.status === 'ativo' ? 'profile-status-active' : 'profile-status-inactive'
+                  "
                 >
                   {{ user?.status === 'ativo' ? 'Ativo' : 'Inativo' }}
                 </span>
@@ -149,8 +165,7 @@
         </div>
       </div>
 
-      <!-- Objetivos de Aprendizado -->
-      <div class="card profile-card mt-6">
+      <div class="profile-card profile-mt-6">
         <div class="card-header">
           <h3 class="card-title">
             <svg
@@ -171,9 +186,61 @@
           </h3>
         </div>
         <div class="card-body">
-          <p class="info-value objectives-text">
+          <p class="profile-info-value profile-objectives-text">
             {{ user?.objetivos_aprendizado || 'Nenhum objetivo definido' }}
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-icon danger">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h3 class="modal-title">Excluir Conta</h3>
+        </div>
+        <div class="modal-body">
+          <p>Tem certeza que deseja excluir sua conta?</p>
+          <p class="modal-warning">
+            Esta ação é irreversível e todos os seus dados serão perdidos.
+          </p>
+          <div class="modal-confirm-input">
+            <label
+              >Digite <strong>{{ user?.email }}</strong> para confirmar:</label
+            >
+            <input
+              v-model="confirmEmail"
+              type="email"
+              :placeholder="user?.email"
+              class="confirm-input"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="showDeleteModal = false" class="modal-btn-cancel">Cancelar</button>
+          <button
+            @click="handleDeleteAccount"
+            :disabled="confirmEmail !== user?.email || deleteLoading"
+            class="modal-btn-delete"
+          >
+            {{ deleteLoading ? 'Excluindo...' : 'Sim, excluir minha conta' }}
+          </button>
         </div>
       </div>
     </div>
@@ -181,292 +248,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useProfile } from './Profile'
 
-const router = useRouter()
-const user = ref<any>(null)
-
-const getNivelIngles = (nivel: string) => {
-  const niveis = {
-    iniciante: 'Iniciante',
-    intermediario: 'Intermediário',
-    avancado: 'Avançado',
-  }
-  return niveis[nivel] || nivel || 'Não informado'
-}
-
-const getIdiomaPreferido = (idioma: string) => {
-  const idiomas = {
-    'pt-BR': 'Português (Brasil)',
-    en: 'Inglês',
-    es: 'Espanhol',
-  }
-  return idiomas[idioma] || idioma || 'Não informado'
-}
-
-onMounted(() => {
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    try {
-      user.value = JSON.parse(userData)
-    } catch (e) {
-      console.error('Erro ao carregar usuário:', e)
-    }
-  }
-
-  if (!user.value) {
-    router.push('/login')
-  }
-})
+const {
+  user,
+  showDeleteModal,
+  confirmEmail,
+  deleteLoading,
+  getNivelIngles,
+  getIdiomaPreferido,
+  handleDeleteAccount,
+} = useProfile()
 </script>
 
 <style scoped>
-.profile-container {
-  min-height: 100vh;
-  background: #f8f9fa;
-}
-
-.profile-header {
-  position: relative;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: white;
-  padding: 2rem 0;
-  margin-bottom: 2rem;
-}
-
-.header-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" fill="%23ffffff" fill-opacity="0.1"/></svg>')
-    bottom center no-repeat;
-  background-size: cover;
-}
-
-.profile-content {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.profile-avatar {
-  flex-shrink: 0;
-}
-
-.avatar-placeholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.avatar-placeholder svg {
-  width: 2rem;
-  height: 2rem;
-  color: white;
-}
-
-.profile-info {
-  flex: 1;
-}
-
-.profile-name {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  color: white;
-}
-
-.profile-email {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin: 0;
-}
-
-.profile-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.btn-edit {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-edit:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.btn-back {
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.btn-back:hover {
-  background: rgba(0, 0, 0, 0.3);
-  transform: translateY(-2px);
-}
-
-.profile-body {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem 2rem;
-}
-
-.profile-card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  background: white;
-}
-
-.profile-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-.card-header {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 1.5rem;
-  border-radius: 15px 15px 0 0;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.card-title svg {
-  color: #7c3aed;
-}
-
-.card-body {
-  padding: 1.5rem;
-}
-
-.info-group {
-  margin-bottom: 1.5rem;
-}
-
-.info-group:last-child {
-  margin-bottom: 0;
-}
-
-.info-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.info-value {
-  font-size: 1rem;
-  color: #374151;
-  margin: 0;
-  padding: 0;
-}
-
-.objectives-text {
-  line-height: 1.6;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.status-active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.mt-6 {
-  margin-top: 1.5rem;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-  .profile-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-
-  .profile-actions {
-    justify-content: center;
-  }
-
-  .profile-name {
-    font-size: 1.75rem;
-  }
-
-  .avatar-placeholder {
-    width: 70px;
-    height: 70px;
-  }
-}
-
-@media (max-width: 480px) {
-  .profile-header {
-    padding: 1.5rem 0;
-  }
-
-  .profile-name {
-    font-size: 1.5rem;
-  }
-
-  .card-body {
-    padding: 1rem;
-  }
-}
+@import '@/styles/views/users/profile.css';
 </style>
