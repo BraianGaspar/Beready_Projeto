@@ -372,131 +372,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRegister } from './Register'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
-import { useForm } from '@/composables/useForm'
 
-const router = useRouter()
-const loading = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-const flashMessage = ref('')
-const flashType = ref('')
-const strengthClass = ref('')
-const strengthText = ref('Força da senha')
-const strengthWidth = ref('0%')
-
-const { form, errors, validate } = useForm({
-  nome: '',
-  email: '',
-  telefone: '',
-  senha: '',
-  confirmar_senha: '',
-  nivel_ingles: '',
-  idioma_preferido: '',
-  objetivos_aprendizado: '',
-})
-
-const passwordsMatch = computed(() => form.senha === form.confirmar_senha)
-
-const formatTelefone = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  let value = target.value.replace(/\D/g, '')
-  if (value.length <= 11) {
-    if (value.length <= 2) value = value.replace(/^(\d{0,2})/, '($1')
-    else if (value.length <= 7) value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2')
-    else if (value.length <= 11) value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
-    target.value = value
-    form.telefone = value
-  }
-}
-
-const checkPasswordStrength = () => {
-  const password = form.senha
-  let strength = 0
-  if (password.length >= 8) strength++
-  if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++
-  if (password.match(/\d/)) strength++
-  if (password.match(/[^a-zA-Z\d]/)) strength++
-
-  switch (strength) {
-    case 0:
-      strengthText.value = 'Força da senha: Muito Fraca'
-      strengthClass.value = ''
-      strengthWidth.value = '0%'
-      break
-    case 1:
-      strengthText.value = 'Força da senha: Fraca'
-      strengthClass.value = 'weak'
-      strengthWidth.value = '25%'
-      break
-    case 2:
-      strengthText.value = 'Força da senha: Moderada'
-      strengthClass.value = 'medium'
-      strengthWidth.value = '50%'
-      break
-    case 3:
-      strengthText.value = 'Força da senha: Forte'
-      strengthClass.value = 'strong'
-      strengthWidth.value = '75%'
-      break
-    case 4:
-      strengthText.value = 'Força da senha: Muito Forte'
-      strengthClass.value = 'very-strong'
-      strengthWidth.value = '100%'
-      break
-  }
-}
-
-const checkPasswordMatch = () => {}
-
-const handleSubmit = async () => {
-  if (!passwordsMatch.value) {
-    flashType.value = 'error'
-    flashMessage.value = 'As senhas não coincidem'
-    return
-  }
-  if (form.senha.length < 6) {
-    flashType.value = 'error'
-    flashMessage.value = 'A senha deve ter pelo menos 6 caracteres'
-    return
-  }
-
-  loading.value = true
-  flashMessage.value = ''
-
-  try {
-    const response = await fetch('http://localhost:8765/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome: form.nome,
-        email: form.email,
-        senha: form.senha,
-        telefone: form.telefone,
-        nivel_ingles: form.nivel_ingles,
-        idioma_preferido: form.idioma_preferido,
-        objetivos_aprendizado: form.objetivos_aprendizado,
-      }),
-    })
-    const data = await response.json()
-    if (data.success) {
-      flashType.value = 'success'
-      flashMessage.value = 'Cadastro realizado com sucesso! Redirecionando...'
-      setTimeout(() => router.push('/login'), 2000)
-    } else {
-      flashType.value = 'error'
-      flashMessage.value = data.message || 'Erro ao cadastrar'
-    }
-  } catch (err) {
-    flashType.value = 'error'
-    flashMessage.value = 'Erro de conexão com o servidor'
-  } finally {
-    loading.value = false
-  }
-}
+const {
+  form,
+  errors,
+  loading,
+  showPassword,
+  showConfirmPassword,
+  flashMessage,
+  flashType,
+  strengthClass,
+  strengthText,
+  strengthWidth,
+  passwordsMatch,
+  formatTelefone,
+  checkPasswordStrength,
+  checkPasswordMatch,
+  handleSubmit,
+} = useRegister()
 </script>
 
 <style scoped>

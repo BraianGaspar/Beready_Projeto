@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 export function useForm<T extends Record<string, any>>(initialData: T) {
   const form = reactive<T>({ ...initialData })

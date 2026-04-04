@@ -26,7 +26,7 @@
           <p class="profile-email">{{ user?.email || '' }}</p>
         </div>
         <div class="profile-actions">
-          <Button variant="outline" @click="$router.push('/profile/edit')">
+          <button class="btn-profile btn-outline" @click="$router.push('/profile/edit')">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -42,8 +42,25 @@
               />
             </svg>
             Editar Perfil
-          </Button>
-          <Button variant="secondary" @click="$router.push('/dashboard')">
+          </button>
+          <button class="btn-profile btn-danger" @click="showDeleteModal = true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Excluir Conta
+          </button>
+          <button class="btn-profile btn-secondary" @click="$router.push('/dashboard')">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -59,15 +76,15 @@
               />
             </svg>
             Voltar
-          </Button>
+          </button>
         </div>
       </div>
     </div>
 
     <div class="profile-body">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card class="profile-card">
-          <template #header>
+        <div class="profile-card">
+          <div class="card-header">
             <h3 class="card-title">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -85,23 +102,25 @@
               </svg>
               Informações Pessoais
             </h3>
-          </template>
-          <div class="profile-info-group">
-            <label class="profile-info-label">Nome Completo</label>
-            <p class="profile-info-value">{{ user?.nome || '-' }}</p>
           </div>
-          <div class="profile-info-group">
-            <label class="profile-info-label">E-mail</label>
-            <p class="profile-info-value">{{ user?.email || '-' }}</p>
+          <div class="card-body">
+            <div class="profile-info-group">
+              <label class="profile-info-label">Nome Completo</label>
+              <p class="profile-info-value">{{ user?.nome || '-' }}</p>
+            </div>
+            <div class="profile-info-group">
+              <label class="profile-info-label">E-mail</label>
+              <p class="profile-info-value">{{ user?.email || '-' }}</p>
+            </div>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Telefone</label>
+              <p class="profile-info-value">{{ user?.telefone || 'Não informado' }}</p>
+            </div>
           </div>
-          <div class="profile-info-group">
-            <label class="profile-info-label">Telefone</label>
-            <p class="profile-info-value">{{ user?.telefone || 'Não informado' }}</p>
-          </div>
-        </Card>
+        </div>
 
-        <Card class="profile-card">
-          <template #header>
+        <div class="profile-card">
+          <div class="card-header">
             <h3 class="card-title">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -119,33 +138,35 @@
               </svg>
               Preferências de Aprendizado
             </h3>
-          </template>
-          <div class="profile-info-group">
-            <label class="profile-info-label">Nível de Inglês</label>
-            <p class="profile-info-value">{{ getNivelIngles(user?.nivel_ingles) }}</p>
           </div>
-          <div class="profile-info-group">
-            <label class="profile-info-label">Idioma Preferido</label>
-            <p class="profile-info-value">{{ getIdiomaPreferido(user?.idioma_preferido) }}</p>
+          <div class="card-body">
+            <div class="profile-info-group">
+              <label class="profile-info-label">Nível de Inglês</label>
+              <p class="profile-info-value">{{ getNivelIngles(user?.nivel_ingles) }}</p>
+            </div>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Idioma Preferido</label>
+              <p class="profile-info-value">{{ getIdiomaPreferido(user?.idioma_preferido) }}</p>
+            </div>
+            <div class="profile-info-group">
+              <label class="profile-info-label">Status</label>
+              <p class="profile-info-value">
+                <span
+                  class="profile-status-badge"
+                  :class="
+                    user?.status === 'ativo' ? 'profile-status-active' : 'profile-status-inactive'
+                  "
+                >
+                  {{ user?.status === 'ativo' ? 'Ativo' : 'Inativo' }}
+                </span>
+              </p>
+            </div>
           </div>
-          <div class="profile-info-group">
-            <label class="profile-info-label">Status</label>
-            <p class="profile-info-value">
-              <span
-                class="profile-status-badge"
-                :class="
-                  user?.status === 'ativo' ? 'profile-status-active' : 'profile-status-inactive'
-                "
-              >
-                {{ user?.status === 'ativo' ? 'Ativo' : 'Inativo' }}
-              </span>
-            </p>
-          </div>
-        </Card>
+        </div>
       </div>
 
-      <Card class="profile-card profile-mt-6">
-        <template #header>
+      <div class="profile-card profile-mt-6">
+        <div class="card-header">
           <h3 class="card-title">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -163,53 +184,81 @@
             </svg>
             Objetivos de Aprendizado
           </h3>
-        </template>
-        <p class="profile-info-value profile-objectives-text">
-          {{ user?.objetivos_aprendizado || 'Nenhum objetivo definido' }}
-        </p>
-      </Card>
+        </div>
+        <div class="card-body">
+          <p class="profile-info-value profile-objectives-text">
+            {{ user?.objetivos_aprendizado || 'Nenhum objetivo definido' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-icon danger">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h3 class="modal-title">Excluir Conta</h3>
+        </div>
+        <div class="modal-body">
+          <p>Tem certeza que deseja excluir sua conta?</p>
+          <p class="modal-warning">
+            Esta ação é irreversível e todos os seus dados serão perdidos.
+          </p>
+          <div class="modal-confirm-input">
+            <label
+              >Digite <strong>{{ user?.email }}</strong> para confirmar:</label
+            >
+            <input
+              v-model="confirmEmail"
+              type="email"
+              :placeholder="user?.email"
+              class="confirm-input"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="showDeleteModal = false" class="modal-btn-cancel">Cancelar</button>
+          <button
+            @click="handleDeleteAccount"
+            :disabled="confirmEmail !== user?.email || deleteLoading"
+            class="modal-btn-delete"
+          >
+            {{ deleteLoading ? 'Excluindo...' : 'Sim, excluir minha conta' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import Card from '@/components/common/Card.vue'
-import Button from '@/components/common/Button.vue'
+import { useProfile } from './Profile'
 
-const router = useRouter()
-const user = ref<any>(null)
-
-const getNivelIngles = (nivel: string) => {
-  const niveis: Record<string, string> = {
-    iniciante: 'Iniciante',
-    intermediario: 'Intermediário',
-    avancado: 'Avançado',
-  }
-  return niveis[nivel] || nivel || 'Não informado'
-}
-
-const getIdiomaPreferido = (idioma: string) => {
-  const idiomas: Record<string, string> = {
-    'pt-BR': 'Português (Brasil)',
-    en: 'Inglês',
-    es: 'Espanhol',
-  }
-  return idiomas[idioma] || idioma || 'Não informado'
-}
-
-onMounted(() => {
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    try {
-      user.value = JSON.parse(userData)
-    } catch (e) {
-      console.error('Erro ao carregar usuário:', e)
-    }
-  }
-  if (!user.value) router.push('/login')
-})
+const {
+  user,
+  showDeleteModal,
+  confirmEmail,
+  deleteLoading,
+  getNivelIngles,
+  getIdiomaPreferido,
+  handleDeleteAccount,
+} = useProfile()
 </script>
 
 <style scoped>

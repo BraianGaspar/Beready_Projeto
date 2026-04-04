@@ -58,24 +58,12 @@
 </template>
 
 <script setup lang="ts">
-import { useAuth } from '@/composables/useAuth'
-import { useForm } from '@/composables/useForm'
+import { useLogin } from './Login'
 import Card from '@/components/common/Card.vue'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
 
-const { login, loading } = useAuth()
-const { form, errors, validate } = useForm({ email: '', password: '' })
-
-const rules = {
-  email: (value: string) => (!value ? 'E-mail é obrigatório' : null),
-  password: (value: string) => (!value ? 'Senha é obrigatória' : null),
-}
-
-const handleSubmit = async () => {
-  if (!validate(rules)) return
-  await login(form.email, form.password)
-}
+const { form, errors, loading, handleSubmit } = useLogin()
 </script>
 
 <style scoped>

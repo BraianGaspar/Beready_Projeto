@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <Navbar :user="user" @logout="handleLogout" />
+    <Navbar :user="user" :loading="loading" @logout="handleLogout" />
 
     <main class="dashboard-main">
       <div class="welcome-section">
@@ -191,44 +191,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useDashboard } from './Dashboard'
 import Navbar from '@/components/layout/Navbar.vue'
 
-const router = useRouter()
-const loading = ref(false)
-const user = ref<any>(null)
-
-const userName = computed(() => {
-  const name = user.value?.nome || user.value?.name || 'Usuário'
-  return name.split(' ')[0]
-})
-
-const handleLogout = async () => {
-  loading.value = true
-  try {
-    await fetch('http://localhost:8765/auth/logout', { method: 'POST' })
-  } catch (err) {
-    console.error('Erro no logout:', err)
-  } finally {
-    localStorage.removeItem('user')
-    localStorage.removeItem('auth_token')
-    router.push('/login')
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    try {
-      user.value = JSON.parse(userData)
-    } catch (e) {
-      console.error('Erro ao carregar usuário:', e)
-    }
-  }
-  if (!user.value) router.push('/login')
-})
+const { user, loading, userName, handleLogout } = useDashboard()
 </script>
 
 <style scoped>

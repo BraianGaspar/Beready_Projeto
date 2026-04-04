@@ -29,6 +29,7 @@
   transition: all 0.3s ease;
   background: white;
   color: #374151;
+  box-sizing: border-box;
 }
 
 .input-field:focus {
