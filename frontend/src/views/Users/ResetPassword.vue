@@ -53,7 +53,7 @@
                 class="form-input password-input"
                 placeholder="Digite sua nova senha"
                 required
-                @input="checkPasswordStrength"
+                @input="checkPasswordStrength(($event.target as HTMLInputElement).value)"
               />
               <button type="button" class="toggle-password" @click="showPassword = !showPassword">
                 <svg
@@ -115,7 +115,7 @@
                 class="form-input password-input"
                 placeholder="Digite a nova senha novamente"
                 required
-                @input="checkPasswordMatch"
+                @input="checkPasswordMatch()"
               />
               <button
                 type="button"

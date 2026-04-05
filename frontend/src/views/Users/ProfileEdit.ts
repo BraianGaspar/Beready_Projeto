@@ -15,7 +15,7 @@ export function useProfileEdit() {
 
   const { strengthClass, strengthText, strengthWidth, checkPasswordStrength } =
     usePasswordStrength()
-  const { handlePhoneInput, phoneError } = usePhoneMask()
+  const { handlePhoneInput, handlePhoneKeydown, phoneError, formatPhone } = usePhoneMask()
 
   const { form, errors, validate } = useForm({
     nome: '',
@@ -36,6 +36,16 @@ export function useProfileEdit() {
 
   const checkPasswordMatch = () => {
     // Força a reatividade
+    passwordsMatch.value
+  }
+
+  const handlePasswordInput = (event: Event) => {
+    const input = event.target as HTMLInputElement
+    checkPasswordStrength(input.value)
+  }
+
+  const handleConfirmPasswordInput = (event: Event) => {
+    // O v-model já atualiza form.confirmar_senha; apenas aciona a reatividade
     passwordsMatch.value
   }
 
@@ -66,7 +76,8 @@ export function useProfileEdit() {
         if (data.success) {
           form.nome = data.user.nome || ''
           form.email = data.user.email || ''
-          form.telefone = data.user.telefone || ''
+          // Formata o telefone ao carregar
+          form.telefone = formatPhone(data.user.telefone || '')
           form.nivel_ingles = data.user.nivel_ingles || 'iniciante'
           form.idioma_preferido = data.user.idioma_preferido || 'pt-BR'
           form.status = data.user.status || 'ativo'
@@ -76,7 +87,8 @@ export function useProfileEdit() {
         // Fallback para dados do localStorage
         form.nome = user.nome || ''
         form.email = user.email || ''
-        form.telefone = user.telefone || ''
+        // Formata o telefone ao carregar
+        form.telefone = formatPhone(user.telefone || '')
         form.nivel_ingles = user.nivel_ingles || 'iniciante'
         form.idioma_preferido = user.idioma_preferido || 'pt-BR'
         form.status = user.status || 'ativo'
@@ -88,7 +100,8 @@ export function useProfileEdit() {
       userId.value = user.id // 🔥 Garante que o ID é setado mesmo em erro
       form.nome = user.nome || ''
       form.email = user.email || ''
-      form.telefone = user.telefone || ''
+      // Formata o telefone ao carregar
+      form.telefone = formatPhone(user.telefone || '')
       form.nivel_ingles = user.nivel_ingles || 'iniciante'
       form.idioma_preferido = user.idioma_preferido || 'pt-BR'
       form.status = user.status || 'ativo'
@@ -121,8 +134,8 @@ export function useProfileEdit() {
     // Validar telefone se foi alterado
     if (form.telefone) {
       const digits = form.telefone.replace(/\D/g, '')
-      if (digits.length > 0 && digits.length < 10) {
-        error('Telefone deve ter pelo menos 10 dígitos')
+      if (digits.length > 0 && digits.length < 11) {
+        error('Telefone deve ter 11 dígitos')
         return
       }
     }
@@ -145,7 +158,7 @@ export function useProfileEdit() {
       const submitData: any = {
         nome: form.nome,
         email: form.email,
-        telefone: form.telefone,
+        telefone: form.telefone, // Envia já formatado
         nivel_ingles: form.nivel_ingles,
         idioma_preferido: form.idioma_preferido,
         status: form.status,
@@ -217,8 +230,11 @@ export function useProfileEdit() {
     phoneError,
     passwordsMatch,
     handlePhoneInput,
+    handlePhoneKeydown,
     checkPasswordStrength,
     checkPasswordMatch,
+    handlePasswordInput,
+    handleConfirmPasswordInput,
     handleSubmit,
   }
 }

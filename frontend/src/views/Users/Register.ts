@@ -14,7 +14,7 @@ export function useRegister() {
 
   const { strengthClass, strengthText, strengthWidth, checkPasswordStrength } =
     usePasswordStrength()
-  const { handlePhoneInput, phoneError } = usePhoneMask()
+  const { handlePhoneInput, handlePhoneKeydown, phoneError } = usePhoneMask()
 
   const { form, errors, validate } = useForm({
     nome: '',
@@ -59,8 +59,8 @@ export function useRegister() {
     // Validar telefone se foi preenchido
     if (form.telefone) {
       const digits = form.telefone.replace(/\D/g, '')
-      if (digits.length > 0 && digits.length < 10) {
-        error('Telefone deve ter pelo menos 10 dígitos')
+      if (digits.length > 0 && digits.length < 11) {
+        error('Telefone deve ter 11 dígitos')
         return
       }
     }
@@ -115,6 +115,7 @@ export function useRegister() {
     phoneError,
     passwordsMatch,
     handlePhoneInput,
+    handlePhoneKeydown,
     checkPasswordStrength,
     checkPasswordMatch,
     handleSubmit,

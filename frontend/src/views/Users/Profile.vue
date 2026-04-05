@@ -114,7 +114,7 @@
             </div>
             <div class="profile-info-group">
               <label class="profile-info-label">Telefone</label>
-              <p class="profile-info-value">{{ user?.telefone || 'Não informado' }}</p>
+              <p class="profile-info-value">{{ formattedPhone || 'Não informado' }}</p>
             </div>
           </div>
         </div>
@@ -252,6 +252,7 @@ import { useProfile } from './Profile'
 
 const {
   user,
+  formattedPhone,
   showDeleteModal,
   confirmEmail,
   deleteLoading,

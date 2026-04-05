@@ -75,9 +75,12 @@
                 <input
                   v-model="form.telefone"
                   type="tel"
+                  inputmode="numeric"
+                  maxlength="14"
                   class="profile-edit-input-field"
-                  placeholder="(99) 99999-9999"
-                  @input="handlePhoneInput"
+                  placeholder="(99)99999-9999"
+                  @keydown="handlePhoneKeydown"
+                  @input="(e) => { form.telefone = handlePhoneInput(e) }"
                 />
               </div>
               <span v-if="phoneError" class="input-error">{{ phoneError }}</span>
@@ -234,7 +237,7 @@
                   :type="showPassword ? 'text' : 'password'"
                   class="profile-edit-input-field"
                   placeholder="Mínimo 6 caracteres"
-                  @input="checkPasswordStrength"
+                  @input="handlePasswordInput"
                 />
                 <button
                   type="button"
@@ -298,7 +301,7 @@
                   :type="showConfirmPassword ? 'text' : 'password'"
                   class="profile-edit-input-field"
                   placeholder="Digite a senha novamente"
-                  @input="checkPasswordMatch"
+                  @input="handleConfirmPasswordInput"
                 />
                 <button
                   type="button"
@@ -417,8 +420,9 @@ const {
   phoneError,
   passwordsMatch,
   handlePhoneInput,
-  checkPasswordStrength,
-  checkPasswordMatch,
+  handlePhoneKeydown,
+  handlePasswordInput,
+  handleConfirmPasswordInput,
   handleSubmit,
 } = useProfileEdit()
 </script>

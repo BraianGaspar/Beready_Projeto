@@ -16,14 +16,14 @@ import ResetPassword from '../views/Users/ResetPassword.vue'
 import Flashcards from '../views/flashcards/Flashcards.vue'
 
 // Quizes Views
-import Quizes from '../views/quizes/Quizes.vue'
-import QuizView from '../views/quizes/QuizView.vue'
-import QuizPlay from '../views/quizes/QuizPlay.vue'
-import QuizAdd from '../views/quizes/QuizAdd.vue'
-import QuizEdit from '../views/quizes/QuizEdit.vue'
+import Quizes from '../views/Quizes/Quizes.vue'
+import QuizView from '../views/Quizes/QuizView.vue'
+import QuizPlay from '../views/Quizes/QuizPlay.vue'
+import QuizAdd from '../views/Quizes/QuizAdd.vue'
+import QuizEdit from '../views/Quizes/QuizEdit.vue'
 
 // Prompts Views
-import Prompts from '../views/prompts/Prompts.vue'
+import Prompts from '../views/Prompts/Prompts.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -103,15 +103,15 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/quizes/:id',
-      name: 'quiz-view',
-      component: QuizView,
-      meta: { requiresAuth: true },
-    },
-    {
       path: '/quizes/:id/play',
       name: 'quiz-play',
       component: QuizPlay,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/quizes/:id',
+      name: 'quiz-view',
+      component: QuizView,
       meta: { requiresAuth: true },
     },
     // Prompts Routes

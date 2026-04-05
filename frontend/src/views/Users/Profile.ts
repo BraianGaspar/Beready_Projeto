@@ -1,6 +1,7 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAlert } from '@/composables/useAlert'
+import { usePhoneMask } from '@/composables/usePhoneMask'
 
 export function useProfile() {
   const router = useRouter()
@@ -9,6 +10,13 @@ export function useProfile() {
   const showDeleteModal = ref(false)
   const confirmEmail = ref('')
   const deleteLoading = ref(false)
+
+  const { formatPhone } = usePhoneMask()
+
+  const formattedPhone = computed(() => {
+    if (!user.value?.telefone) return ''
+    return formatPhone(user.value.telefone)
+  })
 
   const getNivelIngles = (nivel: string) => {
     const niveis: Record<string, string> = {
@@ -35,9 +43,10 @@ export function useProfile() {
     }
 
     deleteLoading.value = true
+    let response: Response | null = null
 
     try {
-      const response = await fetch(`http://localhost:8765/users/${user.value.id}`, {
+      response = await fetch(`http://localhost:8765/users/${user.value.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -128,6 +137,7 @@ export function useProfile() {
 
   return {
     user,
+    formattedPhone,
     showDeleteModal,
     confirmEmail,
     deleteLoading,

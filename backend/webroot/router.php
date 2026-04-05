@@ -443,6 +443,254 @@ if (preg_match('/^\/users\/(\d+)$/', $path, $matches) && $_SERVER['REQUEST_METHO
 }
 
 // ============================================
+// QUIZES ROUTES
+// ============================================
+
+if ($path === '/quizes' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Content-Type: application/json');
+    try {
+        $pdo = getDBConnection();
+        $stmt = $pdo->query("SELECT id, usuario_id, titulo, descricao, tipo_criacao, nivel_dificuldade, total_questoes, tempo_limite, publico, criado_em, atualizado_em FROM quizes ORDER BY id DESC");
+        $quizes = $stmt->fetchAll();
+        echo json_encode([
+            'success' => true,
+            'data' => $quizes
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao carregar quizzes: ' . $e->getMessage()
+        ]);
+    }
+    exit();
+}
+
+if ($path === '/quizes' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    if (empty($data['titulo'])) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Título é obrigatório'
+        ]);
+        exit();
+    }
+
+    try {
+        $pdo = getDBConnection();
+        $stmt = $pdo->prepare(
+            "INSERT INTO quizes (usuario_id, titulo, descricao, tipo_criacao, nivel_dificuldade, total_questoes, tempo_limite, publico, criado_em, atualizado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING id, usuario_id, titulo, descricao, tipo_criacao, nivel_dificuldade, total_questoes, tempo_limite, publico, criado_em, atualizado_em"
+        );
+        $stmt->execute([
+            $data['usuario_id'] ?? null,
+            $data['titulo'],
+            $data['descricao'] ?? null,
+            $data['tipo_criacao'] ?? 'manual',
+            $data['nivel_dificuldade'] ?? 'iniciante',
+            $data['total_questoes'] ?? null,
+            $data['tempo_limite'] ?? null,
+            isset($data['publico']) ? (bool)$data['publico'] : false
+        ]);
+
+        $quiz = $stmt->fetch();
+        echo json_encode([
+            'success' => true,
+            'message' => 'Quiz criado com sucesso',
+            'data' => $quiz
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao criar quiz: ' . $e->getMessage()
+        ]);
+    }
+    exit();
+}
+
+if (preg_match('/^\/quizes\/user\/(\d+)$/', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Content-Type: application/json');
+    $usuarioId = (int)$matches[1];
+
+    try {
+        $pdo = getDBConnection();
+        $stmt = $pdo->prepare("SELECT id, usuario_id, titulo, descricao, tipo_criacao, nivel_dificuldade, total_questoes, tempo_limite, publico, criado_em, atualizado_em FROM quizes WHERE usuario_id = ? ORDER BY id DESC");
+        $stmt->execute([$usuarioId]);
+        $quizes = $stmt->fetchAll();
+
+        echo json_encode([
+            'success' => true,
+            'data' => $quizes
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao carregar quizzes do usuário'
+        ]);
+    }
+    exit();
+}
+
+if (preg_match('/^\/quizes\/(\d+)$/', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Content-Type: application/json');
+    $quizId = (int)$matches[1];
+
+    try {
+        $pdo = getDBConnection();
+        $stmt = $pdo->prepare("SELECT id, usuario_id, titulo, descricao, tipo_criacao, nivel_dificuldade, total_questoes, tempo_limite, publico, criado_em, atualizado_em FROM quizes WHERE id = ?");
+        $stmt->execute([$quizId]);
+        $quiz = $stmt->fetch();
+
+        if (!$quiz) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Quiz não encontrado'
+            ]);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data' => $quiz
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao buscar quiz'
+        ]);
+    }
+    exit();
+}
+
+if (preg_match('/^\/quizes\/(\d+)$/', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    header('Content-Type: application/json');
+    $quizId = (int)$matches[1];
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    try {
+        $pdo = getDBConnection();
+        $stmt = $pdo->prepare("SELECT id FROM quizes WHERE id = ?");
+        $stmt->execute([$quizId]);
+        $quiz = $stmt->fetch();
+
+        if (!$quiz) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Quiz não encontrado'
+            ]);
+            exit();
+        }
+
+        $fields = [];
+        $params = [];
+
+        if (isset($data['titulo'])) {
+            $fields[] = 'titulo = ?';
+            $params[] = $data['titulo'];
+        }
+        if (isset($data['descricao'])) {
+            $fields[] = 'descricao = ?';
+            $params[] = $data['descricao'];
+        }
+        if (isset($data['tipo_criacao'])) {
+            $fields[] = 'tipo_criacao = ?';
+            $params[] = $data['tipo_criacao'];
+        }
+        if (isset($data['nivel_dificuldade'])) {
+            $fields[] = 'nivel_dificuldade = ?';
+            $params[] = $data['nivel_dificuldade'];
+        }
+        if (isset($data['total_questoes'])) {
+            $fields[] = 'total_questoes = ?';
+            $params[] = $data['total_questoes'];
+        }
+        if (isset($data['tempo_limite'])) {
+            $fields[] = 'tempo_limite = ?';
+            $params[] = $data['tempo_limite'];
+        }
+        if (isset($data['publico'])) {
+            $fields[] = 'publico = ?';
+            $params[] = (bool)$data['publico'];
+        }
+
+        if (empty($fields)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Nenhuma alteração realizada'
+            ]);
+            exit();
+        }
+
+        $fields[] = 'atualizado_em = NOW()';
+        $params[] = $quizId;
+
+        $sql = 'UPDATE quizes SET ' . implode(', ', $fields) . ' WHERE id = ?';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        $stmt = $pdo->prepare("SELECT id, usuario_id, titulo, descricao, tipo_criacao, nivel_dificuldade, total_questoes, tempo_limite, publico, criado_em, atualizado_em FROM quizes WHERE id = ?");
+        $stmt->execute([$quizId]);
+        $quiz = $stmt->fetch();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Quiz atualizado com sucesso',
+            'data' => $quiz
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao atualizar quiz: ' . $e->getMessage()
+        ]);
+    }
+    exit();
+}
+
+if (preg_match('/^\/quizes\/(\d+)$/', $path, $matches) && $_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    header('Content-Type: application/json');
+    $quizId = (int)$matches[1];
+
+    try {
+        $pdo = getDBConnection();
+        $stmt = $pdo->prepare("SELECT id FROM quizes WHERE id = ?");
+        $stmt->execute([$quizId]);
+        $quiz = $stmt->fetch();
+
+        if (!$quiz) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Quiz não encontrado'
+            ]);
+            exit();
+        }
+
+        $stmt = $pdo->prepare("DELETE FROM quizes WHERE id = ?");
+        $stmt->execute([$quizId]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Quiz excluído com sucesso'
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao excluir quiz'
+        ]);
+    }
+    exit();
+}
+
+// ============================================
 // FALLBACK
 // ============================================
 

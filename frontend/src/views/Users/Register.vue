@@ -63,11 +63,14 @@
                   <label class="form-label">Telefone</label>
                   <div class="input-container">
                     <input
-                      v-model="form.telefone"
+                      :value="form.telefone"
                       type="tel"
+                      inputmode="numeric"
+                      maxlength="14"
                       class="form-input"
-                      placeholder="(99) 99999-9999"
-                      @input="handlePhoneInput"
+                      placeholder="(99)99999-9999"
+                      @keydown="handlePhoneKeydown"
+                      @input="(e) => { form.telefone = handlePhoneInput(e) }"
                     />
                   </div>
                   <span v-if="phoneError" class="input-error">{{ phoneError }}</span>
@@ -101,7 +104,7 @@
                       class="form-input password-input"
                       placeholder="Crie uma senha segura (mínimo 6 caracteres)"
                       required
-                      @input="checkPasswordStrength"
+                      @input="checkPasswordStrength(($event.target as HTMLInputElement).value)"
                     />
                     <button
                       type="button"
@@ -167,7 +170,7 @@
                       class="form-input password-input"
                       placeholder="Digite a senha novamente"
                       required
-                      @input="checkPasswordMatch"
+                      @input="checkPasswordMatch()"
                     />
                     <button
                       type="button"
@@ -373,6 +376,7 @@ const {
   phoneError,
   passwordsMatch,
   handlePhoneInput,
+  handlePhoneKeydown,
   checkPasswordStrength,
   checkPasswordMatch,
   handleSubmit,

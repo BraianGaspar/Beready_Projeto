@@ -10,7 +10,7 @@
         </div>
         <h1 class="hero-title">Quizzes</h1>
         <p class="hero-subtitle">Teste seus conhecimentos com nossos quizzes interativos</p>
-        <button class="hero-btn" @click="showCreateModal = true">
+        <button class="hero-btn" @click="addQuiz">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -34,7 +34,7 @@
       </div>
       <h3 class="empty-title">Nenhum quiz encontrado</h3>
       <p class="empty-description">Comece criando seu primeiro quiz!</p>
-      <button class="empty-btn" @click="showCreateModal = true">
+      <button class="empty-btn" @click="addQuiz">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -96,116 +96,6 @@
       </div>
     </div>
 
-    <!-- Create Quiz Modal -->
-    <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
-      <div class="modal-container">
-        <div class="modal-header">
-          <div>
-            <h3 class="modal-title">Criar Novo Quiz</h3>
-            <p class="modal-subtitle">Preencha as informações abaixo</p>
-          </div>
-          <button class="modal-close" @click="showCreateModal = false">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Título do Quiz *</label>
-            <input v-model="newQuiz.titulo" type="text" class="form-input" placeholder="Ex: Vocabulário Básico" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Descrição</label>
-            <textarea v-model="newQuiz.descricao" class="form-textarea" rows="3" placeholder="Descreva o conteúdo do quiz..."></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Nível de Dificuldade</label>
-              <select v-model="newQuiz.nivel_dificuldade" class="form-select">
-                <option value="iniciante">🌱 Iniciante</option>
-                <option value="intermediario">📚 Intermediário</option>
-                <option value="avancado">🎯 Avançado</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Total de Questões</label>
-              <input v-model.number="newQuiz.total_questoes" type="number" class="form-input" placeholder="Ex: 10" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Tempo Limite (minutos)</label>
-              <input v-model.number="newQuiz.tempo_limite" type="number" class="form-input" placeholder="Opcional" />
-            </div>
-            <div class="form-group">
-              <label class="form-checkbox">
-                <input v-model="newQuiz.publico" type="checkbox" />
-                <span>📢 Tornar público</span>
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showCreateModal = false">Cancelar</button>
-          <button class="btn-create" @click="createQuiz" :disabled="creating">
-            {{ creating ? 'Criando...' : 'Criar Quiz' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Quiz Modal -->
-    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal-container">
-        <div class="modal-header">
-          <div>
-            <h3 class="modal-title">Editar Quiz</h3>
-            <p class="modal-subtitle">Atualize as informações do quiz</p>
-          </div>
-          <button class="modal-close" @click="showEditModal = false">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Título do Quiz *</label>
-            <input v-model="editForm.titulo" type="text" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Descrição</label>
-            <textarea v-model="editForm.descricao" class="form-textarea" rows="3"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Nível de Dificuldade</label>
-              <select v-model="editForm.nivel_dificuldade" class="form-select">
-                <option value="iniciante">🌱 Iniciante</option>
-                <option value="intermediario">📚 Intermediário</option>
-                <option value="avancado">🎯 Avançado</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Total de Questões</label>
-              <input v-model.number="editForm.total_questoes" type="number" class="form-input" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Tempo Limite (minutos)</label>
-              <input v-model.number="editForm.tempo_limite" type="number" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-checkbox">
-                <input v-model="editForm.publico" type="checkbox" />
-                <span>📢 Público</span>
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showEditModal = false">Cancelar</button>
-          <button class="btn-create" @click="updateQuiz" :disabled="editing">
-            {{ editing ? 'Salvando...' : 'Salvar Alterações' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Confirm Delete Modal -->
     <ConfirmModal
       v-model="showConfirmModal"
@@ -230,19 +120,14 @@ const {
   creating,
   editing,
   deleting,
-  showCreateModal,
-  showEditModal,
   showConfirmModal,
   quizToDeleteTitle,
-  newQuiz,
-  editForm,
   viewQuiz,
   startQuiz,
+  addQuiz,
   editQuiz,
-  updateQuiz,
   openDeleteModal,
   confirmDelete,
-  createQuiz,
   getLevelClass,
   getLevelText,
   formatDate
