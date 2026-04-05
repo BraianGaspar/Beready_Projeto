@@ -11,14 +11,11 @@ use function Cake\Core\env;
 return [
     /*
      * Debug Level:
-     *
-     * Production Mode:
-     * false: No error messages, errors, or warnings shown.
-     *
-     * Development Mode:
-     * true: Errors and warnings shown.
+     * Production Mode: false
+     * Development Mode: true
      */
-    'debug' => filter_var(env('DEBUG', true), FILTER_VALIDATE_BOOLEAN),
+    // Mude para false em produção ou para suprimir warnings
+    'debug' => filter_var(env('DEBUG', false), FILTER_VALIDATE_BOOLEAN),
 
     /*
      * Configure basic information about the application.
@@ -38,7 +35,6 @@ return [
         'jsBaseUrl' => 'js/',
         'paths' => [
             'plugins' => [ROOT . DS . 'plugins' . DS],
-            // CORRIGIDO: Força o caminho absoluto dos templates
             'templates' => [dirname(__DIR__) . DS . 'templates' . DS],
             'locales' => [RESOURCES . 'locales' . DS],
         ],
@@ -59,7 +55,7 @@ return [
     ],
 
     /*
-     * Cache adapters
+     * Cache adapters - MODIFICADO para usar Array em desenvolvimento
      */
     'Cache' => [
         'default' => [
@@ -67,21 +63,24 @@ return [
             'path' => CACHE,
             'url' => env('CACHE_DEFAULT_URL', null),
         ],
-        '_cake_translations_' => [
-            'className' => FileEngine::class,
-            'prefix' => 'myapp_cake_translations_',
-            'path' => CACHE . 'persistent' . DS,
+        // Usa cache em memória para evitar problemas de permissão
+        '_cake_core_' => [
+            'className' => 'Array',  // Mudado de FileEngine para Array
+            'prefix' => 'myapp_cake_core_',
             'serialize' => true,
             'duration' => '+1 years',
-            'url' => env('CACHE_CAKECORE_URL', null),
         ],
         '_cake_model_' => [
-            'className' => FileEngine::class,
+            'className' => 'Array',  // Mudado de FileEngine para Array
             'prefix' => 'myapp_cake_model_',
-            'path' => CACHE . 'models' . DS,
             'serialize' => true,
             'duration' => '+1 years',
-            'url' => env('CACHE_CAKEMODEL_URL', null),
+        ],
+        '_cake_translations_' => [
+            'className' => 'Array',  // Mudado de FileEngine para Array
+            'prefix' => 'myapp_cake_translations_',
+            'serialize' => true,
+            'duration' => '+1 years',
         ],
     ],
 
@@ -89,10 +88,10 @@ return [
      * Error and Exception handlers
      */
     'Error' => [
-        'errorLevel' => E_ALL,
+        'errorLevel' => E_ALL & ~E_WARNING & ~E_USER_WARNING & ~E_NOTICE & ~E_DEPRECATED,
         'skipLog' => [],
-        'log' => true,
-        'trace' => true,
+        'log' => false,  // Desabilita log de erros para desenvolvimento
+        'trace' => false,  // Desabilita trace para não poluir a saída
         'ignoredDeprecationPaths' => [],
     ],
 
@@ -195,7 +194,7 @@ return [
      * DebugKit configuration
      */
     'DebugKit' => [
-        'forceEnable' => filter_var(env('DEBUG_KIT_FORCE_ENABLE', false), FILTER_VALIDATE_BOOLEAN),
+        'forceEnable' => false,
         'safeTld' => env('DEBUG_KIT_SAFE_TLD', null),
         'ignoreAuthorization' => env('DEBUG_KIT_IGNORE_AUTHORIZATION', false),
     ],

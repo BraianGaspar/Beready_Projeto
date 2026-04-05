@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Cake\ORM\TableRegistry;
+use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\Http\Response;
 
 class QuizesController extends AppController
 {
@@ -12,16 +14,24 @@ class QuizesController extends AppController
     public function initialize(): void
     {
         parent::initialize();
-        
-        $this->autoRender = false;
         $this->QuizesTable = TableRegistry::getTableLocator()->get('Quizes');
-        $this->response = $this->response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Método auxiliar para enviar resposta JSON
+     */
+    private function jsonResponse($data, int $statusCode = 200): Response
+    {
+        $this->response = $this->response->withStatus($statusCode);
+        $this->response = $this->response->withType('application/json');
+        $this->response = $this->response->withStringBody(json_encode($data, JSON_UNESCAPED_UNICODE));
+        return $this->response;
     }
 
     /**
      * GET /quizes - Lista todos os quizes
      */
-    public function index()
+    public function index(): Response
     {
         try {
             $quizes = $this->QuizesTable->find()
@@ -29,252 +39,166 @@ class QuizesController extends AppController
                 ->orderBy(['criado_em' => 'DESC'])
                 ->all();
             
-            $this->response->getBody()->write(json_encode([
+            return $this->jsonResponse([
                 'success' => true,
-                'data' => $quizes
-            ]));
-            return $this->response;
+                'data' => $quizes->toArray()
+            ]);
         } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => 'Erro ao carregar quizzes: ' . $e->getMessage()
-            ]));
-            return $this->response;
-        }
-    }
-
-    /**
-     * GET /quizes/user/{usuario_id} - Lista quizes de um usuário específico
-     */
-    public function userQuizes($usuarioId = null)
-    {
-        $usuarioId = $usuarioId ?? $this->request->getParam('usuarioId');
-        
-        if (!$usuarioId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID do usuário não informado'
-            ]));
-            return $this->response;
-        }
-        
-        try {
-            $quizes = $this->QuizesTable->find()
-                ->where(['usuario_id' => $usuarioId])
-                ->select(['id', 'titulo', 'descricao', 'nivel_dificuldade', 'total_questoes', 'tempo_limite', 'publico', 'criado_em'])
-                ->orderBy(['criado_em' => 'DESC'])
-                ->all();
-            
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $quizes
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'Erro ao carregar quizzes do usuário'
-            ]));
-            return $this->response;
-        }
-    }
-
-    /**
-     * GET /quizes/{id} - Busca um quiz específico
-     */
-    public function view($id = null)
-    {
-        $quizId = $id ?? $this->request->getParam('id');
-        
-        if (!$quizId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID do quiz não informado'
-            ]));
-            return $this->response;
-        }
-        
-        try {
-            $quiz = $this->QuizesTable->get($quizId);
-            
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $quiz
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(404);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'Quiz não encontrado'
-            ]));
-            return $this->response;
+            ], 500);
         }
     }
 
     /**
      * POST /quizes - Cria um novo quiz
      */
-    public function add()
+    public function add(): Response
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        
-        if (!$data) {
-            $data = $this->request->getData();
-        }
-        
-        // Validação
-        if (empty($data['titulo'])) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
+        try {
+            $input = $this->request->getInput();
+            $data = json_decode($input, true);
+            
+            if (!$data) {
+                $data = $this->request->getData();
+            }
+            
+            if (empty($data['titulo'])) {
+                return $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'Título é obrigatório'
+                ], 400);
+            }
+            
+            if (empty($data['usuario_id'])) {
+                return $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'ID do usuário é obrigatório'
+                ], 400);
+            }
+            
+            $quizData = [
+                'usuario_id' => $data['usuario_id'],
+                'titulo' => $data['titulo'],
+                'descricao' => $data['descricao'] ?? null,
+                'tipo_criacao' => $data['tipo_criacao'] ?? 'manual',
+                'nivel_dificuldade' => $data['nivel_dificuldade'] ?? 'iniciante',
+                'total_questoes' => (int)($data['total_questoes'] ?? 0),
+                'tempo_limite' => !empty($data['tempo_limite']) ? (int)$data['tempo_limite'] : null,
+                'publico' => !empty($data['publico']),
+            ];
+            
+            $quiz = $this->QuizesTable->newEntity($quizData);
+            
+            if ($this->QuizesTable->save($quiz)) {
+                return $this->jsonResponse([
+                    'success' => true,
+                    'message' => 'Quiz criado com sucesso',
+                    'data' => $quiz
+                ], 201);
+            } else {
+                return $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'Erro ao criar quiz',
+                    'errors' => $quiz->getErrors()
+                ], 422);
+            }
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
                 'success' => false,
-                'message' => 'Título é obrigatório'
-            ]));
-            return $this->response;
-        }
-        
-        if (empty($data['usuario_id'])) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID do usuário é obrigatório'
-            ]));
-            return $this->response;
-        }
-        
-        $quizData = [
-            'usuario_id' => $data['usuario_id'],
-            'titulo' => $data['titulo'],
-            'descricao' => $data['descricao'] ?? null,
-            'tipo_criacao' => $data['tipo_criacao'] ?? 'manual',
-            'nivel_dificuldade' => $data['nivel_dificuldade'] ?? 'iniciante',
-            'total_questoes' => $data['total_questoes'] ?? 0,
-            'tempo_limite' => $data['tempo_limite'] ?? null,
-            'publico' => $data['publico'] ?? false
-        ];
-        
-        $quiz = $this->QuizesTable->newEntity($quizData);
-        
-        if ($this->QuizesTable->save($quiz)) {
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'message' => 'Quiz criado com sucesso',
-                'data' => $quiz
-            ]));
-            return $this->response;
-        } else {
-            $this->response = $this->response->withStatus(422);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'Erro ao criar quiz',
-                'errors' => $quiz->getErrors()
-            ]));
-            return $this->response;
+                'message' => 'Erro ao criar quiz: ' . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
      * PUT /quizes/{id} - Atualiza um quiz
      */
-    public function edit($id = null)
+    public function edit($id = null): Response
     {
-        $quizId = $id ?? $this->request->getParam('id');
-        
-        if (!$quizId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
+        if (!$id) {
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => 'ID do quiz não informado'
-            ]));
-            return $this->response;
-        }
-        
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        
-        if (!$data) {
-            $data = $this->request->getData();
+            ], 400);
         }
         
         try {
-            $quiz = $this->QuizesTable->get($quizId);
+            $input = $this->request->getInput();
+            $data = json_decode($input, true);
             
-            // Não permitir alterar o usuario_id
+            if (!$data) {
+                $data = $this->request->getData();
+            }
+            
+            $quiz = $this->QuizesTable->get($id);
             unset($data['usuario_id']);
             
             $quiz = $this->QuizesTable->patchEntity($quiz, $data);
             
             if ($this->QuizesTable->save($quiz)) {
-                $this->response->getBody()->write(json_encode([
+                return $this->jsonResponse([
                     'success' => true,
                     'message' => 'Quiz atualizado com sucesso',
                     'data' => $quiz
-                ]));
-                return $this->response;
+                ]);
             } else {
-                $this->response = $this->response->withStatus(422);
-                $this->response->getBody()->write(json_encode([
+                return $this->jsonResponse([
                     'success' => false,
                     'message' => 'Erro ao atualizar quiz',
                     'errors' => $quiz->getErrors()
-                ]));
-                return $this->response;
+                ], 422);
             }
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(404);
-            $this->response->getBody()->write(json_encode([
+        } catch (RecordNotFoundException $e) {
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => 'Quiz não encontrado'
-            ]));
-            return $this->response;
+            ], 404);
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Erro ao atualizar quiz: ' . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
      * DELETE /quizes/{id} - Remove um quiz
      */
-    public function delete($id = null)
+    public function delete($id = null): Response
     {
-        $quizId = $id ?? $this->request->getParam('id');
-        
-        if (!$quizId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
+        if (!$id) {
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => 'ID do quiz não informado'
-            ]));
-            return $this->response;
+            ], 400);
         }
         
         try {
-            $quiz = $this->QuizesTable->get($quizId);
+            $quiz = $this->QuizesTable->get($id);
             
             if ($this->QuizesTable->delete($quiz)) {
-                $this->response->getBody()->write(json_encode([
+                return $this->jsonResponse([
                     'success' => true,
                     'message' => 'Quiz excluído com sucesso'
-                ]));
-                return $this->response;
+                ]);
             } else {
-                $this->response = $this->response->withStatus(500);
-                $this->response->getBody()->write(json_encode([
+                return $this->jsonResponse([
                     'success' => false,
                     'message' => 'Erro ao excluir quiz'
-                ]));
-                return $this->response;
+                ], 500);
             }
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(404);
-            $this->response->getBody()->write(json_encode([
+        } catch (RecordNotFoundException $e) {
+            return $this->jsonResponse([
                 'success' => false,
                 'message' => 'Quiz não encontrado'
-            ]));
-            return $this->response;
+            ], 404);
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Erro ao excluir quiz: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
