@@ -1,6 +1,6 @@
 <template>
   <Transition name="modal">
-    <div v-if="modelValue" class="confirm-overlay" @click.self="handleClose">
+    <div v-if="modelValue" class="confirm-overlay" @click.self="close">
       <div class="confirm-container">
         <div class="confirm-icon" :class="type">
           <svg v-if="type === 'danger'" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -17,8 +17,8 @@
         <p class="confirm-message">{{ message }}</p>
         <p v-if="itemName" class="confirm-item-name">"{{ itemName }}"</p>
         <div class="confirm-actions">
-          <button class="confirm-btn-cancel" @click="handleClose">Cancelar</button>
-          <button class="confirm-btn-confirm" :class="type" @click="handleConfirm" :disabled="loading">
+          <button class="confirm-btn-cancel" @click="close">Cancelar</button>
+          <button class="confirm-btn-confirm" :class="type" @click="confirm" :disabled="loading">
             {{ loading ? 'Processando...' : confirmText }}
           </button>
         </div>
@@ -28,19 +28,47 @@
 </template>
 
 <script setup lang="ts">
-import { useConfirmModal } from './ConfirmModal'
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false
+  },
+  title: {
+    type: String,
+    default: 'Confirmar ação'
+  },
+  message: {
+    type: String,
+    default: 'Tem certeza que deseja realizar esta ação?'
+  },
+  confirmText: {
+    type: String,
+    default: 'Confirmar'
+  },
+  type: {
+    type: String,
+    default: 'danger',
+    validator: (value: string) => ['danger', 'warning', 'info'].includes(value)
+  },
+  itemName: {
+    type: String,
+    default: ''
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  }
+})
 
-const {
-  modelValue,
-  title,
-  message,
-  confirmText,
-  type,
-  itemName,
-  loading,
-  handleClose,
-  handleConfirm
-} = useConfirmModal()
+const emit = defineEmits(['update:modelValue', 'confirm'])
+
+const close = () => {
+  emit('update:modelValue', false)
+}
+
+const confirm = () => {
+  emit('confirm')
+}
 </script>
 
 <style scoped>
