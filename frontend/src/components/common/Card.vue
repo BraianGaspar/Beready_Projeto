@@ -1,5 +1,5 @@
 <template>
-  <div class="card" :class="`card-${variant}`">
+  <div class="card" :class="getVariantClass(variant)">
     <div v-if="$slots.header" class="card-header">
       <slot name="header" />
     </div>
@@ -13,6 +13,8 @@
 </template>
 
 <script setup lang="ts">
+import { useCard } from './Card'
+
 defineProps({
   variant: {
     type: String,
@@ -21,6 +23,8 @@ defineProps({
       ['default', 'primary', 'success', 'danger', 'warning'].includes(value),
   },
 })
+
+const { getVariantClass } = useCard()
 </script>
 
 <style scoped>

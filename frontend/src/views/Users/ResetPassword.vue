@@ -24,32 +24,6 @@
         </div>
       </template>
 
-      <div v-if="flashMessage" class="flash-message" :class="flashType">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5 flex-shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            v-if="flashType === 'success'"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-          <path
-            v-else
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        {{ flashMessage }}
-      </div>
-
       <form @submit.prevent="handleSubmit">
         <div class="reset-password-section">
           <h3 class="reset-password-section-title">
@@ -248,19 +222,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import { useAlert } from '@/composables/useAlert'
 import Card from '@/components/common/Card.vue'
 import Button from '@/components/common/Button.vue'
 
 const router = useRouter()
 const route = useRoute()
+const { success, error } = useAlert()
 const loading = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const flashMessage = ref('')
-const flashType = ref('')
-const strengthClass = ref('')
-const strengthText = ref('Força da senha')
-const strengthWidth = ref('0%')
+
+const { strengthClass, strengthText, strengthWidth, checkPasswordStrength } = usePasswordStrength()
 
 const form = ref({
   senha: '',
@@ -270,59 +244,19 @@ const form = ref({
 
 const passwordsMatch = computed(() => form.value.senha === form.value.confirmar_senha)
 
-const checkPasswordStrength = () => {
-  const password = form.value.senha
-  let strength = 0
-  if (password.length >= 8) strength++
-  if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++
-  if (password.match(/\d/)) strength++
-  if (password.match(/[^a-zA-Z\d]/)) strength++
-
-  switch (strength) {
-    case 0:
-      strengthText.value = 'Força da senha: Muito Fraca'
-      strengthClass.value = ''
-      strengthWidth.value = '0%'
-      break
-    case 1:
-      strengthText.value = 'Força da senha: Fraca'
-      strengthClass.value = 'weak'
-      strengthWidth.value = '25%'
-      break
-    case 2:
-      strengthText.value = 'Força da senha: Moderada'
-      strengthClass.value = 'medium'
-      strengthWidth.value = '50%'
-      break
-    case 3:
-      strengthText.value = 'Força da senha: Forte'
-      strengthClass.value = 'strong'
-      strengthWidth.value = '75%'
-      break
-    case 4:
-      strengthText.value = 'Força da senha: Muito Forte'
-      strengthClass.value = 'very-strong'
-      strengthWidth.value = '100%'
-      break
-  }
-}
-
 const checkPasswordMatch = () => {}
 
 const handleSubmit = async () => {
   if (!passwordsMatch.value) {
-    flashType.value = 'error'
-    flashMessage.value = 'As senhas não coincidem'
+    error('As senhas não coincidem')
     return
   }
   if (form.value.senha.length < 6) {
-    flashType.value = 'error'
-    flashMessage.value = 'A senha deve ter pelo menos 6 caracteres'
+    error('A senha deve ter pelo menos 6 caracteres')
     return
   }
 
   loading.value = true
-  flashMessage.value = ''
 
   try {
     const response = await fetch(`http://localhost:8765/auth/reset-password/${form.value.token}`, {
@@ -331,17 +265,15 @@ const handleSubmit = async () => {
       body: JSON.stringify({ senha: form.value.senha }),
     })
     const data = await response.json()
+
     if (data.success) {
-      flashType.value = 'success'
-      flashMessage.value = 'Senha redefinida com sucesso! Redirecionando...'
-      setTimeout(() => router.push('/login'), 3000)
+      success('Senha redefinida com sucesso! Redirecionando...')
+      setTimeout(() => router.push('/login'), 2000)
     } else {
-      flashType.value = 'error'
-      flashMessage.value = data.message || 'Erro ao redefinir senha'
+      error(data.message || 'Erro ao redefinir senha')
     }
   } catch (err) {
-    flashType.value = 'error'
-    flashMessage.value = 'Erro de conexão com o servidor'
+    error('Erro de conexão com o servidor')
   } finally {
     loading.value = false
   }
@@ -350,8 +282,7 @@ const handleSubmit = async () => {
 onMounted(() => {
   form.value.token = (route.params.token as string) || (route.query.token as string)
   if (!form.value.token) {
-    flashType.value = 'error'
-    flashMessage.value = 'Token inválido ou expirado'
+    error('Token inválido ou expirado')
   }
 })
 </script>

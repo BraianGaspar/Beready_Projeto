@@ -6,18 +6,28 @@ export function usePasswordStrength() {
   const strengthWidth = ref('0%')
 
   const checkPasswordStrength = (password: string) => {
+    // 🔥 CORREÇÃO: Garantir que password é string
+    const pwd = String(password || '')
+
+    if (!pwd) {
+      strengthText.value = 'Força da senha'
+      strengthClass.value = ''
+      strengthWidth.value = '0%'
+      return
+    }
+
     let strength = 0
 
-    if (password.length >= 8) strength++
-    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++
-    if (password.match(/\d/)) strength++
-    if (password.match(/[^a-zA-Z\d]/)) strength++
+    if (pwd.length >= 8) strength++
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++
+    if (/\d/.test(pwd)) strength++
+    if (/[^a-zA-Z\d]/.test(pwd)) strength++
 
     switch (strength) {
       case 0:
         strengthText.value = 'Força da senha: Muito Fraca'
-        strengthClass.value = ''
-        strengthWidth.value = '0%'
+        strengthClass.value = 'weak'
+        strengthWidth.value = '25%'
         break
       case 1:
         strengthText.value = 'Força da senha: Fraca'

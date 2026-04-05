@@ -26,32 +26,6 @@
         </div>
       </template>
 
-      <div v-if="flashMessage" class="flash-message" :class="flashType">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5 flex-shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            v-if="flashType === 'success'"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-          <path
-            v-else
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        {{ flashMessage }}
-      </div>
-
       <form @submit.prevent="handleSubmit">
         <Input
           v-model="form.email"
@@ -60,7 +34,6 @@
           placeholder="seu.email@exemplo.com"
           required
           :error="errors.email"
-          :icon="EmailIcon"
         />
         <div class="forgot-password-input-help">
           <svg
@@ -108,22 +81,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useForm } from '@/composables/useForm'
+import { useAlert } from '@/composables/useAlert'
 import Card from '@/components/common/Card.vue'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
-import { useForm } from '@/composables/useForm'
 
 const router = useRouter()
+const { success, error } = useAlert()
 const loading = ref(false)
-const flashMessage = ref('')
-const flashType = ref('')
 
 const { form, errors, validate } = useForm({ email: '' })
-
-const EmailIcon = {
-  template:
-    '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>',
-}
 
 const rules = {
   email: (value: string) => (!value ? 'E-mail é obrigatório' : null),
@@ -133,7 +101,6 @@ const handleSubmit = async () => {
   if (!validate(rules)) return
 
   loading.value = true
-  flashMessage.value = ''
 
   try {
     const response = await fetch('http://localhost:8765/auth/forgot-password', {
@@ -144,16 +111,13 @@ const handleSubmit = async () => {
     const data = await response.json()
 
     if (data.success) {
-      flashType.value = 'success'
-      flashMessage.value = data.message || 'Link de recuperação enviado!'
-      setTimeout(() => router.push('/login'), 3000)
+      success('Link de recuperação enviado para seu e-mail!')
+      setTimeout(() => router.push('/login'), 2000)
     } else {
-      flashType.value = 'error'
-      flashMessage.value = data.message || 'Erro ao enviar link'
+      error(data.message || 'Erro ao enviar link')
     }
   } catch (err) {
-    flashType.value = 'error'
-    flashMessage.value = 'Erro de conexão com o servidor'
+    error('Erro de conexão com o servidor')
   } finally {
     loading.value = false
   }

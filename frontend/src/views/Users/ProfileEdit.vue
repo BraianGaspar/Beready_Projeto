@@ -26,23 +26,7 @@
           <p class="profile-edit-email">Atualize suas informações pessoais</p>
         </div>
         <div class="profile-edit-actions">
-          <Button variant="secondary" @click="$router.push('/profile')">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Voltar
-          </Button>
+          <Button variant="secondary" @click="$router.push('/profile')">Voltar</Button>
         </div>
       </div>
     </div>
@@ -85,12 +69,19 @@
               required
               :error="errors.email"
             />
-            <Input
-              v-model="form.telefone"
-              label="Telefone"
-              placeholder="(99) 99999-9999"
-              @input="formatTelefone"
-            />
+            <div class="profile-edit-form-group">
+              <label class="profile-edit-form-label">Telefone</label>
+              <div class="profile-edit-input-container">
+                <input
+                  v-model="form.telefone"
+                  type="tel"
+                  class="profile-edit-input-field"
+                  placeholder="(99) 99999-9999"
+                  @input="handlePhoneInput"
+                />
+              </div>
+              <span v-if="phoneError" class="input-error">{{ phoneError }}</span>
+            </div>
           </Card>
 
           <Card class="profile-edit-card">
@@ -230,7 +221,7 @@
                 Alterar Senha
               </h3>
               <small class="profile-edit-text-muted"
-                >Deixe em branco para manter a senha atual</small
+                >Deixe em branco para manter a senha atual (mínimo 6 caracteres)</small
               >
             </div>
           </template>
@@ -397,37 +388,9 @@
 
         <div class="profile-edit-form-actions">
           <button type="button" class="btn-cancel" @click="$router.push('/profile')">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
             Cancelar
           </button>
           <button type="submit" class="btn-save" :disabled="loading">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
             {{ loading ? 'Salvando...' : 'Salvar Alterações' }}
           </button>
         </div>
@@ -437,152 +400,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useProfileEdit } from './ProfileEdit'
 import Card from '@/components/common/Card.vue'
 import Input from '@/components/common/Input.vue'
-import { useForm } from '@/composables/useForm'
+import Button from '@/components/common/Button.vue'
 
-const router = useRouter()
-const loading = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-const strengthClass = ref('')
-const strengthText = ref('Força da senha')
-const strengthWidth = ref('0%')
-
-const { form, errors, validate } = useForm({
-  id: '',
-  nome: '',
-  email: '',
-  telefone: '',
-  nivel_ingles: '',
-  idioma_preferido: '',
-  status: 'ativo',
-  objetivos_aprendizado: '',
-  nova_senha: '',
-  confirmar_senha: '',
-})
-
-const passwordsMatch = computed(() => {
-  if (!form.nova_senha && !form.confirmar_senha) return true
-  return form.nova_senha === form.confirmar_senha
-})
-
-const formatTelefone = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  let value = target.value.replace(/\D/g, '')
-  if (value.length <= 11) {
-    if (value.length <= 2) value = value.replace(/^(\d{0,2})/, '($1')
-    else if (value.length <= 7) value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2')
-    else if (value.length <= 11) value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
-    target.value = value
-    form.telefone = value
-  }
-}
-
-const checkPasswordStrength = () => {
-  const password = form.nova_senha
-  let strength = 0
-  if (password.length >= 8) strength++
-  if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++
-  if (password.match(/\d/)) strength++
-  if (password.match(/[^a-zA-Z\d]/)) strength++
-
-  switch (strength) {
-    case 0:
-      strengthText.value = 'Força da senha: Muito Fraca'
-      strengthClass.value = ''
-      strengthWidth.value = '0%'
-      break
-    case 1:
-      strengthText.value = 'Força da senha: Fraca'
-      strengthClass.value = 'weak'
-      strengthWidth.value = '25%'
-      break
-    case 2:
-      strengthText.value = 'Força da senha: Moderada'
-      strengthClass.value = 'medium'
-      strengthWidth.value = '50%'
-      break
-    case 3:
-      strengthText.value = 'Força da senha: Forte'
-      strengthClass.value = 'strong'
-      strengthWidth.value = '75%'
-      break
-    case 4:
-      strengthText.value = 'Força da senha: Muito Forte'
-      strengthClass.value = 'very-strong'
-      strengthWidth.value = '100%'
-      break
-  }
-}
-
-const checkPasswordMatch = () => {}
-
-const loadUserData = () => {
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    try {
-      const user = JSON.parse(userData)
-      form.id = user.id
-      form.nome = user.nome || ''
-      form.email = user.email || ''
-      form.telefone = user.telefone || ''
-      form.nivel_ingles = user.nivel_ingles || ''
-      form.idioma_preferido = user.idioma_preferido || ''
-      form.status = user.status || 'ativo'
-      form.objetivos_aprendizado = user.objetivos_aprendizado || ''
-    } catch (e) {
-      console.error(e)
-    }
-  }
-}
-
-const handleSubmit = async () => {
-  if (form.nova_senha && form.nova_senha !== form.confirmar_senha) {
-    alert('As senhas não coincidem')
-    return
-  }
-  if (form.nova_senha && form.nova_senha.length < 6) {
-    alert('A senha deve ter pelo menos 6 caracteres')
-    return
-  }
-
-  loading.value = true
-  try {
-    const submitData: any = {
-      nome: form.nome,
-      email: form.email,
-      telefone: form.telefone,
-      nivel_ingles: form.nivel_ingles,
-      idioma_preferido: form.idioma_preferido,
-      status: form.status,
-      objetivos_aprendizado: form.objetivos_aprendizado,
-    }
-    if (form.nova_senha) submitData.senha = form.nova_senha
-
-    const response = await fetch(`http://localhost:8765/users/${form.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(submitData),
-    })
-    const data = await response.json()
-    if (data.success) {
-      localStorage.setItem('user', JSON.stringify(data.user))
-      alert('Perfil atualizado com sucesso!')
-      router.push('/profile')
-    } else {
-      alert(data.message || 'Erro ao atualizar perfil')
-    }
-  } catch (err) {
-    alert('Erro de conexão com o servidor')
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadUserData)
+const {
+  form,
+  errors,
+  loading,
+  showPassword,
+  showConfirmPassword,
+  strengthClass,
+  strengthText,
+  strengthWidth,
+  phoneError,
+  passwordsMatch,
+  handlePhoneInput,
+  checkPasswordStrength,
+  checkPasswordMatch,
+  handleSubmit,
+} = useProfileEdit()
 </script>
 
 <style scoped>

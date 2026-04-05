@@ -66,20 +66,18 @@ const router = createRouter({
   ],
 })
 
-// Guarda de rotas
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const isAuthenticated = localStorage.getItem('user') !== null
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else if (
-    (to.path === '/login' || to.path === '/register' || to.path === '/') &&
-    isAuthenticated
-  ) {
-    next('/dashboard')
-  } else {
-    next()
+    return '/login'
   }
+
+  if ((to.path === '/login' || to.path === '/register' || to.path === '/') && isAuthenticated) {
+    return '/dashboard'
+  }
+
+  return true
 })
 
 export default router

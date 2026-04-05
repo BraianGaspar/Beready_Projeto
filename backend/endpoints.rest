@@ -1,9 +1,1 @@
-# Registrar
-curl -X POST http://localhost:8765/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"nome":"Teste","email":"teste@email.com","senha":"123456"}'
-
-# Login
-curl -X POST http://localhost:8765/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"teste@email.com","password":"123456"}'
+curl -X POST http://localhost:8765/auth/logout -H "Origin: http://localhost:5173" -H "Content-Type: application/json" -v

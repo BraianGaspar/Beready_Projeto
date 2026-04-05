@@ -187,7 +187,6 @@ TransportFactory::setConfig(Configure::consume('EmailTransport'));
 Mailer::setConfig(Configure::consume('Email'));
 Log::setConfig(Configure::consume('Log'));
 
-// ALTERADO: Adicionar fallback para o salt
 $salt = Configure::consume('Security.salt');
 if (empty($salt)) {
     $salt = env('SECURITY_SALT');

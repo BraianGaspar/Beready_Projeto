@@ -4,7 +4,7 @@
     <div class="input-container" :class="{ 'has-icon': icon, 'has-error': error }">
       <component :is="icon" v-if="icon" class="input-icon" />
       <input
-        :type="getInputType()"
+        :type="getInputType(type)"
         :value="modelValue"
         :placeholder="placeholder"
         :required="required"
@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useInput } from './Input'
 
 const props = defineProps({
   modelValue: {
@@ -106,18 +106,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'blur'])
 
-const showPassword = ref(false)
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
-
-const getInputType = () => {
-  if (props.type === 'password') {
-    return showPassword.value ? 'text' : 'password'
-  }
-  return props.type
-}
+const { showPassword, togglePasswordVisibility, getInputType } = useInput()
 </script>
 
 <style scoped>

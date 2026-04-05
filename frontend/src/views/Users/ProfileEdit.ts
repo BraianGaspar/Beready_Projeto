@@ -2,18 +2,22 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from '@/composables/useForm'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import { usePhoneMask } from '@/composables/usePhoneMask'
+import { useAlert } from '@/composables/useAlert'
 
 export function useProfileEdit() {
   const router = useRouter()
+  const { success, error } = useAlert()
   const loading = ref(false)
   const showPassword = ref(false)
   const showConfirmPassword = ref(false)
+  const userId = ref<number | null>(null)
 
   const { strengthClass, strengthText, strengthWidth, checkPasswordStrength } =
     usePasswordStrength()
+  const { handlePhoneInput, phoneError } = usePhoneMask()
 
   const { form, errors, validate } = useForm({
-    id: '',
     nome: '',
     email: '',
     telefone: '',
@@ -30,50 +34,113 @@ export function useProfileEdit() {
     return form.nova_senha === form.confirmar_senha
   })
 
-  const formatTelefone = (e: Event) => {
-    const target = e.target as HTMLInputElement
-    let value = target.value.replace(/\D/g, '')
-    if (value.length <= 11) {
-      if (value.length <= 2) value = value.replace(/^(\d{0,2})/, '($1')
-      else if (value.length <= 7) value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2')
-      else if (value.length <= 11) value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
-      target.value = value
-      form.telefone = value
-    }
+  const checkPasswordMatch = () => {
+    // Força a reatividade
+    passwordsMatch.value
   }
 
-  const checkPasswordMatch = () => {}
-
-  const loadUserData = () => {
+  const loadUserData = async () => {
     const userData = localStorage.getItem('user')
-    if (userData) {
-      try {
-        const user = JSON.parse(userData)
-        form.id = user.id
+    if (!userData) {
+      router.push('/login')
+      return
+    }
+
+    try {
+      const user = JSON.parse(userData)
+      userId.value = user.id
+
+      console.log('User ID carregado:', userId.value) // 🔥 DEBUG
+
+      // Busca os dados atualizados do backend
+      const response = await fetch(`http://localhost:8765/users/${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          form.nome = data.user.nome || ''
+          form.email = data.user.email || ''
+          form.telefone = data.user.telefone || ''
+          form.nivel_ingles = data.user.nivel_ingles || 'iniciante'
+          form.idioma_preferido = data.user.idioma_preferido || 'pt-BR'
+          form.status = data.user.status || 'ativo'
+          form.objetivos_aprendizado = data.user.objetivos_aprendizado || ''
+        }
+      } else {
+        // Fallback para dados do localStorage
         form.nome = user.nome || ''
         form.email = user.email || ''
         form.telefone = user.telefone || ''
-        form.nivel_ingles = user.nivel_ingles || ''
-        form.idioma_preferido = user.idioma_preferido || ''
+        form.nivel_ingles = user.nivel_ingles || 'iniciante'
+        form.idioma_preferido = user.idioma_preferido || 'pt-BR'
         form.status = user.status || 'ativo'
         form.objetivos_aprendizado = user.objetivos_aprendizado || ''
-      } catch (e) {
-        console.error(e)
       }
+    } catch (e) {
+      console.error('Erro ao carregar dados do usuário:', e)
+      const user = JSON.parse(userData)
+      userId.value = user.id // 🔥 Garante que o ID é setado mesmo em erro
+      form.nome = user.nome || ''
+      form.email = user.email || ''
+      form.telefone = user.telefone || ''
+      form.nivel_ingles = user.nivel_ingles || 'iniciante'
+      form.idioma_preferido = user.idioma_preferido || 'pt-BR'
+      form.status = user.status || 'ativo'
+      form.objetivos_aprendizado = user.objetivos_aprendizado || ''
     }
   }
 
   const handleSubmit = async () => {
-    if (form.nova_senha && form.nova_senha !== form.confirmar_senha) {
-      alert('As senhas não coincidem')
-      return
+    console.log('Submit - userId.value:', userId.value) // 🔥 DEBUG
+
+    // 🔥 PEGA O ID DIRETAMENTE DO LOCALSTORAGE SE userId.value estiver vazio
+    let currentUserId = userId.value
+
+    if (!currentUserId) {
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        currentUserId = user.id
+        userId.value = currentUserId
+        console.log('ID recuperado do localStorage:', currentUserId)
+      }
     }
-    if (form.nova_senha && form.nova_senha.length < 6) {
-      alert('A senha deve ter pelo menos 6 caracteres')
+
+    if (!currentUserId) {
+      error('ID do usuário não encontrado. Faça login novamente.')
+      router.push('/login')
       return
     }
 
+    // Validar telefone se foi alterado
+    if (form.telefone) {
+      const digits = form.telefone.replace(/\D/g, '')
+      if (digits.length > 0 && digits.length < 10) {
+        error('Telefone deve ter pelo menos 10 dígitos')
+        return
+      }
+    }
+
+    // Validar senha se foi preenchida
+    if (form.nova_senha) {
+      if (form.nova_senha.length < 6) {
+        error('A nova senha deve ter pelo menos 6 caracteres')
+        return
+      }
+      if (form.nova_senha !== form.confirmar_senha) {
+        error('As senhas não coincidem')
+        return
+      }
+    }
+
     loading.value = true
+
     try {
       const submitData: any = {
         nome: form.nome,
@@ -84,29 +151,59 @@ export function useProfileEdit() {
         status: form.status,
         objetivos_aprendizado: form.objetivos_aprendizado,
       }
-      if (form.nova_senha) submitData.senha = form.nova_senha
 
-      const response = await fetch(`http://localhost:8765/users/${form.id}`, {
+      if (form.nova_senha) {
+        submitData.senha = form.nova_senha
+      }
+
+      const url = `http://localhost:8765/users/${currentUserId}`
+      console.log('Enviando PUT para:', url)
+      console.log('Dados:', submitData)
+
+      const response = await fetch(url, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
         body: JSON.stringify(submitData),
       })
+
+      console.log('Response status:', response.status)
       const data = await response.json()
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user))
-        alert('Perfil atualizado com sucesso!')
-        router.push('/profile')
+      console.log('Response data:', data)
+
+      if (response.ok && data.success) {
+        // Atualiza o localStorage com os novos dados
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+        const updatedUser = {
+          ...currentUser,
+          nome: form.nome,
+          email: form.email,
+          telefone: form.telefone,
+          nivel_ingles: form.nivel_ingles,
+          idioma_preferido: form.idioma_preferido,
+          status: form.status,
+          objetivos_aprendizado: form.objetivos_aprendizado,
+        }
+        localStorage.setItem('user', JSON.stringify(updatedUser))
+
+        success('Perfil atualizado com sucesso!')
+        setTimeout(() => router.push('/profile'), 1500)
       } else {
-        alert(data.message || 'Erro ao atualizar perfil')
+        error(data.message || 'Erro ao atualizar perfil')
       }
     } catch (err) {
-      alert('Erro de conexão com o servidor')
+      console.error('Erro detalhado:', err)
+      error('Erro de conexão com o servidor')
     } finally {
       loading.value = false
     }
   }
 
-  onMounted(loadUserData)
+  onMounted(() => {
+    loadUserData()
+  })
 
   return {
     form,
@@ -117,8 +214,9 @@ export function useProfileEdit() {
     strengthClass,
     strengthText,
     strengthWidth,
+    phoneError,
     passwordsMatch,
-    formatTelefone,
+    handlePhoneInput,
     checkPasswordStrength,
     checkPasswordMatch,
     handleSubmit,

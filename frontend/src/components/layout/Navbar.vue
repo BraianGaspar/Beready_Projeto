@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { useNavbar } from './Navbar'
 
 const props = defineProps({
   user: {
@@ -82,17 +82,7 @@ const props = defineProps({
 
 defineEmits(['logout'])
 
-const menuItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: 'HomeIcon' },
-  { name: 'Perfil', path: '/profile', icon: 'UserIcon' },
-  { name: 'Flashcards', path: '/flashcards', icon: 'DocumentIcon' },
-  { name: 'Quizes', path: '/quizes', icon: 'ClipboardIcon' },
-  { name: 'Prompts IA', path: '/prompts', icon: 'ChatIcon' },
-]
-
-const userName = computed(() => props.user?.nome || props.user?.name || 'Usuário')
-const userEmail = computed(() => props.user?.email || '')
-const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
+const { userName, userEmail, userInitial, menuItems } = useNavbar(props)
 </script>
 
 <style scoped>

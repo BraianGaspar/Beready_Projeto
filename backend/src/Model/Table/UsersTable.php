@@ -9,9 +9,6 @@ use Cake\ORM\RulesChecker;
 
 class UsersTable extends Table
 {
-    /**
-     * Initialize method
-     */
     public function initialize(array $config): void
     {
         parent::initialize($config);
@@ -19,13 +16,17 @@ class UsersTable extends Table
         $this->setTable('users');
         $this->setDisplayField('nome');
         $this->setPrimaryKey('id');
-
-        // Remove o Timestamp behavior pois seu banco já tem DEFAULT CURRENT_TIMESTAMP
+        
+        $this->addBehavior('Timestamp', [
+            'events' => [
+                'Model.beforeSave' => [
+                    'criado_em' => 'new',
+                    'atualizado_em' => 'always'
+                ]
+            ]
+        ]);
     }
 
-    /**
-     * Regras de validação padrão - SUPER SIMPLIFICADA
-     */
     public function validationDefault(Validator $validator): Validator
     {
         $validator
@@ -40,21 +41,9 @@ class UsersTable extends Table
             ->notEmptyString('senha', 'A senha é obrigatória.', 'create')
             ->minLength('senha', 6, 'A senha deve ter pelo menos 6 caracteres.');
 
-        $validator
-            ->add('confirmar_senha', 'custom', [
-                'rule' => function ($value, $context) {
-                    return $value === ($context['data']['senha'] ?? '');
-                },
-                'message' => 'As senhas não coincidem.'
-            ])
-            ->notEmptyString('confirmar_senha', 'Confirme sua senha.', 'create');
-
         return $validator;
     }
 
-    /**
-     * Regras de integridade da aplicação
-     */
     public function buildRules(RulesChecker $rules): RulesChecker
     {
         $rules->add($rules->isUnique(['email']), [

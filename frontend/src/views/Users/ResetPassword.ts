@@ -1,15 +1,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import { useAlert } from '@/composables/useAlert'
 
 export function useResetPassword() {
   const router = useRouter()
   const route = useRoute()
+  const { success, error } = useAlert()
   const loading = ref(false)
   const showPassword = ref(false)
   const showConfirmPassword = ref(false)
-  const flashMessage = ref('')
-  const flashType = ref('')
 
   const { strengthClass, strengthText, strengthWidth, checkPasswordStrength } =
     usePasswordStrength()
@@ -21,23 +21,25 @@ export function useResetPassword() {
   })
 
   const passwordsMatch = computed(() => form.value.senha === form.value.confirmar_senha)
+  const isPasswordValid = computed(() => form.value.senha.length >= 6)
 
   const checkPasswordMatch = () => {}
 
   const handleSubmit = async () => {
-    if (!passwordsMatch.value) {
-      flashType.value = 'error'
-      flashMessage.value = 'As senhas não coincidem'
+    if (!form.value.senha) {
+      error('Nova senha é obrigatória')
       return
     }
     if (form.value.senha.length < 6) {
-      flashType.value = 'error'
-      flashMessage.value = 'A senha deve ter pelo menos 6 caracteres'
+      error('A senha deve ter pelo menos 6 caracteres')
+      return
+    }
+    if (!passwordsMatch.value) {
+      error('As senhas não coincidem')
       return
     }
 
     loading.value = true
-    flashMessage.value = ''
 
     try {
       const response = await fetch(
@@ -49,17 +51,15 @@ export function useResetPassword() {
         },
       )
       const data = await response.json()
+
       if (data.success) {
-        flashType.value = 'success'
-        flashMessage.value = 'Senha redefinida com sucesso! Redirecionando...'
-        setTimeout(() => router.push('/login'), 3000)
+        success('Senha redefinida com sucesso! Redirecionando...')
+        setTimeout(() => router.push('/login'), 2000)
       } else {
-        flashType.value = 'error'
-        flashMessage.value = data.message || 'Erro ao redefinir senha'
+        error(data.message || 'Erro ao redefinir senha')
       }
     } catch (err) {
-      flashType.value = 'error'
-      flashMessage.value = 'Erro de conexão com o servidor'
+      error('Erro de conexão com o servidor')
     } finally {
       loading.value = false
     }
@@ -68,8 +68,7 @@ export function useResetPassword() {
   onMounted(() => {
     form.value.token = (route.params.token as string) || (route.query.token as string)
     if (!form.value.token) {
-      flashType.value = 'error'
-      flashMessage.value = 'Token inválido ou expirado'
+      error('Token inválido ou expirado')
     }
   })
 
@@ -78,12 +77,11 @@ export function useResetPassword() {
     loading,
     showPassword,
     showConfirmPassword,
-    flashMessage,
-    flashType,
     strengthClass,
     strengthText,
     strengthWidth,
     passwordsMatch,
+    isPasswordValid,
     checkPasswordStrength,
     checkPasswordMatch,
     handleSubmit,

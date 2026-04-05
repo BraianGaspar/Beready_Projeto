@@ -83,27 +83,17 @@
       <div class="container">
         <h2>Pronto para começar sua jornada?</h2>
         <p>Junte-se a milhares de estudantes que já estão aprendendo com o Beready</p>
-        <Button variant="primary" size="large" @click="$router.push('/register')"
-          >Criar conta gratuita</Button
-        >
+        <Button variant="primary" @click="$router.push('/register')">Criar conta gratuita</Button>
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useHome } from './Home'
 import Button from '@/components/common/Button.vue'
 
-const router = useRouter()
-
-onMounted(() => {
-  const user = localStorage.getItem('user')
-  if (user) {
-    router.push('/dashboard')
-  }
-})
+useHome()
 </script>
 
 <style scoped>

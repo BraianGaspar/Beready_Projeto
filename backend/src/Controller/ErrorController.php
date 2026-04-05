@@ -67,4 +67,16 @@ class ErrorController extends AppController
     public function afterFilter(EventInterface $event): void
     {
     }
+
+    public function notFound()
+    {
+        $this->response = $this->response->withStatus(404)
+            ->withType('application/json');
+        $this->response->getBody()->write(json_encode([
+            'success' => false,
+            'error' => 'API endpoint not found. Use /users/test, /health, etc.'
+        ]));
+        return $this->response;
+    }
+    
 }

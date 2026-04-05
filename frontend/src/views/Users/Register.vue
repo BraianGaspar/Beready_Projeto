@@ -24,32 +24,6 @@
         </div>
 
         <div class="register-body">
-          <div v-if="flashMessage" class="flash-message" :class="flashType">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                v-if="flashType === 'success'"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-              <path
-                v-else
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            {{ flashMessage }}
-          </div>
-
           <form @submit.prevent="handleSubmit">
             <div class="register-form-grid">
               <div class="register-section">
@@ -85,12 +59,19 @@
                   required
                   :error="errors.email"
                 />
-                <Input
-                  v-model="form.telefone"
-                  label="Telefone"
-                  placeholder="(99) 99999-9999"
-                  @input="formatTelefone"
-                />
+                <div class="form-group">
+                  <label class="form-label">Telefone</label>
+                  <div class="input-container">
+                    <input
+                      v-model="form.telefone"
+                      type="tel"
+                      class="form-input"
+                      placeholder="(99) 99999-9999"
+                      @input="handlePhoneInput"
+                    />
+                  </div>
+                  <span v-if="phoneError" class="input-error">{{ phoneError }}</span>
+                </div>
               </div>
 
               <div class="register-section">
@@ -118,7 +99,7 @@
                       v-model="form.senha"
                       :type="showPassword ? 'text' : 'password'"
                       class="form-input password-input"
-                      placeholder="Crie uma senha segura"
+                      placeholder="Crie uma senha segura (mínimo 6 caracteres)"
                       required
                       @input="checkPasswordStrength"
                     />
@@ -175,6 +156,7 @@
                     </div>
                     <div class="register-strength-text">{{ strengthText }}</div>
                   </div>
+                  <span v-if="errors.senha" class="input-error">{{ errors.senha }}</span>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Confirmar Senha *</label>
@@ -269,6 +251,9 @@
                       passwordsMatch ? 'As senhas coincidem' : 'As senhas não coincidem'
                     }}</span>
                   </div>
+                  <span v-if="errors.confirmar_senha" class="input-error">{{
+                    errors.confirmar_senha
+                  }}</span>
                 </div>
               </div>
 
@@ -382,13 +367,12 @@ const {
   loading,
   showPassword,
   showConfirmPassword,
-  flashMessage,
-  flashType,
   strengthClass,
   strengthText,
   strengthWidth,
+  phoneError,
   passwordsMatch,
-  formatTelefone,
+  handlePhoneInput,
   checkPasswordStrength,
   checkPasswordMatch,
   handleSubmit,

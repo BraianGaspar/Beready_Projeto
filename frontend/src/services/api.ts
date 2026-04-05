@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// 🔥 URL CORRETA - sem barra no final
 const API_BASE_URL = 'http://localhost:8765'
 
 const api = axios.create({
@@ -11,7 +12,7 @@ const api = axios.create({
 
 // Interceptor para logar requisições (debug)
 api.interceptors.request.use((request) => {
-  console.log('📤 Requisição:', request.method?.toUpperCase(), request.url, request.data)
+  console.log('📤 Requisição:', request.method?.toUpperCase(), request.url)
   return request
 })
 

@@ -3,7 +3,7 @@
     :type="type"
     :disabled="disabled"
     class="btn"
-    :class="[`btn-${variant}`, { 'btn-loading': loading }, { 'btn-block': block }]"
+    :class="[getVariantClass(variant), { 'btn-loading': loading }, { 'btn-block': block }]"
     @click="$emit('click')"
   >
     <svg v-if="loading" class="btn-spinner" viewBox="0 0 24 24">
@@ -15,7 +15,9 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
+import { useButton } from './Button'
+
+const props = defineProps({
   type: {
     type: String,
     default: 'button',
@@ -42,6 +44,8 @@ defineProps({
 })
 
 defineEmits(['click'])
+
+const { getVariantClass } = useButton()
 </script>
 
 <style scoped>
