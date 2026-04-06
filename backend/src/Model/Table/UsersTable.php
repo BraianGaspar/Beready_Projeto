@@ -5,7 +5,6 @@ namespace App\Model\Table;
 
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use Cake\ORM\RulesChecker;
 
 class UsersTable extends Table
 {
@@ -16,7 +15,7 @@ class UsersTable extends Table
         $this->setTable('users');
         $this->setDisplayField('nome');
         $this->setPrimaryKey('id');
-        
+
         $this->addBehavior('Timestamp', [
             'events' => [
                 'Model.beforeSave' => [
@@ -30,27 +29,43 @@ class UsersTable extends Table
     public function validationDefault(Validator $validator): Validator
     {
         $validator
-            ->notEmptyString('nome', 'O nome é obrigatório.')
-            ->maxLength('nome', 100, 'O nome deve ter no máximo 100 caracteres.');
+            ->integer('id')
+            ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->notEmptyString('email', 'O e-mail é obrigatório.')
-            ->email('email', false, 'Digite um e-mail válido.');
+            ->scalar('nome')
+            ->maxLength('nome', 100)
+            ->allowEmptyString('nome');
 
         $validator
-            ->notEmptyString('senha', 'A senha é obrigatória.', 'create')
-            ->minLength('senha', 6, 'A senha deve ter pelo menos 6 caracteres.');
+            ->email('email')
+            ->allowEmptyString('email');
+
+        $validator
+            ->scalar('senha_hash')
+            ->maxLength('senha_hash', 255)
+            ->allowEmptyString('senha_hash');
+
+        $validator
+            ->scalar('telefone')
+            ->maxLength('telefone', 20)
+            ->allowEmptyString('telefone');
+
+        $validator
+            ->scalar('nivel_ingles')
+            ->maxLength('nivel_ingles', 20)
+            ->allowEmptyString('nivel_ingles');
+
+        $validator
+            ->scalar('idioma_preferido')
+            ->maxLength('idioma_preferido', 10)
+            ->allowEmptyString('idioma_preferido');
+
+        $validator
+            ->scalar('status')
+            ->maxLength('status', 20)
+            ->allowEmptyString('status');
 
         return $validator;
-    }
-
-    public function buildRules(RulesChecker $rules): RulesChecker
-    {
-        $rules->add($rules->isUnique(['email']), [
-            'errorField' => 'email', 
-            'message' => 'Este e-mail já está cadastrado.'
-        ]);
-
-        return $rules;
     }
 }

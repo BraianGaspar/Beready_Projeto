@@ -23,16 +23,17 @@ $routes->connect('/users/register', ['controller' => 'Users', 'action' => 'regis
 $routes->connect('/users/login', ['controller' => 'Users', 'action' => 'login']);
 
 // Rotas parametrizadas usando passparams
-$routes->connect('/users/{id}', ['controller' => 'Users', 'action' => 'view'])
+$routes->connect('/users/view/{id}', ['controller' => 'Users', 'action' => 'view'])
     ->setPatterns(['id' => '\d+'])
+    ->setMethods(['GET'])
     ->setPass(['id']);
 
-$routes->connect('/users/{id}', ['controller' => 'Users', 'action' => 'update'])
+$routes->connect('/users/update/{id}', ['controller' => 'Users', 'action' => 'update'])
     ->setPatterns(['id' => '\d+'])
-    ->setMethods(['PUT'])
+    ->setMethods(['PUT', 'POST'])
     ->setPass(['id']);
 
-$routes->connect('/users/{id}', ['controller' => 'Users', 'action' => 'delete'])
+$routes->connect('/users/delete/{id}', ['controller' => 'Users', 'action' => 'delete'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['DELETE'])
     ->setPass(['id']);
@@ -44,15 +45,15 @@ $routes->connect('/quizes/user/{usuarioId}', ['controller' => 'Quizes', 'action'
     ->setPatterns(['usuarioId' => '\d+'])
     ->setMethods(['GET'])
     ->setPass(['usuarioId']);
-$routes->connect('/quizes/{id}', ['controller' => 'Quizes', 'action' => 'view'])
+$routes->connect('/quizes/view/{id}', ['controller' => 'Quizes', 'action' => 'view'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['GET'])
     ->setPass(['id']);
-$routes->connect('/quizes/{id}', ['controller' => 'Quizes', 'action' => 'edit'])
+$routes->connect('/quizes/edit/{id}', ['controller' => 'Quizes', 'action' => 'edit'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['PUT'])
     ->setPass(['id']);
-$routes->connect('/quizes/{id}', ['controller' => 'Quizes', 'action' => 'delete'])
+$routes->connect('/quizes/delete/{id}', ['controller' => 'Quizes', 'action' => 'delete'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['DELETE'])
     ->setPass(['id']);
@@ -60,15 +61,15 @@ $routes->connect('/quizes/{id}', ['controller' => 'Quizes', 'action' => 'delete'
 // Rotas para Flashcards
 $routes->connect('/flashcards', ['controller' => 'Flashcards', 'action' => 'index'])->setMethods(['GET']);
 $routes->connect('/flashcards', ['controller' => 'Flashcards', 'action' => 'add'])->setMethods(['POST']);
-$routes->connect('/flashcards/{id}', ['controller' => 'Flashcards', 'action' => 'view'])
+$routes->connect('/flashcards/view/{id}', ['controller' => 'Flashcards', 'action' => 'view'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['GET'])
     ->setPass(['id']);
-$routes->connect('/flashcards/{id}', ['controller' => 'Flashcards', 'action' => 'edit'])
+$routes->connect('/flashcards/edit/{id}', ['controller' => 'Flashcards', 'action' => 'edit'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['PUT'])
     ->setPass(['id']);
-$routes->connect('/flashcards/{id}', ['controller' => 'Flashcards', 'action' => 'delete'])
+$routes->connect('/flashcards/delete/{id}', ['controller' => 'Flashcards', 'action' => 'delete'])
     ->setPatterns(['id' => '\d+'])
     ->setMethods(['DELETE'])
     ->setPass(['id']);

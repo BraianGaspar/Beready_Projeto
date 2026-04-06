@@ -46,7 +46,7 @@ export function useProfile() {
     let response: Response | null = null
 
     try {
-      response = await fetch(`http://localhost:8765/users/${user.value.id}`, {
+      response = await fetch(`http://localhost:8765/users/delete/${user.value.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ export function useProfile() {
       const localUser = JSON.parse(userData)
 
       // Busca dados atualizados do backend
-      const response = await fetch(`http://localhost:8765/users/${localUser.id}`, {
+      const response = await fetch(`http://localhost:8765/users/view/${localUser.id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ export function useProfile() {
     if (!user.value) router.push('/login')
   }
 
-  // 🔥 Evento para recarregar dados quando voltar da edição
+  // Evento para recarregar dados quando voltar da edição
   const handleUserUpdated = (event: CustomEvent) => {
     if (event.detail) {
       user.value = event.detail
@@ -143,7 +143,7 @@ export function useProfile() {
     }
   }
 
-  // 🔥 Evento para quando a página é focada (voltar da edição com botão voltar)
+  // Evento para quando a página é focada (voltar da edição com botão voltar)
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'visible') {
       loadUserData()

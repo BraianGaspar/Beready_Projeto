@@ -60,7 +60,7 @@ export function useProfileEdit() {
 
       console.log('User ID carregado:', userId.value)
 
-      const response = await fetch(`http://localhost:8765/users/${user.id}`, {
+      const response = await fetch(`http://localhost:8765/users/view/${user.id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ export function useProfileEdit() {
     loading.value = true
 
     try {
-      // 🔥 Enviar apenas os campos que mudaram
+      // Enviar apenas os campos que mudaram
       const submitData: any = {}
 
       if (form.nome) submitData.nome = form.nome
@@ -160,7 +160,7 @@ export function useProfileEdit() {
       if (form.objetivos_aprendizado) submitData.objetivos_aprendizado = form.objetivos_aprendizado
       if (form.nova_senha) submitData.senha = form.nova_senha
 
-      const url = `http://localhost:8765/users/${currentUserId}`
+      const url = `http://localhost:8765/users/update/${currentUserId}`
       console.log('Enviando PUT para:', url)
       console.log('Dados:', submitData)
 
@@ -178,7 +178,6 @@ export function useProfileEdit() {
       console.log('Response data:', data)
 
       if (response.ok && data.success) {
-        // 🔥 Usar os dados retornados pelo servidor
         const updatedUser = data.user || {
           id: currentUserId,
           nome: form.nome,
@@ -193,7 +192,7 @@ export function useProfileEdit() {
         // Salva no localStorage
         localStorage.setItem('user', JSON.stringify(updatedUser))
 
-        // 🔥 Dispara evento para atualizar outras telas
+        // Dispara evento para atualizar outras telas
         window.dispatchEvent(new CustomEvent('user-updated', { detail: updatedUser }))
 
         success('Perfil atualizado com sucesso!')
