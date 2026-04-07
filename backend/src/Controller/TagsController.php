@@ -1,222 +1,124 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Controller;
+    namespace App\Controller;
 
-use App\Services\TagService;
-use App\Repositories\TagRepository;
+    use App\Services\TagService;
+    use App\Repositories\TagRepository;
 
-class TagsController extends AppController
-{
-    private TagService $service;
-    
-    public function initialize(): void
+    class TagsController extends AppController
     {
-        parent::initialize();
-        $this->service = new TagService(new TagRepository());
-    }
-    
-    // GET /tags
-    public function index()
-    {
-        try {
-            $tags = $this->service->getAllTags();
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $tags
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        }
-    }
-    
-    // GET /tags/usuario/{usuarioId}
-    public function getByUsuario($usuarioId = null)
-    {
-        if (!$usuarioId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID do usuário não informado'
-            ]));
-            return $this->response;
+        private TagService $service;
+        
+        public function initialize(): void
+        {
+            parent::initialize();
+            $this->service = new TagService(new TagRepository());
         }
         
-        try {
-            $tags = $this->service->getTagsByUsuario((int)$usuarioId);
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $tags
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        }
-    }
-    
-    // GET /tags/view/{id}
-    public function view($id = null)
-    {
-        if (!$id) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID da tag não informado'
-            ]));
-            return $this->response;
+        // GET /tags
+        public function index()
+        {
+            try {
+                $tags = $this->service->getAllTags();
+                return $this->jsonResponse(['success' => true, 'data' => $tags]);
+            } catch (\Exception $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+            }
         }
         
-        try {
-            $tag = $this->service->getTagById((int)$id);
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $tag
-            ]));
-            return $this->response;
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() ?: 404;
-            $this->response = $this->response->withStatus($code);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        }
-    }
-    
-    // POST /tags
-    public function add()
-    {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-        
-        try {
-            $tag = $this->service->createTag($data);
-            $this->response = $this->response->withStatus(201);
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'message' => 'Tag criada com sucesso',
-                'data' => $tag
-            ]));
-            return $this->response;
-        } catch (\InvalidArgumentException $e) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() ?: 409;
-            $this->response = $this->response->withStatus($code);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        }
-    }
-    
-    // PUT /tags/edit/{id}
-    public function edit($id = null)
-    {
-        if (!$id) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID da tag não informado'
-            ]));
-            return $this->response;
+        // GET /tags/usuario/{usuarioId}
+        public function getByUsuario($usuarioId = null)
+        {
+            $userId = $usuarioId ?? $this->request->getParam('usuarioId');
+            
+            if (!$userId) {
+                return $this->jsonResponse(['success' => false, 'message' => 'ID do usuário não informado'], 400);
+            }
+            
+            try {
+                $tags = $this->service->getTagsByUsuario((int)$userId);
+                return $this->jsonResponse(['success' => true, 'data' => $tags]);
+            } catch (\Exception $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+            }
         }
         
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-        
-        try {
-            $tag = $this->service->updateTag((int)$id, $data);
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'message' => 'Tag atualizada com sucesso',
-                'data' => $tag
-            ]));
-            return $this->response;
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() ?: 404;
-            $this->response = $this->response->withStatus($code);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        }
-    }
-    
-    // DELETE /tags/delete/{id}
-    public function delete($id = null)
-    {
-        if (!$id) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID da tag não informado'
-            ]));
-            return $this->response;
+        // GET /tags/view/{id}
+        public function view($id = null)
+        {
+            $tagId = $id ?? $this->request->getParam('id');
+            
+            if (!$tagId) {
+                return $this->jsonResponse(['success' => false, 'message' => 'ID da tag não informado'], 400);
+            }
+            
+            try {
+                $tag = $this->service->getTagById((int)$tagId);
+                return $this->jsonResponse(['success' => true, 'data' => $tag]);
+            } catch (\RuntimeException $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], $e->getCode());
+            } catch (\Exception $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+            }
         }
         
-        try {
-            $this->service->deleteTag((int)$id);
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'message' => 'Tag excluída com sucesso'
-            ]));
-            return $this->response;
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode() ?: 404;
-            $this->response = $this->response->withStatus($code);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
-        } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
+        // POST /tags
+        public function add()
+        {
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true) ?: $this->request->getData();
+            
+            try {
+                $tag = $this->service->createTag($data);
+                return $this->jsonResponse(['success' => true, 'message' => 'Tag criada com sucesso', 'data' => $tag], 201);
+            } catch (\InvalidArgumentException $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 400);
+            } catch (\RuntimeException $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], $e->getCode());
+            } catch (\Exception $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+            }
+        }
+        
+        // PUT /tags/edit/{id}
+        public function edit($id = null)
+        {
+            $tagId = $id ?? $this->request->getParam('id');
+            
+            if (!$tagId) {
+                return $this->jsonResponse(['success' => false, 'message' => 'ID da tag não informado'], 400);
+            }
+            
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true) ?: $this->request->getData();
+            
+            try {
+                $tag = $this->service->updateTag((int)$tagId, $data);
+                return $this->jsonResponse(['success' => true, 'message' => 'Tag atualizada com sucesso', 'data' => $tag]);
+            } catch (\RuntimeException $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], $e->getCode());
+            } catch (\Exception $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+            }
+        }
+        
+        // DELETE /tags/delete/{id}
+        public function delete($id = null)
+        {
+            $tagId = $id ?? $this->request->getParam('id');
+            
+            if (!$tagId) {
+                return $this->jsonResponse(['success' => false, 'message' => 'ID da tag não informado'], 400);
+            }
+            
+            try {
+                $this->service->deleteTag((int)$tagId);
+                return $this->jsonResponse(['success' => true, 'message' => 'Tag excluída com sucesso']);
+            } catch (\RuntimeException $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], $e->getCode());
+            } catch (\Exception $e) {
+                return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+            }
         }
     }
-}

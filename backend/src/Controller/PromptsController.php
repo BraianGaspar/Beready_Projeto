@@ -18,37 +18,31 @@ class PromptsController extends AppController
     // GET /prompts/usuario/{usuarioId}
     public function getByUsuario($usuarioId = null)
     {
-        if (!$usuarioId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID do usuário não informado'
-            ]));
-            return $this->response;
+        // 🔥 Pega o ID de várias formas
+        $userId = $usuarioId ?? $this->request->getParam('usuarioId') ?? $this->request->getQuery('usuarioId');
+        
+        error_log("=== GET BY USUARIO ===");
+        error_log("usuarioId param: " . ($usuarioId ?? 'null'));
+        error_log("usuarioId from request: " . ($this->request->getParam('usuarioId') ?? 'null'));
+        error_log("Final userId: " . $userId);
+        
+        if (!$userId) {
+            return $this->jsonError('ID do usuário não informado', 400);
         }
         
         try {
             $prompts = $this->table->find()
-                ->where(['usuario_id' => $usuarioId])
+                ->where(['usuario_id' => $userId])
                 ->orderBy(['criado_em' => 'DESC'])
                 ->all();
             
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $prompts->toArray()
-            ]));
-            return $this->response;
+            return $this->jsonSuccess($prompts->toArray());
             
         } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
+            return $this->jsonError($e->getMessage(), 500);
         }
     }
-    
+
     // GET /prompts/view/{id}
     public function view($id = null)
     {

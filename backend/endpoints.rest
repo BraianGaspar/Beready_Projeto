@@ -113,3 +113,18 @@ Content-Type: application/json
 ### Deletar frase
 DELETE http://localhost:8765/frases/delete/5
 Content-Type: application/json
+
+#### Testar se a tabela existe e o controller responde
+curl http://localhost:8765/tags
+
+### Testar tags por usuário
+curl http://localhost:8765/tags/usuario/19
+
+### Testar criar tag
+curl -X POST http://localhost:8765/tags -H "Content-Type: application/json" -d "{\"nome\":\"TesteTag\",\"criado_por\":19,\"cor\":\"#FF0000\"}"
+
+### Testar GET
+curl http://localhost:8765/preferencias/usuario/19
+
+### Testar POST
+curl -X POST http://localhost:8765/preferencias -H "Content-Type: application/json" -d "{\"usuario_id\":19,\"tema\":\"escuro\"}"

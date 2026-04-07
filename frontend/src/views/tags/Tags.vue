@@ -172,23 +172,39 @@
         </form>
       </div>
     </div>
+    <ConfirmModal
+      v-model="confirmModalVisible"
+      title="Confirmar exclusão"
+      message="Tem certeza que deseja excluir esta tag?"
+      :item-name="tagToDelete?.nome"
+      confirm-text="Excluir"
+      type="danger"
+      :loading="deleting"
+      @confirm="handleConfirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useTags } from './Tags'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
+
 const {
-  loading,
   tags,
+  loading,
   modalOpen,
   saving,
   form,
   editingTag,
+  confirmModalVisible,
+  tagToDelete,
+  deleting,
   openModal,
   editTag,
   closeModal,
   saveTag,
   confirmDelete,
+  handleConfirmDelete
 } = useTags()
 </script>
 

@@ -12,17 +12,26 @@ export interface Prompt {
 
 export const promptService = {
   // Listar prompts por usuário
-  getByUsuario: (usuarioId: number) => api.get(`/prompts/usuario/${usuarioId}`),
+  getByUsuario: (usuarioId: number) => {
+    console.log('getByUsuario chamado com ID:', usuarioId)
+    return api.get(`/prompts/usuario/${usuarioId}`)
+  },
 
   // Buscar prompt por ID
-  getById: (id: number) => api.get(`/prompts/view/${id}`),
+  getById: (id: number) =>
+    api.get(`/prompts/view/${id}`),
 
   // Criar prompt
-  create: (data: Prompt) => api.post('/prompts', data),
+  create: (data: Prompt) => {
+    console.log('create prompt com dados:', data)
+    return api.post('/prompts', data)
+  },
 
   // Atualizar prompt
-  update: (id: number, data: Partial<Prompt>) => api.put(`/prompts/edit/${id}`, data),
+  update: (id: number, data: Partial<Prompt>) =>
+    api.put(`/prompts/edit/${id}`, data),
 
   // Deletar prompt
-  delete: (id: number) => api.delete(`/prompts/delete/${id}`),
+  delete: (id: number) =>
+    api.delete(`/prompts/delete/${id}`),
 }

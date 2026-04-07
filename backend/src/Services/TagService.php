@@ -30,13 +30,17 @@ class TagService
     
     public function getTagsByUsuario(int $usuarioId): array
     {
-        return $this->repository->getByUsuarioId($usuarioId);
+        return $this->repository->findByUsuarioId($usuarioId);
     }
     
     public function createTag(array $data): array
     {
         if (empty($data['nome'])) {
             throw new \InvalidArgumentException('Nome da tag é obrigatório');
+        }
+        
+        if (empty($data['criado_por'])) {
+            throw new \InvalidArgumentException('ID do criador é obrigatório');
         }
         
         // Verifica se tag já existe
@@ -55,9 +59,10 @@ class TagService
             throw new \RuntimeException('Tag não encontrada', 404);
         }
         
+        // Verifica se novo nome já existe (se for diferente)
         if (isset($data['nome']) && $data['nome'] !== $tag['nome']) {
             $existing = $this->repository->findByName($data['nome']);
-            if ($existing && $existing['id'] !== $id) {
+            if ($existing) {
                 throw new \RuntimeException('Tag já existe', 409);
             }
         }

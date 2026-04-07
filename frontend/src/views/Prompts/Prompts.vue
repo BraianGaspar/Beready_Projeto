@@ -202,11 +202,23 @@
         </form>
       </div>
     </div>
+    <ConfirmModal
+      v-model="confirmModalVisible"
+      title="Confirmar exclusão"
+      message="Tem certeza que deseja excluir este prompt?"
+      :item-name="promptToDelete?.texto_original?.substring(0, 50)"
+      confirm-text="Excluir"
+      type="danger"
+      :loading="deleting"
+      @confirm="handleConfirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { usePrompts } from './Prompts'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
+
 const {
   loading,
   prompts,
@@ -221,6 +233,10 @@ const {
   confirmDelete,
   formatDate,
   viewTranslations,
+  confirmModalVisible,
+  promptToDelete,
+  deleting,
+  handleConfirmDelete
 } = usePrompts()
 </script>
 

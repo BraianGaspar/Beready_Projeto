@@ -23,8 +23,21 @@ class TagRepository implements TagRepositoryInterface
     
     public function findById(int $id): ?array
     {
-        $tag = $this->table->get($id);
-        return $tag ? $tag->toArray() : null;
+        try {
+            $tag = $this->table->get($id);
+            return $tag->toArray();
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+    
+    public function findByUsuarioId(int $usuarioId): array
+    {
+        $tags = $this->table->find()
+            ->where(['criado_por' => $usuarioId])
+            ->orderBy(['nome' => 'ASC'])
+            ->all();
+        return array_map(fn($t) => $t->toArray(), $tags->toArray());
     }
     
     public function findByName(string $name): ?array
@@ -52,15 +65,5 @@ class TagRepository implements TagRepositoryInterface
     {
         $tag = $this->table->get($id);
         return $this->table->delete($tag);
-    }
-    
-    public function getByUsuarioId(int $usuarioId): array
-    {
-        $tags = $this->table->find()
-            ->where(['criado_por' => $usuarioId])
-            ->orWhere(['tag_sistema' => true])
-            ->orderBy(['nome' => 'ASC'])
-            ->all();
-        return array_map(fn($t) => $t->toArray(), $tags->toArray());
     }
 }
