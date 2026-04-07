@@ -27,6 +27,16 @@ import QuizEdit from '../views/Quizes/QuizEdit.vue'
 // Prompts Views
 import Prompts from '../views/Prompts/Prompts.vue'
 
+// ========== NOVAS VIEWS ==========
+// Tags Views
+import Tags from '../views/Tags/Tags.vue'
+
+// Progresso Views
+import ProgressoDashboard from '../views/Progresso/ProgressoDashboard.vue'
+
+// Preferencias Views
+import Preferencias from '../views/Preferencias/Preferencias.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -135,12 +145,35 @@ const router = createRouter({
       component: Prompts,
       meta: { requiresAuth: true },
     },
+    // ========== NOVAS ROTAS ==========
+    // Tags Routes
+    {
+      path: '/tags',
+      name: 'tags',
+      component: Tags,
+      meta: { requiresAuth: true },
+    },
+    // Progresso Routes
+    {
+      path: '/progresso',
+      name: 'progresso',
+      component: ProgressoDashboard,
+      meta: { requiresAuth: true },
+    },
+    // Preferencias Routes
+    {
+      path: '/preferencias',
+      name: 'preferencias',
+      component: Preferencias,
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
-// Guarda de rotas corrigida (sem next callback)
+// Guarda de rotas
 router.beforeEach((to, from) => {
-  const isAuthenticated = localStorage.getItem('user') !== null
+  const user = localStorage.getItem('user')
+  const isAuthenticated = user !== null
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     return '/login'

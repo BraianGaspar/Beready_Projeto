@@ -1,4 +1,4 @@
-import api from './api'
+import api from '@/core/services/api'
 
 export interface Progresso {
   id?: number

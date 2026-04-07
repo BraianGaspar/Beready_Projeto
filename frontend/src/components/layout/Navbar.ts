@@ -11,6 +11,9 @@ export function useNavbar(props: { user: any; loading: boolean }) {
     { name: 'Flashcards', path: '/flashcards', icon: 'DocumentIcon' },
     { name: 'Quizes', path: '/quizes', icon: 'ClipboardIcon' },
     { name: 'Prompts IA', path: '/prompts', icon: 'ChatIcon' },
+    { name: 'Tags', path: '/tags', icon: 'TagIcon' },
+    { name: 'Progresso', path: '/progresso', icon: 'ChartIcon' },
+    { name: 'Preferências', path: '/preferencias', icon: 'SettingsIcon' },
   ]
 
   return {

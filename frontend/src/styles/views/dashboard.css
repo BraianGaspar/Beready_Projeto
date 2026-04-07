@@ -101,7 +101,7 @@
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+  background: linear-gradient(90deg, #d81b60 0%, #c2185b 100%);
   border-radius: 4px;
   transition: width 0.5s ease;
 }
@@ -164,7 +164,7 @@
 .feature-link {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #7c3aed;
+  color: #d81b60;
   transition: all 0.3s ease;
 }
 
@@ -173,6 +173,7 @@
   display: inline-block;
 }
 
+/* Cores dos ícones das estatísticas */
 .bg-blue-100 {
   background: #dbeafe;
 }
@@ -189,6 +190,7 @@
   background: #fef3c7;
 }
 
+/* Cores dos ícones dos cards */
 .bg-blue-500 {
   background: #3b82f6;
 }
@@ -201,6 +203,19 @@
   background: #8b5cf6;
 }
 
+.bg-orange-500 {
+  background: #f97316;
+}
+
+.bg-indigo-500 {
+  background: #6366f1;
+}
+
+.bg-gray-500 {
+  background: #6b7280;
+}
+
+/* Cores do texto dos ícones */
 .text-blue-600 {
   color: #2563eb;
 }
@@ -217,15 +232,34 @@
   color: #d97706;
 }
 
+/* Responsividade */
 @media (max-width: 1024px) {
+  .dashboard-main {
+    padding: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .dashboard-features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
   .dashboard-main {
     padding: 1rem;
   }
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .welcome-title {
+    font-size: 1.5rem;
   }
-  .dashboard-features-grid {
-    grid-template-columns: 1fr;
+
+  .welcome-subtitle {
+    font-size: 0.875rem;
   }
 }
 
@@ -233,7 +267,20 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  .welcome-title {
-    font-size: 1.5rem;
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .feature-title {
+    font-size: 1rem;
+  }
+
+  .feature-description {
+    font-size: 0.8rem;
   }
 }
