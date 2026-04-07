@@ -26,6 +26,7 @@ import QuizEdit from '../views/Quizes/QuizEdit.vue'
 
 // Prompts Views
 import Prompts from '../views/Prompts/Prompts.vue'
+import PromptDetail from '../views/Prompts/PromptDetail.vue'
 
 // ========== NOVAS VIEWS ==========
 // Tags Views
@@ -36,6 +37,15 @@ import ProgressoDashboard from '../views/Progresso/ProgressoDashboard.vue'
 
 // Preferencias Views
 import Preferencias from '../views/Preferencias/Preferencias.vue'
+
+// Preferencias Views
+import TraducoesPrompt from '../views/Traducoes/TraducoesPrompt.vue'
+
+// Preferencias Views
+import ImagensPrompt from '../views/Imagens/ImagensPrompt.vue'
+
+// Preferencias Views
+import FrasesPrompt from '../views/Frases/FrasesPrompt.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -143,6 +153,13 @@ const router = createRouter({
       path: '/prompts',
       name: 'prompts',
       component: Prompts,
+      meta: { requiresAuth: true },
+    },
+    // Visualização do prompt
+    {
+      path: '/prompts/:id',
+      name: 'prompt-detail',
+      component: PromptDetail,
       meta: { requiresAuth: true },
     },
     // ========== NOVAS ROTAS ==========

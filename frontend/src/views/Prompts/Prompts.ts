@@ -11,8 +11,7 @@ export function usePrompts() {
   const saving = ref(false)
   const modalOpen = ref(false)
   const editingPrompt = ref<Prompt | null>(null)
-  
-  // 🔥 Variáveis para o ConfirmModal
+
   const confirmModalVisible = ref(false)
   const promptToDelete = ref<Prompt | null>(null)
   const deleting = ref(false)
@@ -21,7 +20,7 @@ export function usePrompts() {
     texto_original: '',
     idioma_original: 'en',
     contexto: 'manual',
-    sessao_id: ''
+    sessao_id: '',
   })
 
   const getCurrentUserId = (): number | null => {
@@ -35,58 +34,58 @@ export function usePrompts() {
     }
   }
 
-  const fetchPrompts = async () => {
+  const fetchPrompts = async (): Promise<void> => {
     const userId = getCurrentUserId()
     if (!userId) {
       prompts.value = []
       return
     }
-    
+
     loading.value = true
     try {
       const response = await promptService.getByUsuario(userId)
       prompts.value = response.data.data || []
-    } catch (err: any) {
-      if (err.response?.status === 400) {
-        prompts.value = []
-      } else {
-        error(err.response?.data?.message || 'Erro ao carregar prompts')
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      if (axiosError.response?.status !== 400) {
+        error(axiosError.response?.data?.message || 'Erro ao carregar prompts')
       }
+      prompts.value = []
     } finally {
       loading.value = false
     }
   }
 
-  const openModal = () => {
+  const openModal = (): void => {
     editingPrompt.value = null
     form.value = { texto_original: '', idioma_original: 'en', contexto: 'manual', sessao_id: '' }
     modalOpen.value = true
   }
 
-  const editPrompt = (prompt: Prompt) => {
+  const editPrompt = (prompt: Prompt): void => {
     editingPrompt.value = prompt
     form.value = {
       texto_original: prompt.texto_original,
       idioma_original: prompt.idioma_original || 'en',
       contexto: prompt.contexto || 'manual',
-      sessao_id: prompt.sessao_id || ''
+      sessao_id: prompt.sessao_id || '',
     }
     modalOpen.value = true
   }
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     modalOpen.value = false
   }
 
-  const savePrompt = async () => {
+  const savePrompt = async (): Promise<void> => {
     const userId = getCurrentUserId()
     if (!userId) {
       error('Usuário não autenticado')
       return
     }
-    
+
     saving.value = true
-    
+
     try {
       if (editingPrompt.value) {
         await promptService.update(editingPrompt.value.id!, form.value)
@@ -97,30 +96,30 @@ export function usePrompts() {
       }
       await fetchPrompts()
       closeModal()
-    } catch (err: any) {
-      error(err.response?.data?.message || 'Erro ao salvar prompt')
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error(axiosError.response?.data?.message || 'Erro ao salvar prompt')
     } finally {
       saving.value = false
     }
   }
 
-  // 🔥 Função que abre o modal de confirmação
-  const confirmDelete = (prompt: Prompt) => {
+  const confirmDelete = (prompt: Prompt): void => {
     promptToDelete.value = prompt
     confirmModalVisible.value = true
   }
 
-  // 🔥 Função chamada quando o usuário confirma a exclusão
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = async (): Promise<void> => {
     if (!promptToDelete.value) return
-    
+
     deleting.value = true
     try {
       await promptService.delete(promptToDelete.value.id!)
       success('Prompt excluído com sucesso!')
       await fetchPrompts()
-    } catch (err: any) {
-      error(err.response?.data?.message || 'Erro ao excluir prompt')
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error(axiosError.response?.data?.message || 'Erro ao excluir prompt')
     } finally {
       deleting.value = false
       confirmModalVisible.value = false
@@ -128,13 +127,14 @@ export function usePrompts() {
     }
   }
 
-  const formatDate = (date: string) => {
+  const formatDate = (date?: string): string => {
     if (!date) return ''
     return new Date(date).toLocaleDateString('pt-BR')
   }
 
-  const viewTranslations = (promptId: number) => {
-    router.push(`/prompts/${promptId}/traducoes`)
+  // viewTranslations recebe number e navega para a rota correta
+  const viewTranslations = (promptId: number): void => {
+    router.push(`/prompts/${promptId}`)
   }
 
   onMounted(() => {
@@ -158,6 +158,6 @@ export function usePrompts() {
     confirmDelete,
     handleConfirmDelete,
     formatDate,
-    viewTranslations
+    viewTranslations,
   }
 }

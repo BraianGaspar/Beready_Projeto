@@ -1,27 +1,19 @@
 import api from './api'
-
-export interface Frase {
-  id?: number
-  prompt_id: number
-  frase_semelhante: string
-  pontuacao_semelhante?: number
-  tipo_frase?: string
-  nivel_dificuldade?: string
-}
+import type { Frase, ApiResponse } from '@/types'
 
 export const fraseService = {
-  // Listar frases por prompt
-  getByPrompt: (promptId: number) => api.get(`/frases/prompt/${promptId}`),
+  getByPrompt: (promptId: number): Promise<ApiResponse<Frase[]>> =>
+    api.get(`/frases/prompt/${promptId}`),
 
-  // Buscar frase por ID
-  getById: (id: number) => api.get(`/frases/view/${id}`),
+  getById: (id: number): Promise<ApiResponse<Frase>> => api.get(`/frases/view/${id}`),
 
-  // Criar frase
-  create: (data: Frase) => api.post('/frases', data),
+  create: (data: Omit<Frase, 'id' | 'criado_em'>): Promise<ApiResponse<Frase>> =>
+    api.post('/frases', data),
 
-  // Atualizar frase
-  update: (id: number, data: Partial<Frase>) => api.put(`/frases/edit/${id}`, data),
+  update: (
+    id: number,
+    data: Partial<Omit<Frase, 'id' | 'criado_em'>>,
+  ): Promise<ApiResponse<Frase>> => api.put(`/frases/edit/${id}`, data),
 
-  // Deletar frase
-  delete: (id: number) => api.delete(`/frases/delete/${id}`),
+  delete: (id: number): Promise<ApiResponse<null>> => api.delete(`/frases/delete/${id}`),
 }

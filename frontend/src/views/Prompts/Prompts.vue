@@ -236,7 +236,7 @@ const {
   confirmModalVisible,
   promptToDelete,
   deleting,
-  handleConfirmDelete
+  handleConfirmDelete,
 } = usePrompts()
 </script>
 
