@@ -1,51 +1,50 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Views
-import Home from '../views/Home.vue'
-import Dashboard from '../views/Dashboard.vue'
+// Views globais
+import Home from '../views/_global/Home.vue'
+import Dashboard from '../views/_global/Dashboard.vue'
 
-// Users Views
-import Login from '../views/Users/Login.vue'
-import Register from '../views/Users/Register.vue'
-import Profile from '../views/Users/Profile.vue'
-import ProfileEdit from '../views/Users/ProfileEdit.vue'
-import ForgotPassword from '../views/Users/ForgotPassword.vue'
-import ResetPassword from '../views/Users/ResetPassword.vue'
+// Auth Views (Users) - TODOS OS IMPORTS ATIVADOS
+import Login from '../modules/auth/views/Login.vue'
+import Register from '../modules/auth/views/Register.vue'
+import Profile from '../modules/auth/views/Profile.vue'
+import ProfileEdit from '../modules/auth/views/ProfileEdit.vue'
+import ForgotPassword from '../modules/auth/views/ForgotPassword.vue'
+import ResetPassword from '../modules/auth/views/ResetPassword.vue'
 
 // Flashcards Views
-import Flashcards from '../views/flashcards/Flashcards.vue'
-import FlashcardView from '../views/flashcards/FlashcardView.vue'
-import FlashcardStudy from '../views/flashcards/FlashcardStudy.vue'
+import Flashcards from '../modules/flashcards/views/Flashcards.vue'
+import FlashcardView from '../modules/flashcards/views/FlashcardView.vue'
+import FlashcardStudy from '../modules/flashcards/views/FlashcardStudy.vue'
 
 // Quizes Views
-import Quizes from '../views/Quizes/Quizes.vue'
-import QuizView from '../views/Quizes/QuizView.vue'
-import QuizPlay from '../views/Quizes/QuizPlay.vue'
-import QuizAdd from '../views/Quizes/QuizAdd.vue'
-import QuizEdit from '../views/Quizes/QuizEdit.vue'
+import Quizes from '../modules/quizes/views/Quizes.vue'
+import QuizView from '../modules/quizes/views/QuizView.vue'
+import QuizPlay from '../modules/quizes/views/QuizPlay.vue'
+import QuizAdd from '../modules/quizes/views/QuizAdd.vue'
+import QuizEdit from '../modules/quizes/views/QuizEdit.vue'
 
 // Prompts Views
-import Prompts from '../views/Prompts/Prompts.vue'
-import PromptDetail from '../views/Prompts/PromptDetail.vue'
+import Prompts from '../modules/prompts/views/Prompts.vue'
+import PromptDetail from '../modules/prompts/views/PromptDetail.vue'
 
-// ========== NOVAS VIEWS ==========
 // Tags Views
-import Tags from '../views/Tags/Tags.vue'
+import Tags from '../modules/tags/views/Tags.vue'
 
 // Progresso Views
-import ProgressoDashboard from '../views/Progresso/ProgressoDashboard.vue'
+import ProgressoDashboard from '../modules/progresso/views/ProgressoDashboard.vue'
 
 // Preferencias Views
-import Preferencias from '../views/Preferencias/Preferencias.vue'
+import Preferencias from '../modules/preferencias/views/Preferencias.vue'
 
-// Preferencias Views
-import TraducoesPrompt from '../views/Traducoes/TraducoesPrompt.vue'
+// Traducoes Views
+import TraducoesPrompt from '../modules/traducoes/views/TraducoesPrompt.vue'
 
-// Preferencias Views
-import ImagensPrompt from '../views/Imagens/ImagensPrompt.vue'
+// Imagens Views
+import ImagensPrompt from '../modules/imagens/views/ImagensPrompt.vue'
 
-// Preferencias Views
-import FrasesPrompt from '../views/Frases/FrasesPrompt.vue'
+// Frases Views
+import FrasesPrompt from '../modules/frases/views/FrasesPrompt.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -148,6 +147,13 @@ const router = createRouter({
       component: QuizView,
       meta: { requiresAuth: true },
     },
+    // Tags Routes
+    {
+      path: '/tags',
+      name: 'tags',
+      component: Tags,
+      meta: { requiresAuth: true },
+    },
     // Prompts Routes
     {
       path: '/prompts',
@@ -155,19 +161,10 @@ const router = createRouter({
       component: Prompts,
       meta: { requiresAuth: true },
     },
-    // Visualização do prompt
     {
       path: '/prompts/:id',
       name: 'prompt-detail',
       component: PromptDetail,
-      meta: { requiresAuth: true },
-    },
-    // ========== NOVAS ROTAS ==========
-    // Tags Routes
-    {
-      path: '/tags',
-      name: 'tags',
-      component: Tags,
       meta: { requiresAuth: true },
     },
     // Progresso Routes
@@ -182,6 +179,27 @@ const router = createRouter({
       path: '/preferencias',
       name: 'preferencias',
       component: Preferencias,
+      meta: { requiresAuth: true },
+    },
+    // Traducoes Routes
+    {
+      path: '/prompts/:promptId/traducoes',
+      name: 'traducoes-prompt',
+      component: TraducoesPrompt,
+      meta: { requiresAuth: true },
+    },
+    // Imagens Routes
+    {
+      path: '/prompts/:promptId/imagens',
+      name: 'imagens-prompt',
+      component: ImagensPrompt,
+      meta: { requiresAuth: true },
+    },
+    // Frases Routes
+    {
+      path: '/prompts/:promptId/frases',
+      name: 'frases-prompt',
+      component: FrasesPrompt,
       meta: { requiresAuth: true },
     },
   ],
