@@ -55,7 +55,6 @@
 .tag-name,
 .question-text,
 .answer-text,
-.register-title,
 .login-title,
 .card-title {
   color: var(--text-primary) !important;
@@ -69,7 +68,6 @@
 .tag-description,
 .answer-label,
 .question-label,
-.register-subtitle,
 .login-subtitle,
 .form-label,
 .form-hint {
@@ -80,7 +78,9 @@
    PERFIL - NOME E EMAIL SEMPRE BRANCOS
    ============================================ */
 .profile-name,
-.profile-email {
+.profile-email,
+.register-subtitle,
+.register-title {
   color: white !important;
 }
 

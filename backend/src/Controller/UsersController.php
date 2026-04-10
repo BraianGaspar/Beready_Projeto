@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Services\UserService;
 use App\Repositories\UserRepository;
 use Cake\ORM\TableRegistry;
+use Cake\Mailer\MailerAwareTrait;
 
 class UsersController extends AppController
 {
@@ -302,7 +303,13 @@ class UsersController extends AppController
         $user->reset_token_expires = $expires;
         
         if ($this->Users->save($user)) {
-            $this->getMailer('User')->resetPassword($user, $token);
+            // Tenta enviar e-mail, mas não para o fluxo se falhar
+            try {
+                $this->getMailer('User')->resetPassword($user, $token);
+            } catch (\Exception $e) {
+                // Log do erro mas não interrompe
+                error_log('Erro ao enviar e-mail: ' . $e->getMessage());
+            }
             return $this->jsonSuccess(null, 'Link de recuperação enviado para seu e-mail');
         }
         

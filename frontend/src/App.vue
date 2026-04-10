@@ -6,11 +6,31 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import AlertContainer from '@/shared/components/common/AlertContainer.vue'
+
+// Páginas públicas que NÃO devem ter tema escuro/daltônico
+const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password']
 
 const loadUserPreferences = async () => {
   const userData = localStorage.getItem('user')
+  const currentRoute = window.location.pathname
+
+  // Verificar se é página pública
+  const isPublicRoute = publicRoutes.some(
+    (route) => currentRoute === route || currentRoute.startsWith('/reset-password'),
+  )
+
+  // Se for página pública, remove todos os temas
+  if (isPublicRoute) {
+    document.documentElement.classList.remove('dark-mode')
+    document.body.classList.remove('dark-mode')
+    document.documentElement.classList.remove('daltonico-mode')
+    document.body.classList.remove('daltonico-mode')
+    return
+  }
+
   if (!userData) return
 
   const user = JSON.parse(userData)
@@ -47,6 +67,16 @@ const loadUserPreferences = async () => {
     document.body.classList.remove('daltonico-mode')
   }
 }
+
+// Monitorar mudanças de rota
+const route = useRoute()
+watch(
+  () => route.path,
+  () => {
+    loadUserPreferences()
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   loadUserPreferences()

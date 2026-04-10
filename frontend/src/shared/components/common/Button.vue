@@ -1,26 +1,14 @@
 <template>
-  <button
-    :type="type"
-    :disabled="disabled"
-    class="btn"
-    :class="[variant, { 'btn-loading': loading }, { 'btn-block': block }]"
-    @click="$emit('click')"
-  >
-    <svg v-if="loading" class="btn-spinner" viewBox="0 0 24 24">
-      <circle class="spinner-circle" cx="12" cy="12" r="10" />
-      <path class="spinner-path" d="M12 2a10 10 0 0 1 10 10" />
-    </svg>
+  <button :class="['btn', variant]" :disabled="loading" @click="$emit('click')">
+    <span v-if="loading" class="btn-spinner"></span>
     <slot />
   </button>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-  type?: 'button' | 'submit' | 'reset'
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline'
-  disabled?: boolean
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger'
   loading?: boolean
-  block?: boolean
 }>()
 
 defineEmits<{
@@ -34,91 +22,78 @@ defineEmits<{
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
-  font-size: 0.875rem;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
+  border: none;
 }
 
-.btn-block {
-  width: 100%;
-}
-
-.btn.primary {
+/* Botão primário - gradiente roxo */
+.btn-primary {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
 }
 
-.btn.primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
-.btn.secondary {
-  background: #e2e8f0;
-  color: #4a5568;
+/* Botão outline - AGORA MESMO ESTILO DO PRIMARY */
+.btn-outline {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
 }
 
-.btn.secondary:hover:not(:disabled) {
-  background: #cbd5e0;
+.btn-outline:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
-.btn.outline {
-  background: transparent;
-  border: 1px solid #667eea;
-  color: #667eea;
+/* Botão secundário */
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
 }
 
-.btn.outline:hover:not(:disabled) {
-  background: #667eea;
+.btn-secondary:hover:not(:disabled) {
+  background: #d1d5db;
+  transform: translateY(-2px);
+}
+
+/* Botão perigo */
+.btn-danger {
+  background: #ef4444;
   color: white;
 }
 
-.btn.danger {
-  background: #e53e3e;
-  color: white;
-}
-
-.btn.danger:hover:not(:disabled) {
-  background: #c53030;
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
-}
-
-.btn-loading {
-  cursor: wait;
+  transform: none;
 }
 
 .btn-spinner {
-  width: 16px;
-  height: 16px;
-  animation: spin 0.8s linear infinite;
-}
-
-.spinner-circle {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.3);
-  stroke-width: 2;
-}
-
-.spinner-path {
-  fill: none;
-  stroke: white;
-  stroke-width: 2;
-  stroke-linecap: round;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
+  to {
     transform: rotate(360deg);
   }
 }

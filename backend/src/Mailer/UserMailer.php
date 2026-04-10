@@ -9,7 +9,8 @@ class UserMailer extends Mailer
 {
     public function resetPassword($user, $token)
     {
-        $this->setFrom(['noreply@beready.com' => 'BeReady'])
+        $this->setTransport('default')
+            ->setFrom(['noreply@beready.com' => 'BeReady'])
             ->setTo($user->email)
             ->setSubject('Recuperação de Senha - BeReady')
             ->setEmailFormat('html')
