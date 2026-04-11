@@ -1,4 +1,4 @@
-# 📘 BeReady - Plataforma de Aprendizado de Inglês
+# 📘 BeReady - Plataforma de Aprendizado de Inglês.
 
 Aplicação web para aprendizado de inglês por contextualização visual, desenvolvida com:
 
