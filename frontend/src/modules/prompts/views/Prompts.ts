@@ -1,14 +1,19 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAlert } from '@/shared/composables/useAlert'
 import { promptService } from '@/modules/prompts/services/promptService'
 import type { Prompt } from '@/core/types'
 import { useI18n } from 'vue-i18n'
+import { usePermissionStore } from '@/stores/permissionStore'
+import { usePlan } from '@/shared/composables/usePlan'
 
 export function usePrompts() {
   const router = useRouter()
   const { success, error } = useAlert()
   const { t } = useI18n()
+  const permissionStore = usePermissionStore()
+  const plan = usePlan()
+  
   const prompts = ref<Prompt[]>([])
   const loading = ref(false)
   const saving = ref(false)
@@ -25,6 +30,19 @@ export function usePrompts() {
     contexto: 'manual',
     sessao_id: '',
   })
+
+  // Permissões
+  const canView = computed(() => permissionStore.canView('prompts'))
+  const canCreate = computed(() => permissionStore.canCreate('prompts'))
+  const canEdit = computed(() => permissionStore.canEdit('prompts'))
+  const canDelete = computed(() => permissionStore.canDelete('prompts'))
+  
+  const canCreatePrompt = computed(() => canCreate.value && canCreateMore())
+  const canCreateMorePrompts = computed(() => canCreateMore())
+
+  const canCreateMore = (): boolean => {
+    return plan.canCreateMore('prompts', prompts.value.length)
+  }
 
   const getCurrentUserId = (): number | null => {
     const userData = localStorage.getItem('user')
@@ -70,12 +88,24 @@ export function usePrompts() {
   }
 
   const openModal = (): void => {
+    if (!canCreate.value) {
+      console.warn('Sem permissão para criar prompts')
+      return
+    }
+    if (!canCreateMore()) {
+      console.warn('Limite de prompts atingido')
+      return
+    }
     editingPrompt.value = null
     form.value = { texto_original: '', idioma_original: 'en', contexto: 'manual', sessao_id: '' }
     modalOpen.value = true
   }
 
   const editPrompt = (prompt: Prompt): void => {
+    if (!canEdit.value) {
+      console.warn('Sem permissão para editar prompts')
+      return
+    }
     editingPrompt.value = prompt
     form.value = {
       texto_original: prompt.texto_original,
@@ -120,6 +150,10 @@ export function usePrompts() {
   }
 
   const confirmDelete = (prompt: Prompt): void => {
+    if (!canDelete.value) {
+      console.warn('Sem permissão para excluir prompts')
+      return
+    }
     promptToDelete.value = prompt
     confirmModalVisible.value = true
   }
@@ -152,6 +186,10 @@ export function usePrompts() {
   }
 
   const viewTranslations = (promptId: number): void => {
+    if (!canView.value) {
+      console.warn('Sem permissão para visualizar prompt')
+      return
+    }
     router.push(`/prompts/${promptId}`)
   }
 
@@ -176,7 +214,8 @@ export function usePrompts() {
     return contexts[context || ''] || context || t('prompts.contextoManual')
   }
 
-  onMounted(() => {
+  onMounted(async () => {
+    await permissionStore.loadPermissions()
     fetchPrompts()
   })
 
@@ -200,5 +239,10 @@ export function usePrompts() {
     viewTranslations,
     getLanguageName,
     getContextName,
+    canView,
+    canEdit,
+    canDelete,
+    canCreatePrompt,
+    canCreateMorePrompts,
   }
 }

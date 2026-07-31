@@ -35,23 +35,6 @@
         </div>
         <h1 class="hero-title">{{ $t('quizes.title') }}</h1>
         <p class="hero-subtitle">{{ $t('quizes.subtitle') }}</p>
-        <button class="hero-btn" @click="openCreateModal">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {{ $t('quizes.newQuiz') }}
-        </button>
       </div>
     </div>
 
@@ -59,6 +42,18 @@
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
       <p>{{ $t('quizes.carregando') }}</p>
+    </div>
+
+    <!-- Sem Permissão -->
+    <div v-else-if="!canView" class="no-permission-state">
+      <div class="no-permission-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h2 class="no-permission-title">{{ $t('common.acessoNegado') }}</h2>
+      <p class="no-permission-description">{{ $t('common.permissionDenied') }}</p>
+      <button class="no-permission-btn" @click="$router.push('/dashboard')">{{ $t('common.voltarDashboard') }}</button>
     </div>
 
     <!-- Empty -->
@@ -79,30 +74,115 @@
       </div>
       <h2 class="empty-title">{{ $t('quizes.emptyTitle') }}</h2>
       <p class="empty-description">{{ $t('quizes.emptyDescription') }}</p>
-      <button class="empty-btn" @click="openCreateModal">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      <div class="empty-actions">
+        <button 
+          v-if="canCreateQuiz" 
+          class="empty-btn" 
+          @click="openCreateModal"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"
-          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          {{ $t('quizes.createFirst') }}
+        </button>
+        <div v-else class="empty-btn-disabled">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          {{ $t('quizes.createFirst') }}
+          <span class="limit-badge">{{ $t('common.limiteAtingido') }}</span>
+        </div>
+      </div>
+      <div v-if="!canCreateMoreQuizes" class="limit-message empty-limit">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
-        {{ $t('quizes.createFirst') }}
-      </button>
+        <span>{{ $t('quizes.limitReached') }}</span>
+        <button class="upgrade-link" @click="$router.push('/planos')">
+          {{ $t('quizes.upgradeToCreateMore') }}
+        </button>
+      </div>
     </div>
 
     <!-- Grid -->
     <div v-else class="quizes-grid">
+      <!-- Card de criar -->
+      <div 
+        v-if="canCreateQuiz" 
+        class="quiz-card create-card" 
+        @click="openCreateModal"
+      >
+        <div class="create-card-content">
+          <div class="create-card-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </div>
+          <h3 class="create-card-title">{{ $t('quizes.newQuiz') }}</h3>
+          <p class="create-card-subtitle">{{ $t('quizes.createSubtitle') }}</p>
+        </div>
+      </div>
+      <!-- Card de criar desabilitado quando o limite é atingido -->
+      <div v-else class="quiz-card create-card create-card-disabled">
+        <div class="create-card-content">
+          <div class="create-card-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </div>
+          <h3 class="create-card-title">{{ $t('quizes.newQuiz') }}</h3>
+          <p class="create-card-subtitle">{{ $t('quizes.createSubtitle') }}</p>
+          <span class="limit-badge create-limit">{{ $t('common.limiteAtingido') }}</span>
+        </div>
+      </div>
+
       <div v-for="quiz in quizes" :key="quiz.id" class="quiz-card">
         <div class="quiz-card-actions">
-          <button class="btn-edit" @click.stop="openEditModal(quiz)">
+          <button v-if="canEdit" class="btn-edit" @click.stop="openEditModal(quiz)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -115,7 +195,7 @@
               />
             </svg>
           </button>
-          <button class="btn-delete" @click.stop="confirmDelete(quiz)">
+          <button v-if="canDelete" class="btn-delete" @click.stop="confirmDelete(quiz)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -136,8 +216,19 @@
           <h3 class="quiz-card-title">{{ quiz.titulo }}</h3>
           <p class="quiz-card-description">{{ quiz.descricao || $t('quizes.semDescricao') }}</p>
           <div class="quiz-card-stats">
-            <span class="stat">📝 {{ quiz.total_questoes || 0 }} {{ $t('quizes.questoes') }}</span>
-            <span class="stat">⏱️ {{ quiz.tempo_limite || $t('quizes.semLimite') }} min</span>
+            <span class="stat">
+              <svg class="stat-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h10" />
+              </svg>
+              {{ quiz.total_questoes || 0 }} {{ $t('quizes.questoes') }}
+            </span>
+            <span class="stat">
+              <svg class="stat-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              {{ quiz.tempo_limite || $t('quizes.semLimite') }} min
+            </span>
           </div>
         </div>
         <div class="quiz-card-footer">
@@ -262,7 +353,7 @@
         <div class="confirm-body">
           <p>{{ $t('quizes.deleteConfirmMessage') }}</p>
           <p class="quiz-name">"{{ deletingQuiz?.titulo }}"</p>
-          <p class="modal-warning"> {{ $t('flashcards.deleteWarning') }}</p>
+          <p class="modal-warning">{{ $t('flashcards.deleteWarning') }}</p>
         </div>
         <div class="confirm-footer">
           <button class="btn-cancel" @click="showDeleteModal = false">
@@ -300,6 +391,11 @@ const {
   closeModal,
   getDifficultyText,
   getLevelClass,
+  canView,
+  canEdit,
+  canDelete,
+  canCreateQuiz,
+  canCreateMoreQuizes,
 } = useQuizesView()
 </script>
 

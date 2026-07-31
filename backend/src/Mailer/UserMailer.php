@@ -23,7 +23,7 @@ class UserMailer extends Mailer
             $this->setTransport('default')
                 ->setFrom([env('EMAIL_FROM') => env('EMAIL_FROM_NAME')])
                 ->setTo($user->email)
-                ->setSubject('🎉 Bem-vindo ao BeReady!')
+                ->setSubject('Bem-vindo ao BeReady!')
                 ->setEmailFormat('html')
                 ->viewBuilder()
                     ->setTemplate('welcome')
@@ -37,10 +37,10 @@ class UserMailer extends Mailer
 
             $this->deliver();
 
-            error_log("✅ E-mail de boas-vindas enviado para: " . $user->email);
+            error_log("E-mail de boas-vindas enviado para: " . $user->email);
 
         } catch (\Exception $e) {
-            error_log("❌ ERRO no Mailer (welcome): " . $e->getMessage());
+            error_log("ERRO no Mailer (welcome): " . $e->getMessage());
             error_log("Arquivo: " . $e->getFile() . " linha: " . $e->getLine());
             // Não lança exceção para não quebrar o registro
         }

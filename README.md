@@ -1,10 +1,10 @@
-# 📘 BeReady - Plataforma de Aprendizado de Inglês
+# BeReady - Plataforma de Aprendizado de Inglês
 
 Aplicação web para aprendizado de inglês por contextualização visual, utilizando flashcards, quizzes, traduções e recursos interativos.
 
 ---
 
-# 🛠 Tecnologias Utilizadas
+# Tecnologias Utilizadas
 
 ## Back-end
 
@@ -26,7 +26,7 @@ Aplicação web para aprendizado de inglês por contextualização visual, utili
 
 ---
 
-# 📂 Estrutura do Projeto
+# Estrutura do Projeto
 
 ```txt
 backend/   → API CakePHP
@@ -35,7 +35,7 @@ frontend/  → Interface Vue.js
 
 ---
 
-# 🚀 Requisitos
+# Requisitos
 
 Antes de começar, instale:
 
@@ -48,7 +48,7 @@ Antes de começar, instale:
 
 ---
 
-# 📥 Clonar o Projeto
+# Clonar o Projeto
 
 ```bash
 git clone https://github.com/BraianGaspar/Beready_Projeto.git
@@ -57,7 +57,7 @@ cd Beready_Projeto
 
 ---
 
-# 🐘 Configuração do Banco de Dados
+# Configuração do Banco de Dados
 
 O projeto utiliza PostgreSQL via Supabase.
 
@@ -90,7 +90,7 @@ Exemplo:
 
 ---
 
-# 🔒 Segurança do Banco
+# Segurança do Banco
 
 Recomendações importantes:
 
@@ -154,9 +154,9 @@ http://localhost:8765
 
 ---
 
-# 🎨 Configuração do Frontend (Vue.js)
+# Configuração do Frontend (Vue.js)
 
-> ⚠️ Abra outro terminal para rodar o frontend simultaneamente.
+> Abra outro terminal para rodar o frontend simultaneamente.
 
 ## Acessar pasta frontend
 
@@ -210,7 +210,7 @@ VITE_API_URL=http://localhost:8765
 
 ---
 
-# 📌 Comandos Rápidos
+# Comandos Rápidos
 
 ## Backend
 
@@ -233,7 +233,7 @@ npm run dev
 
 ---
 
-# 🔐 Variáveis Sensíveis
+# Variáveis Sensíveis
 
 Adicione ao `.gitignore`:
 
@@ -245,6 +245,6 @@ backend/config/app_local.php
 
 ---
 
-# 👨‍💻 Autor
+# Autor
 
 Projeto desenvolvido para fins educacionais e aprendizado de inglês com suporte visual e contextual.

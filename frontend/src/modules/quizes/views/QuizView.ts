@@ -2,11 +2,14 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlert } from '@/shared/composables/useAlert'
 import { API_BASE_URL } from '@/shared/config/env'
+import { usePermissionStore } from '@/stores/permissionStore'
 
 export function useQuizView() {
   const router = useRouter()
   const route = useRoute()
   const { error } = useAlert()
+  const permissionStore = usePermissionStore()
+  
   const quizId = ref<number | null>(null)
   const quiz = ref({
     id: null,
@@ -27,14 +30,23 @@ export function useQuizView() {
       return
     }
 
+    // Verificar permissão de visualização
+    if (!permissionStore.canView('quizes')) {
+      error('Você não tem permissão para visualizar este quiz')
+      router.push('/quizes')
+      return
+    }
+
     quizId.value = Number(id)
 
     try {
+      const token = localStorage.getItem('access_token')
       const response = await fetch(`${API_BASE_URL}quizes/${quizId.value}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Accept: 'application/json',
+          'Accept': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
       })
 

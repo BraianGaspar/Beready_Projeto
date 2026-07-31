@@ -1,4 +1,3 @@
-// src/modules/frases/views/FrasesPrompt.ts
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFrases } from '@/modules/frases/composables/useFrases'
@@ -12,6 +11,16 @@ interface FraseForm {
   pontuacao_semelhante: number
   tipo_frase: string
   nivel_dificuldade: string
+}
+
+// Tipo para o erro da API
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
 }
 
 export function useFrasesPrompt() {
@@ -44,8 +53,9 @@ export function useFrasesPrompt() {
         if (response.data.data) {
           promptTexto.value = response.data.data.texto_original
         }
-      } catch (err: any) {
-        error(err.response?.data?.message || 'Erro ao carregar prompt')
+      } catch (err: unknown) {
+        const apiError = err as ApiError
+        error(apiError.response?.data?.message || 'Erro ao carregar prompt')
       }
     }
   }
@@ -108,8 +118,9 @@ export function useFrasesPrompt() {
       }
       await loadData()
       closeModal()
-    } catch (err: any) {
-      error(err.response?.data?.message || 'Erro ao salvar frase')
+    } catch (err: unknown) {
+      const apiError = err as ApiError
+      error(apiError.response?.data?.message || 'Erro ao salvar frase')
     } finally {
       saving.value = false
     }
@@ -126,6 +137,9 @@ export function useFrasesPrompt() {
     try {
       await deleteFrase(itemToDelete.value)
       await loadData()
+    } catch (err: unknown) {
+      const apiError = err as ApiError
+      error(apiError.response?.data?.message || 'Erro ao excluir frase')
     } finally {
       deleting.value = false
       confirmModalVisible.value = false

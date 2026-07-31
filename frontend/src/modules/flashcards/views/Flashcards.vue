@@ -33,23 +33,7 @@
         </div>
         <h1 class="hero-title">{{ $t('flashcards.title') }}</h1>
         <p class="hero-subtitle">{{ $t('flashcards.subtitle') }}</p>
-        <button class="hero-btn" @click="openCreateModal">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {{ $t('flashcards.newFlashcard') }}
-        </button>
+        <!-- Botão removido daqui -->
       </div>
     </div>
 
@@ -57,6 +41,18 @@
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
       <p>{{ $t('flashcards.carregando') }}</p>
+    </div>
+
+    <!-- Sem Permissao -->
+    <div v-else-if="!canView" class="no-permission-state">
+      <div class="no-permission-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h2 class="no-permission-title">{{ $t('common.acessoNegado') }}</h2>
+      <p class="no-permission-description">{{ $t('common.permissionDenied') }}</p>
+      <button class="no-permission-btn" @click="$router.push('/dashboard')">{{ $t('common.voltarDashboard') }}</button>
     </div>
 
     <!-- Empty -->
@@ -75,30 +71,88 @@
       </div>
       <h2 class="empty-title">{{ $t('flashcards.emptyTitle') }}</h2>
       <p class="empty-description">{{ $t('flashcards.emptyDescription') }}</p>
-      <button class="empty-btn" @click="openCreateModal">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      <div class="empty-actions">
+        <button 
+          v-if="canCreateFlashcard" 
+          class="empty-btn" 
+          @click="openCreateModal"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"
-          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          {{ $t('flashcards.createFirst') }}
+        </button>
+        <div v-else class="empty-btn-disabled">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          {{ $t('flashcards.createFirst') }}
+          <span class="limit-badge"> {{ $t('common.limiteAtingido') }}</span>
+        </div>
+      </div>
+      <!-- Mensagem de limite no empty -->
+      <div v-if="!canCreateMoreFlashcards" class="limit-message empty-limit">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
-        {{ $t('flashcards.createFirst') }}
-      </button>
+        <span>{{ $t('flashcards.limitReached') }}</span>
+        <button class="upgrade-link" @click="$router.push('/planos')">
+          {{ $t('flashcards.upgradeToCreateMore') }}
+        </button>
+      </div>
     </div>
 
     <!-- Grid -->
     <div v-else class="flashcards-grid">
+      <!-- Botão de criar flashcard na grid -->
+      <div class="flashcard-card create-card" @click="openCreateModal">
+        <div class="create-card-content">
+          <div class="create-card-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </div>
+          <h3 class="create-card-title">{{ $t('flashcards.newFlashcard') }}</h3>
+          <p class="create-card-subtitle">{{ $t('flashcards.createSubtitle') }}</p>
+        </div>
+      </div>
+
       <div v-for="flashcard in flashcards" :key="flashcard.id" class="flashcard-card">
         <div class="flashcard-card-actions">
-          <button class="btn-edit" @click.stop="openEditModal(flashcard)">
+          <button v-if="canEdit" class="btn-edit" @click.stop="openEditModal(flashcard)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -111,7 +165,7 @@
               />
             </svg>
           </button>
-          <button class="btn-delete" @click.stop="confirmDelete(flashcard)">
+          <button v-if="canDelete" class="btn-delete" @click.stop="confirmDelete(flashcard)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
@@ -216,7 +270,7 @@
       </div>
     </div>
 
-    <!-- Modal de Confirmação de Exclusão -->
+    <!-- Modal de Confirmacao de Exclusao -->
     <div v-if="showDeleteModal" class="modal-overlay" @click="showDeleteModal = false">
       <div class="modal-container confirm-modal" @click.stop>
         <div class="confirm-header">
@@ -242,7 +296,7 @@
         <div class="confirm-body">
           <p>{{ $t('flashcards.deleteConfirmMessage') }}</p>
           <p class="flashcard-name">"{{ deletingFlashcard?.frente }}"</p>
-          <p class="modal-warning"> {{ $t('flashcards.deleteWarning') }}</p>
+          <p class="modal-warning">{{ $t('flashcards.deleteWarning') }}</p>
         </div>
         <div class="confirm-footer">
           <button class="btn-cancel" @click="showDeleteModal = false">
@@ -278,6 +332,11 @@ const {
   handleDelete,
   submitForm,
   closeModal,
+  canView,
+  canEdit,
+  canDelete,
+  canCreateFlashcard,
+  canCreateMoreFlashcards,
 } = useFlashcardsView()
 </script>
 

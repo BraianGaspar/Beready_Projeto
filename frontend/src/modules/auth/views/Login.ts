@@ -50,7 +50,6 @@ export function useLogin() {
         return
       }
 
-      // ✅ AGORA COM TIPAGEM CORRETA (sem any!)
       if (typeof window === 'undefined' || !window.grecaptcha) {
         reject(new Error('reCAPTCHA não carregado. Recarregue a página.'))
         return

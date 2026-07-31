@@ -28,11 +28,17 @@
         <div class="admin-banner-content">
           <span class="admin-badge">{{ $t('admin.badge') }}</span>
           <div class="admin-links">
-            <button @click="$router.push('/admin')" class="admin-link-btn">
-              {{ $t('admin.manageUsers') }}
+            <button @click="goToAdmin('users')" class="admin-link-btn">
+               {{ $t('admin.users') }}
             </button>
-            <button @click="$router.push('/admin?tab=stats')" class="admin-link-btn">
-              {{ $t('admin.statistics') }}
+            <button @click="goToAdmin('roles')" class="admin-link-btn">
+               {{ $t('admin.roles.title') }}
+            </button>
+            <button @click="goToAdmin('planos')" class="admin-link-btn">
+               {{ $t('admin.planos.title') }}
+            </button>
+            <button @click="goToAdmin('stats')" class="admin-link-btn">
+               {{ $t('admin.statistics') }}
             </button>
           </div>
         </div>
@@ -225,7 +231,7 @@
             </svg>
           </div>
           <div class="feature-content">
-            <h3 class="feature-title">Meu {{ $t('common.progresso') }}</h3>
+            <h3 class="feature-title">{{ $t('common.progresso') }}</h3>
             <p class="feature-description">{{ $t('dashboard.features.progresso.desc') }}</p>
             <span class="feature-link">{{ $t('dashboard.features.progresso.link') }}</span>
           </div>
@@ -263,9 +269,16 @@
 import { useDashboard } from './Dashboard'
 import Navbar from '@/components/layout/Navbar.vue'
 import { useAuth } from '@/shared/composables/useAuth'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const { user, loading, userName, stats, motivationalMessage, handleLogout } = useDashboard()
 const { isAdmin } = useAuth()
+
+// FUNÇÃO PARA NAVEGAR PARA ADMIN COM TAB ESPECÍFICA
+const goToAdmin = (tab: string) => {
+  router.push(`/admin?tab=${tab}`)
+}
 </script>
 
 <style scoped>

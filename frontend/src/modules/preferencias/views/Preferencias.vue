@@ -82,7 +82,7 @@
             :class="{ active: form.tema === 'claro' }"
             @click="form.tema = 'claro'"
           >
-            🌞 {{ $t('preferencias.claro') }}
+             {{ $t('preferencias.claro') }}
           </button>
           <button
             type="button"
@@ -90,7 +90,7 @@
             :class="{ active: form.tema === 'escuro' }"
             @click="form.tema = 'escuro'"
           >
-            🌙 {{ $t('preferencias.escuro') }}
+             {{ $t('preferencias.escuro') }}
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@
             :class="{ active: form.preferencia_dificuldade === 'iniciante' }"
             @click="form.preferencia_dificuldade = 'iniciante'"
           >
-            🌱 {{ $t('preferencias.iniciante') }}
+             {{ $t('preferencias.iniciante') }}
           </button>
           <button
             type="button"
@@ -148,7 +148,7 @@
             :class="{ active: form.preferencia_dificuldade === 'intermediario' }"
             @click="form.preferencia_dificuldade = 'intermediario'"
           >
-            📚 {{ $t('preferencias.intermediario') }}
+             {{ $t('preferencias.intermediario') }}
           </button>
           <button
             type="button"
@@ -156,7 +156,7 @@
             :class="{ active: form.preferencia_dificuldade === 'avancado' }"
             @click="form.preferencia_dificuldade = 'avancado'"
           >
-            🎓 {{ $t('preferencias.avancado') }}
+             {{ $t('preferencias.avancado') }}
           </button>
           <button
             type="button"
@@ -164,7 +164,7 @@
             :class="{ active: form.preferencia_dificuldade === 'adaptativo' }"
             @click="form.preferencia_dificuldade = 'adaptativo'"
           >
-            🤖 {{ $t('preferencias.adaptativo') }}
+             {{ $t('preferencias.adaptativo') }}
           </button>
         </div>
       </div>

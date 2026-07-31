@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { usePermissionStore } from '@/stores/permissionStore'
 
 // Todas as views agora com lazy loading
 const Home = () => import('../views/_global/Home.vue')
@@ -33,6 +34,9 @@ const FrasesPrompt = () => import('../modules/frases/views/FrasesPrompt.vue')
 
 // Admin Panel
 const AdminPanel = () => import('../modules/admin/views/AdminPanel.vue')
+
+// Planos Page
+const PlanosPage = () => import('../views/PlanosPage.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -137,18 +141,29 @@ const router = createRouter({
       component: FrasesPrompt,
       meta: { requiresAuth: true },
     },
-    // Rota Admin
+    // Planos Page (Publica)
+    {
+      path: '/planos',
+      name: 'planos',
+      component: PlanosPage,
+      meta: { requiresAuth: false },
+    },
+    // Rota Admin com permissao
     {
       path: '/admin',
       name: 'admin',
       component: AdminPanel,
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { 
+        requiresAuth: true, 
+        requiresAdmin: true,
+        permission: 'admin.access' 
+      },
     },
   ],
 })
 
-// Guarda de rota atualizada com verificação de admin
-router.beforeEach((to, from) => {
+// Guarda de rota atualizada com verificacao de admin e permissao
+router.beforeEach(async (to, from) => {
   const token = localStorage.getItem('access_token')
   const userData = localStorage.getItem('user')
 
@@ -168,6 +183,22 @@ router.beforeEach((to, from) => {
   // Verifica se rota requer admin
   if (to.meta.requiresAdmin && !isAdmin) {
     return '/dashboard'
+  }
+
+  // Verifica se rota requer permissao especifica
+  if (to.meta.permission) {
+    const permissionStore = usePermissionStore()
+    
+    // Carregar permissoes se nao estiverem carregadas
+    if (permissionStore.userPermissions.length === 0) {
+      await permissionStore.loadPermissions()
+    }
+    
+    // Verifica se a permissao existe
+    const requiredPermission = to.meta.permission as string
+    if (!permissionStore.hasPermission(requiredPermission)) {
+      return { path: '/dashboard', query: { error: 'no_permission' } }
+    }
   }
 
   if (to.meta.requiresAuth && !isAuthenticated) {
