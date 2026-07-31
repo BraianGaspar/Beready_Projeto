@@ -1,9 +1,9 @@
-// src/modules/quizes/views/Quizes.ts
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizes } from '../composables/useQuizes'
 import type { Quiz, User } from '@/core/types'
 import { useI18n } from 'vue-i18n'
+import { usePermissionStore } from '@/stores/permissionStore'
 
 interface FormData {
   titulo: string
@@ -18,7 +18,8 @@ interface FormData {
 export function useQuizesView() {
   const router = useRouter()
   const { t } = useI18n()
-  const { quizes, loading, loadQuizes, createQuiz, updateQuiz, deleteQuiz } = useQuizes()
+  const permissionStore = usePermissionStore()
+  const { quizes, loading, loadQuizes, createQuiz, updateQuiz, deleteQuiz, canCreateMore } = useQuizes()
 
   const showModal = ref(false)
   const showDeleteModal = ref(false)
@@ -37,6 +38,15 @@ export function useQuizesView() {
     publico: false,
     tipo_criacao: 'manual',
   })
+
+  // Permissões
+  const canView = computed(() => permissionStore.canView('quizes'))
+  const canCreate = computed(() => permissionStore.canCreate('quizes'))
+  const canEdit = computed(() => permissionStore.canEdit('quizes'))
+  const canDelete = computed(() => permissionStore.canDelete('quizes'))
+  
+  const canCreateQuiz = computed(() => canCreate.value && canCreateMore())
+  const canCreateMoreQuizes = computed(() => canCreateMore())
 
   const getDifficultyText = (level: string) => {
     const texts: Record<string, string> = {
@@ -67,12 +77,24 @@ export function useQuizesView() {
   }
 
   const openCreateModal = () => {
+    if (!canCreate.value) {
+      console.warn('Sem permissão para criar quizzes')
+      return
+    }
+    if (!canCreateMore()) {
+      console.warn('Limite de quizzes atingido')
+      return
+    }
     resetForm()
     isEditing.value = false
     showModal.value = true
   }
 
   const openEditModal = (quiz: Quiz) => {
+    if (!canEdit.value) {
+      console.warn('Sem permissão para editar quizzes')
+      return
+    }
     form.titulo = quiz.titulo
     form.descricao = quiz.descricao || ''
     form.nivel_dificuldade = quiz.nivel_dificuldade
@@ -84,14 +106,26 @@ export function useQuizesView() {
   }
 
   const viewQuiz = (id: number) => {
+    if (!canView.value) {
+      console.warn('Sem permissão para visualizar quizzes')
+      return
+    }
     router.push(`/quizes/${id}`)
   }
 
   const playQuiz = (id: number) => {
+    if (!canView.value) {
+      console.warn('Sem permissão para visualizar quizzes')
+      return
+    }
     router.push(`/quizes/${id}/play`)
   }
 
   const confirmDelete = (quiz: Quiz) => {
+    if (!canDelete.value) {
+      console.warn('Sem permissão para excluir quizzes')
+      return
+    }
     deletingQuiz.value = quiz
     showDeleteModal.value = true
   }
@@ -168,6 +202,7 @@ export function useQuizesView() {
   }
 
   onMounted(async () => {
+    await permissionStore.loadPermissions()
     const user = getUserFromLocalStorage()
     if (user?.id) {
       await loadQuizes(user.id)
@@ -194,5 +229,10 @@ export function useQuizesView() {
     closeModal,
     getDifficultyText,
     getLevelClass,
+    canView,
+    canEdit,
+    canDelete,
+    canCreateQuiz,
+    canCreateMoreQuizes,
   }
 }

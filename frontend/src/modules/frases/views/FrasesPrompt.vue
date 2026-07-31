@@ -231,7 +231,6 @@ const {
   editingId,
   deleting,
   confirmModalVisible,
-  formatDate,
   openModal,
   closeModal,
   editFrase,

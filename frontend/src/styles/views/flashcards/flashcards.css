@@ -83,6 +83,13 @@
   color: var(--hero-text-secondary, rgba(255, 255, 255, 0.9)) !important;
 }
 
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .hero-btn {
   background: white;
   color: #667eea;
@@ -101,6 +108,89 @@
 .hero-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.hero-btn-disabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: not-allowed;
+  backdrop-filter: blur(5px);
+}
+
+.limit-badge {
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: 0.5rem;
+}
+
+.limit-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  backdrop-filter: blur(5px);
+}
+
+.limit-message svg {
+  flex-shrink: 0;
+  color: #fbbf24;
+}
+
+.upgrade-link {
+  background: none;
+  border: none;
+  color: #fbbf24;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.upgrade-link:hover {
+  color: #f59e0b;
+}
+
+.empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.empty-btn-disabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #e5e7eb;
+  color: #9ca3af;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.empty-limit {
+  margin-top: 1rem;
 }
 
 /* Loading State */
@@ -131,6 +221,64 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* No Permission State */
+.no-permission-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.no-permission-icon {
+  margin-bottom: 1.5rem;
+  color: #ef4444;
+}
+
+.no-permission-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 0.5rem;
+}
+
+.no-permission-description {
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 1.5rem;
+}
+
+.no-permission-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.no-permission-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+/* Dark mode for no-permission */
+.dark-mode .no-permission-title {
+  color: var(--text-primary, #f1f5f9);
+}
+
+.dark-mode .no-permission-description {
+  color: var(--text-secondary, #94a3b8);
+}
+
+.dark-mode .no-permission-btn {
+  background: #3b82f6;
+}
+
+.dark-mode .no-permission-btn:hover {
+  background: #2563eb;
 }
 
 /* Empty State */
@@ -209,7 +357,6 @@
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Botões de ação no canto superior esquerdo com padding para não sobrepor o conteúdo */
 .flashcard-card-actions {
   position: absolute;
   top: 0.75rem;
@@ -219,7 +366,6 @@
   z-index: 10;
 }
 
-/* Conteúdo do card com padding top maior para não ficar atrás dos botões */
 .flashcard-content {
   padding: 3.5rem 1.5rem 1.5rem 1.5rem;
   cursor: pointer;
@@ -604,6 +750,14 @@
   }
   .flashcard-content {
     padding: 3rem 1rem 1rem 1rem;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  .limit-message {
+    flex-direction: column;
+    text-align: center;
   }
 }
 

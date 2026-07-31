@@ -1,4 +1,3 @@
-// src/locales/index.ts
 import { createI18n } from 'vue-i18n'
 import ptBR from './pt-BR' // Português
 import enUS from './en-US' // InglêS

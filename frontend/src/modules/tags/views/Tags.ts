@@ -44,11 +44,12 @@ export function useTags() {
     try {
       const response = await tagService.getByUsuario(userId)
       tags.value = response.data.data || []
-    } catch (err: any) {
-      if (err.response?.status === 400) {
+    } catch (err: unknown) {
+      const apiError = err as { response?: { status?: number; data?: { message?: string } } }
+      if (apiError.response?.status === 400) {
         tags.value = []
       } else {
-        error(err.response?.data?.message || t('tags.errorLoad'))
+        error(apiError.response?.data?.message || t('tags.errorLoad'))
       }
     } finally {
       loading.value = false
@@ -99,8 +100,9 @@ export function useTags() {
       }
       await fetchTags()
       closeModal()
-    } catch (err: any) {
-      error(err.response?.data?.message || t('tags.errorSave'))
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string } } }
+      error(apiError.response?.data?.message || t('tags.errorSave'))
     } finally {
       saving.value = false
     }
@@ -119,8 +121,9 @@ export function useTags() {
       await tagService.delete(tagToDelete.value.id!)
       success(t('tags.successDelete'))
       await fetchTags()
-    } catch (err: any) {
-      error(err.response?.data?.message || t('tags.errorDelete'))
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string } } }
+      error(apiError.response?.data?.message || t('tags.errorDelete'))
     } finally {
       deleting.value = false
       confirmModalVisible.value = false

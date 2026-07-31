@@ -109,47 +109,43 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>📚 BeReady</h1>
+            <h1>BeReady</h1>
             <p>Sua jornada de aprendizado de inglês começa aqui!</p>
         </div>
 
         <!-- Content -->
         <div class="content">
-            <h2>Olá, <?= h($nome) ?>! 👋</h2>
+            <h2>Olá, <?= h($nome) ?>!</h2>
 
             <p>Que bom ter você conosco! O <strong>BeReady</strong> vai te ajudar a aprender inglês de forma inteligente e divertida.</p>
 
-            <p>Estamos muito animados para te acompanhar nessa jornada. 🚀</p>
+            <p>Estamos muito animados para te acompanhar nessa jornada. </p>
 
             <div style="text-align: center;">
-                <a href="<?= h($loginLink) ?>" class="button">🎯 Começar Agora</a>
+                <a href="<?= h($loginLink) ?>" class="button">Começar Agora</a>
             </div>
 
             <div class="features">
                 <div class="feature-item">
-                    <div class="icon">📝</div>
                     <h4>Flashcards</h4>
                     <p>Aprenda com cartões interativos</p>
                 </div>
                 <div class="feature-item">
-                    <div class="icon">🧠</div>
                     <h4>Quizzes</h4>
                     <p>Teste seus conhecimentos</p>
                 </div>
                 <div class="feature-item">
-                    <div class="icon">🤖</div>
                     <h4>Prompts com IA</h4>
                     <p>Pratique conversação</p>
                 </div>
                 <div class="feature-item">
-                    <div class="icon">📊</div>
                     <h4>Progresso</h4>
                     <p>Acompanhe sua evolução</p>
                 </div>
             </div>
 
             <p style="font-size: 14px; color: #888;">
-                💡 Dica: Comece pelos flashcards para criar uma base sólida!
+                Dica: Comece pelos flashcards para criar uma base sólida!
             </p>
         </div>
 

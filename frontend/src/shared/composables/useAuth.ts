@@ -13,6 +13,14 @@ export interface User {
   objetivos_aprendizado?: string
   status?: string
   uuid?: string
+  foto_perfil?: string
+  assinatura?: {
+    plano: {
+      nome: string
+      recursos?: string[]
+      limites?: Record<string, number>
+    }
+  }
 }
 
 export function useAuth() {
@@ -45,8 +53,12 @@ export function useAuth() {
         return { success: true, user: userData }
       }
       return { success: false, message: response.data.message }
-    } catch (error: any) {
-      return { success: false, message: error.response?.data?.message || 'Erro de conexão' }
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } }
+      return { 
+        success: false, 
+        message: apiError.response?.data?.message || 'Erro de conexão' 
+      }
     } finally {
       loading.value = false
     }
@@ -56,7 +68,7 @@ export function useAuth() {
     loading.value = true
     try {
       await api.post('/auth/logout')
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro no logout:', error)
     } finally {
       localStorage.removeItem('user')
@@ -73,7 +85,7 @@ export function useAuth() {
     if (userData) {
       try {
         user.value = JSON.parse(userData)
-      } catch (e) {
+      } catch (e: unknown) {
         console.error('Erro ao carregar usuário:', e)
         localStorage.removeItem('user')
       }
@@ -88,7 +100,7 @@ export function useAuth() {
         user.value = response.data.data
         localStorage.setItem('user', JSON.stringify(user.value))
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro ao atualizar usuário:', error)
     }
   }

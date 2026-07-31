@@ -12,17 +12,57 @@ use App\Exceptions\WeakPasswordException;
 use App\Exceptions\InvalidTokenException;
 use App\Exceptions\UserNotFoundException;
 use Cake\Http\Client;
+use App\Services\PermissionService;
 
 class UsersController extends AppController
 {
     private UserService $userService;
     private JwtService $jwtService;
+    private PermissionService $permissionService;
 
     public function initialize(): void
     {
         parent::initialize();
         $this->userService = new UserService(new UserRepository());
         $this->jwtService = new JwtService();
+        $this->permissionService = new PermissionService();
+    }
+
+    /**
+     * GET /user/permissions
+     * Retorna as permissões do usuário autenticado
+     */
+    public function permissions()
+    {
+        $this->request->allowMethod(['get']);
+        
+        $token = $this->jwtService->getTokenFromRequest($this->request);
+        if (!$token) {
+            return $this->jsonError('Token não informado', 401);
+        }
+
+        $payload = $this->jwtService->validateToken($token);
+        if (!$payload) {
+            return $this->jsonError('Token inválido ou expirado', 401);
+        }
+
+        try {
+            $user = $this->userService->getUserById($payload['sub']);
+            
+            // Se for admin, retorna todas as permissões
+            if ($user['role'] === 'admin') {
+                $allPermissions = $this->permissionService->getAllPermissions();
+                return $this->jsonSuccess($allPermissions);
+            }
+
+            // Busca permissões do usuário
+            $permissions = $this->permissionService->getUserPermissions($user['id']);
+            return $this->jsonSuccess($permissions);
+        } catch (UserNotFoundException $e) {
+            return $this->jsonError('Usuário não encontrado', 404);
+        } catch (\Exception $e) {
+            return $this->jsonError('Erro ao carregar permissões: ' . $e->getMessage(), 500);
+        }
     }
 
     public function health()
@@ -267,37 +307,6 @@ class UsersController extends AppController
         } catch (\Exception $e) {
             return $this->jsonError('Erro interno ao redefinir senha', 500);
         }
-    }
-
-    public function testSentry()
-    {
-        error_log("=== TESTE SENTRY ===");
-
-        // Garante que o Sentry está inicializado
-        $dsn = env('SENTRY_DSN');
-        if (!empty($dsn) && !\Sentry\SentrySdk::getCurrentHub()->getClient()) {
-            \Sentry\init([
-              'dsn' => $dsn,
-              'environment' => env('APP_ENV', 'development'),
-              'traces_sample_rate' => 1.0,
-              'send_default_pii' => false,
-              'http_ssl_verify_peer' => false,
-            ]);
-        }
-
-        try {
-            throw new \Exception('Teste Sentry Beready ' . date('Y-m-d H:i:s'));
-        } catch (\Throwable $e) {
-            $id = \Sentry\captureException($e);
-        }
-
-        // FLUSH com tempo suficiente
-        \Sentry\flush(5000);
-
-        return $this->jsonSuccess([
-          'message' => 'evento enviado',
-          'timestamp' => date('Y-m-d H:i:s')
-        ]);
     }
 
     public function notFound()

@@ -6,30 +6,56 @@
         <img src="/logo.png" alt="Beready Logo" class="logo-icon-img" />
       </div>
 
-      <!-- Desktop Menu -->
-      <div class="nav-menu">
-        <router-link
-          v-for="item in menuItems"
-          :key="item.path"
-          :to="item.path"
-          class="nav-link"
-          active-class="active"
+      <!-- Desktop Menu com Scroll -->
+      <div class="nav-menu-wrapper" ref="menuWrapper">
+        <!-- Seta Esquerda -->
+        <button 
+          v-show="showLeftArrow" 
+          class="nav-scroll-indicator left" 
+          @click="scrollMenu('left')"
+          aria-label="Rolar menu para esquerda"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              :d="item.iconPath"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          {{ $t(item.name) }}
-        </router-link>
+        </button>
+
+        <div class="nav-menu" ref="navMenu">
+          <router-link
+            v-for="item in menuItems"
+            :key="item.path"
+            :to="item.path"
+            class="nav-link"
+            active-class="active"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                :d="item.iconPath"
+              />
+            </svg>
+            {{ $t(item.name) }}
+          </router-link>
+        </div>
+
+        <!-- Seta Direita -->
+        <button 
+          v-show="showRightArrow" 
+          class="nav-scroll-indicator right" 
+          @click="scrollMenu('right')"
+          aria-label="Rolar menu para direita"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
 
       <!-- User + Hamburger -->
@@ -37,16 +63,16 @@
         <div class="user-info">
           <div class="user-avatar">
             <img
-              v-if="user?.foto_perfil"
-              :src="user.foto_perfil"
+              v-if="userData?.foto_perfil"
+              :src="userData.foto_perfil"
               alt="Foto de perfil"
               class="avatar-image"
             />
-            <span v-else>{{ user?.nome?.charAt(0) || 'U' }}</span>
+            <span v-else>{{ userInitial }}</span>
           </div>
           <div class="user-details">
-            <span class="user-name">{{ user?.nome || 'Usuário' }}</span>
-            <span class="user-email">{{ user?.email || '' }}</span>
+            <span class="user-name">{{ userName }}</span>
+            <span class="user-email">{{ userEmail }}</span>
           </div>
         </div>
 
@@ -80,60 +106,40 @@
       </div>
     </div>
 
-    <!-- Mobile Menu -->
-    <transition name="slide-down">
-      <div v-if="isMenuOpen" class="mobile-menu">
-        <div class="mobile-menu-items">
-          <router-link
-            v-for="item in menuItems"
-            :key="item.path"
-            :to="item.path"
-            class="mobile-nav-link"
-            @click="closeMenu"
+    <!-- Mobile Menu - SEM o botão de logout duplicado -->
+    <div v-show="isMenuOpen" class="mobile-menu-overlay" @click.self="closeMenu">
+      <div class="mobile-menu-items">
+        <router-link
+          v-for="item in menuItems"
+          :key="item.path"
+          :to="item.path"
+          class="mobile-nav-link"
+          @click="closeMenu"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                :d="item.iconPath"
-              />
-            </svg>
-            {{ $t(item.name) }}
-          </router-link>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              :d="item.iconPath"
+            />
+          </svg>
+          {{ $t(item.name) }}
+        </router-link>
 
-          <button class="mobile-logout-btn" @click="handleLogout">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            {{ $t('common.sair') }}
-          </button>
-        </div>
       </div>
-    </transition>
+    </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAlert } from '@/shared/composables/useAlert'
-import { useNavbar } from './Navbar'
+import { watch } from 'vue'
+import { useNavbarLogic } from './Navbar'
 import type { User } from '@/core/types/User'
 
 const props = defineProps<{
@@ -145,30 +151,32 @@ const emit = defineEmits<{
   (e: 'logout'): void
 }>()
 
-const router = useRouter()
-const { success } = useAlert()
-const isMenuOpen = ref(false)
+const {
+  user: userData,
+  userName,
+  userEmail,
+  userInitial,
+  menuItems,
+  isMenuOpen,
+  navMenu,
+  menuWrapper,
+  showLeftArrow,
+  showRightArrow,
+  toggleMenu,
+  closeMenu,
+  scrollMenu,
+  handleLogout: logoutHandler,
+  setUser
+} = useNavbarLogic()
 
-const { menuItems } = useNavbar(props)
+// Sincronizar props com a lógica
+watch(() => props.user, (newUser) => {
+  setUser(newUser)
+}, { immediate: true })
 
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-  document.body.style.overflow = isMenuOpen.value ? 'hidden' : ''
-}
-
-const closeMenu = () => {
-  isMenuOpen.value = false
-  document.body.style.overflow = ''
-}
-
+// Emitir evento de logout
 const handleLogout = () => {
-  closeMenu()
-  localStorage.removeItem('user')
-  localStorage.removeItem('token')
-  success('Logout realizado com sucesso!')
-  setTimeout(() => {
-    router.push('/login')
-  }, 500)
+  logoutHandler()
   emit('logout')
 }
 </script>

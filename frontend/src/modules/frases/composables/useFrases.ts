@@ -1,4 +1,3 @@
-// frontend/src/modules/frases/composables/useFrases.ts
 import { ref } from 'vue'
 import { fraseService } from '../services/fraseService'
 import type { Frase, ApiResponse } from '@/core/types'

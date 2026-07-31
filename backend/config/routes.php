@@ -32,6 +32,110 @@ $routes->connect('/admin/stats', [
     'action' => 'stats'
 ])->setMethods(['GET']);
 
+
+/**
+ * ADMIN - ROLES
+*/
+$routes->connect('/admin/roles', [
+    'controller' => 'AdminRoles',
+    'action' => 'index'
+])->setMethods(['GET']);
+
+$routes->connect('/admin/roles', [
+    'controller' => 'AdminRoles',
+    'action' => 'add'
+])->setMethods(['POST']);
+
+$routes->connect('/admin/roles/{id}', [
+    'controller' => 'AdminRoles',
+    'action' => 'edit'
+])->setPatterns(['id' => '\d+'])
+->setPass(['id'])
+->setMethods(['PUT']);
+
+$routes->connect('/admin/roles/{id}', [
+    'controller' => 'AdminRoles',
+    'action' => 'delete'
+])->setPatterns(['id' => '\d+'])
+->setPass(['id'])
+->setMethods(['DELETE']);
+
+/**
+ * ROTAS: ADMIN - PERMISSÕES
+ */
+$routes->connect('/admin/permissions', [
+    'controller' => 'AdminPermissions',
+    'action' => 'index'
+])->setMethods(['GET']);
+
+/**
+ * ROTAS: ADMIN - PLANOS
+ */
+$routes->connect('/admin/planos', [
+    'controller' => 'AdminPlanos',
+    'action' => 'index'
+])->setMethods(['GET']);
+
+$routes->connect('/admin/planos', [
+    'controller' => 'AdminPlanos',
+    'action' => 'add'
+])->setMethods(['POST']);
+
+$routes->connect('/admin/planos/edit/{id}', [
+    'controller' => 'AdminPlanos',
+    'action' => 'edit'
+])->setPatterns(['id' => '\d+'])
+->setPass(['id'])
+->setMethods(['PUT', 'POST']);
+
+$routes->connect('/admin/planos/delete/{id}', [
+    'controller' => 'AdminPlanos',
+    'action' => 'delete'
+])->setPatterns(['id' => '\d+'])
+->setPass(['id'])
+->setMethods(['DELETE', 'POST']);
+
+/**
+ * ROTA: PLANOS PÚBLICOS
+ */
+$routes->connect('/planos', [
+    'controller' => 'Planos',
+    'action' => 'index'
+])->setMethods(['GET']);
+
+/**
+ * ROTA: USUÁRIO - PERMISSÕES
+ */
+$routes->connect('/user/permissions', [
+    'controller' => 'Users',
+    'action' => 'permissions'
+])->setMethods(['GET']);
+
+/**
+ * ROTA: USUÁRIO - ASSINATURA
+ */
+$routes->connect('/user/assinatura', [
+    'controller' => 'Assinaturas',
+    'action' => 'current'
+])->setMethods(['GET']);
+
+/**
+ * ROTA: PLANOS - ASSINAR
+ */
+$routes->connect('/planos/{id}/assinar', [
+    'controller' => 'Planos',
+    'action' => 'assinar'
+])->setPatterns(['id' => '\d+'])
+->setMethods(['POST']);
+
+/**
+ * ROTA: PLANOS - CANCELAR
+ */
+$routes->connect('/planos/cancelar', [
+    'controller' => 'Planos',
+    'action' => 'cancelar'
+])->setMethods(['POST']);
+
 /**
  * AUTH ROUTES
  */
@@ -534,14 +638,6 @@ $routes->connect('/flashcard-tags', [
     'controller' => 'FlashcardTags',
     'action' => 'remove'
 ])->setMethods(['DELETE']);
-
-/**
- * Error Sentry
- */
-$routes->connect('/test-sentry', [
-    'controller' => 'Users',
-    'action' => 'testSentry'
-])->setMethods(['GET']);
 
 /**
  * FALLBACK

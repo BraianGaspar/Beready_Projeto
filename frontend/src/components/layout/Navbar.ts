@@ -1,16 +1,33 @@
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAlert } from '@/shared/composables/useAlert'
+import { useI18n } from 'vue-i18n'
 import type { User } from '@/core/types/User'
 
-interface NavbarProps {
-  user: User | null
-  loading: boolean
-}
+export function useNavbarLogic() {
+  const router = useRouter()
+  const { success } = useAlert()
+  const { t } = useI18n()
 
-export function useNavbar(props: NavbarProps) {
-  const userName = computed(() => props.user?.nome || 'Usuário')
-  const userEmail = computed(() => props.user?.email || '')
-  const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
+  // Estado do usuário
+  const user = ref<User | null>(null)
 
+  // Estado do menu
+  const isMenuOpen = ref(false)
+  const navMenu = ref<HTMLElement | null>(null)
+  const menuWrapper = ref<HTMLElement | null>(null)
+  const showLeftArrow = ref(false)
+  const showRightArrow = ref(false)
+
+  // Computed para informações do usuário
+  const userName = computed(() => user.value?.nome || t('common.usuario'))
+  const userEmail = computed(() => user.value?.email || '')
+  const userInitial = computed(() => {
+    const nome = user.value?.nome || ''
+    return nome.charAt(0).toUpperCase() || 'U'
+  })
+
+  // Itens do menu
   const menuItems = [
     {
       name: 'common.dashboard',
@@ -22,6 +39,12 @@ export function useNavbar(props: NavbarProps) {
       name: 'common.perfil',
       path: '/profile',
       iconPath: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+    },
+    {
+      name: 'common.planos',
+      path: '/planos',
+      iconPath:
+        'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
     },
     {
       name: 'common.flashcards',
@@ -61,10 +84,113 @@ export function useNavbar(props: NavbarProps) {
     },
   ]
 
+  // Verificar se o menu precisa de scroll
+  const checkScroll = () => {
+    if (!navMenu.value) return
+    
+    const el = navMenu.value
+    const hasOverflow = el.scrollWidth > el.clientWidth
+    
+    if (hasOverflow) {
+      showLeftArrow.value = el.scrollLeft > 5
+      showRightArrow.value = el.scrollLeft < el.scrollWidth - el.clientWidth - 5
+    } else {
+      showLeftArrow.value = false
+      showRightArrow.value = false
+    }
+  }
+
+  // Rolar o menu
+  const scrollMenu = (direction: 'left' | 'right') => {
+    if (!navMenu.value) return
+    
+    const el = navMenu.value
+    const scrollAmount = el.clientWidth * 0.6
+    
+    if (direction === 'left') {
+      el.scrollBy({ left: -scrollAmount, behavior: 'smooth' })
+    } else {
+      el.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
+
+  // Observar mudanças no tamanho do menu
+  let resizeObserver: ResizeObserver | null = null
+
+  onMounted(() => {
+    nextTick(() => {
+      checkScroll()
+      
+      if (navMenu.value) {
+        navMenu.value.addEventListener('scroll', checkScroll)
+        
+        resizeObserver = new ResizeObserver(() => {
+          checkScroll()
+        })
+        resizeObserver.observe(navMenu.value)
+      }
+      
+      window.addEventListener('resize', checkScroll)
+    })
+  })
+
+  onUnmounted(() => {
+    if (navMenu.value) {
+      navMenu.value.removeEventListener('scroll', checkScroll)
+    }
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+    }
+    window.removeEventListener('resize', checkScroll)
+  })
+
+  // Watch para quando os itens do menu mudarem
+  watch(menuItems, () => {
+    nextTick(() => {
+      checkScroll()
+    })
+  })
+
+  const toggleMenu = () => {
+    isMenuOpen.value = !isMenuOpen.value
+    document.body.style.overflow = isMenuOpen.value ? 'hidden' : ''
+  }
+
+  const closeMenu = () => {
+    isMenuOpen.value = false
+    document.body.style.overflow = ''
+  }
+
+  const handleLogout = () => {
+    closeMenu()
+    localStorage.removeItem('user')
+    localStorage.removeItem('token')
+    success(t('success.logout'))
+    setTimeout(() => {
+      router.push('/login')
+    }, 500)
+  }
+
+  // Função para definir o usuário
+  const setUser = (newUser: User | null) => {
+    user.value = newUser
+  }
+
   return {
+    user,
     userName,
     userEmail,
     userInitial,
     menuItems,
+    isMenuOpen,
+    navMenu,
+    menuWrapper,
+    showLeftArrow,
+    showRightArrow,
+    setUser,
+    toggleMenu,
+    closeMenu,
+    scrollMenu,
+    handleLogout,
   }
 }

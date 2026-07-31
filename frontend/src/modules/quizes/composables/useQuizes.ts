@@ -1,15 +1,30 @@
-// src/modules/quizes/composables/useQuizes.ts
 import { ref } from 'vue'
 import { quizService } from '../services/quizService'
 import type { Quiz } from '@/core/types'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
+import { usePlan } from '@/shared/composables/usePlan'
+
+// Tipo para o erro da API
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
+}
 
 export function useQuizes() {
   const quizes = ref<Quiz[]>([])
   const loading = ref(false)
   const { success, error } = useAlert()
   const { t } = useI18n()
+  const plan = usePlan()
+
+  const canCreateMore = (): boolean => {
+    return plan.canCreateMore('quizes', quizes.value.length)
+  }
 
   const loadQuizes = async (usuarioId: number) => {
     loading.value = true
@@ -21,9 +36,10 @@ export function useQuizes() {
       } else {
         error(response.data.message || t('quizes.errorLoad'))
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao carregar quizes:', err)
-      error(err.response?.data?.message || err.message || t('quizes.errorLoad'))
+      const apiError = err as ApiError
+      error(apiError.response?.data?.message || apiError.message || t('quizes.errorLoad'))
       quizes.value = []
     } finally {
       loading.value = false
@@ -31,6 +47,11 @@ export function useQuizes() {
   }
 
   const createQuiz = async (data: Omit<Quiz, 'id' | 'criado_em' | 'atualizado_em'>) => {
+    if (!canCreateMore()) {
+      error(t('plan.limitReached', { recurso: 'quizes' }))
+      throw new Error('Limite do plano atingido')
+    }
+
     loading.value = true
     try {
       const response = await quizService.create(data)
@@ -41,9 +62,10 @@ export function useQuizes() {
       } else {
         throw new Error(response.data.message || t('quizes.errorCreate'))
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao criar quiz:', err)
-      const errorMsg = err.response?.data?.message || err.message || t('quizes.errorCreate')
+      const apiError = err as ApiError
+      const errorMsg = apiError.response?.data?.message || apiError.message || t('quizes.errorCreate')
       error(errorMsg)
       throw new Error(errorMsg)
     } finally {
@@ -65,9 +87,10 @@ export function useQuizes() {
       } else {
         throw new Error(response.data.message || t('quizes.errorUpdate'))
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao atualizar quiz:', err)
-      const errorMsg = err.response?.data?.message || err.message || t('quizes.errorUpdate')
+      const apiError = err as ApiError
+      const errorMsg = apiError.response?.data?.message || apiError.message || t('quizes.errorUpdate')
       error(errorMsg)
       throw new Error(errorMsg)
     } finally {
@@ -86,9 +109,10 @@ export function useQuizes() {
       } else {
         throw new Error(response.data.message || t('quizes.errorDelete'))
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao excluir quiz:', err)
-      const errorMsg = err.response?.data?.message || err.message || t('quizes.errorDelete')
+      const apiError = err as ApiError
+      const errorMsg = apiError.response?.data?.message || apiError.message || t('quizes.errorDelete')
       error(errorMsg)
       throw new Error(errorMsg)
     } finally {
@@ -96,5 +120,13 @@ export function useQuizes() {
     }
   }
 
-  return { quizes, loading, loadQuizes, createQuiz, updateQuiz, deleteQuiz }
+  return { 
+    quizes, 
+    loading, 
+    loadQuizes, 
+    createQuiz, 
+    updateQuiz, 
+    deleteQuiz,
+    canCreateMore 
+  }
 }

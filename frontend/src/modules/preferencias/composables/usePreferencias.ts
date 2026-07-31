@@ -4,6 +4,17 @@ import type { Preferencia } from '@/core/types'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
 
+// Tipo para erro da API
+interface ApiError {
+  response?: {
+    status?: number
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
+}
+
 export function usePreferencias() {
   const { t } = useI18n()
   const preferencias = ref<Preferencia | null>(null)
@@ -68,10 +79,11 @@ export function usePreferencias() {
         aplicarPreferenciasGlobais()
       }
       return form
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao carregar preferências:', err)
-      if (err.response?.status !== 404) {
-        error(err.response?.data?.message || t('errors.serverError'))
+      const apiError = err as ApiError
+      if (apiError.response?.status !== 404) {
+        error(apiError.response?.data?.message || t('errors.serverError'))
       }
       throw err
     } finally {
@@ -96,14 +108,14 @@ export function usePreferencias() {
       const response = await preferenciaService.save(data)
       if (response.data.success) {
         aplicarPreferenciasGlobais()
-        // Mensagem traduzida corretamente.
         success(t('preferencias.salvarSucesso'))
       } else {
         error(response.data.message || t('preferencias.errorSave'))
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao salvar preferências:', err)
-      error(err.response?.data?.message || t('errors.networkError'))
+      const apiError = err as ApiError
+      error(apiError.response?.data?.message || t('errors.networkError'))
     } finally {
       saving.value = false
     }

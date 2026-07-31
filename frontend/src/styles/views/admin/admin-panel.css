@@ -92,6 +92,7 @@
   gap: 0.5rem;
   padding: 0 2rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .tab-btn {
@@ -383,46 +384,59 @@
   color: #a0aec0;
 }
 
-/* Estatísticas */
-.stats-cards {
+/* ============================================
+   ESTATÍSTICAS - GRID MELHORADO
+   ============================================ */
+
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  margin-top: 0.5rem;
 }
 
+/* Cards individuais */
 .stat-card {
   background: var(--bg-card, #ffffff);
-  padding: 1.5rem;
+  padding: 1.5rem 1rem;
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color, #e2e8f0);
 }
 
 .dark-mode .stat-card {
   background: #2d3748;
+  border-color: #4a5568;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 .stat-icon {
-  width: 50px;
-  height: 50px;
-  margin: 0 auto 1rem;
-  border-radius: 15px;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.75rem;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.05);
 }
 
 .stat-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 
+/* Cores dos ícones */
 .stat-icon.purple {
   background: #e9d8fd;
   color: #6b46c1;
@@ -443,6 +457,27 @@
   color: #c05621;
 }
 
+.stat-icon.pink {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.stat-icon.teal {
+  background: #e0f2f1;
+  color: #00695c;
+}
+
+.stat-icon.indigo {
+  background: #e8eaf6;
+  color: #283593;
+}
+
+.stat-icon.rose {
+  background: #fce4ec;
+  color: #880e4f;
+}
+
+/* Dark mode - ícones */
 .dark-mode .stat-icon.purple {
   background: #2a1a4a;
   color: #a78bfa;
@@ -463,10 +498,31 @@
   color: #fb923c;
 }
 
+.dark-mode .stat-icon.pink {
+  background: #3a1a1a;
+  color: #f48fb1;
+}
+
+.dark-mode .stat-icon.teal {
+  background: #1a3a3a;
+  color: #4db6ac;
+}
+
+.dark-mode .stat-icon.indigo {
+  background: #1a1a3a;
+  color: #7986cb;
+}
+
+.dark-mode .stat-icon.rose {
+  background: #3a1a2a;
+  color: #f06292;
+}
+
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary, #2d3748);
+  line-height: 1.2;
 }
 
 .dark-mode .stat-value {
@@ -479,10 +535,35 @@
   margin-top: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .dark-mode .stat-label {
   color: #94a3b8;
+}
+
+/* Sub-badges de admin/user */
+.stat-sub {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-badge-small,
+.user-badge-small {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  background: var(--bg-hover, #edf2f7);
+  color: var(--text-secondary, #4a5568);
+}
+
+.dark-mode .admin-badge-small,
+.dark-mode .user-badge-small {
+  background: #4a5568;
+  color: #a0aec0;
 }
 
 /* Loading */
@@ -518,7 +599,23 @@
   }
 }
 
-/* Responsividade */
+/* ============================================
+   RESPONSIVIDADE - GRID DOS CARDS
+   ============================================ */
+
+/* Tablets e telas médias */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .admin-tabs {
+    padding: 0 1.5rem;
+  }
+}
+
+/* Tablets menores */
 @media (max-width: 768px) {
   .admin-header {
     padding: 1.5rem;
@@ -528,6 +625,10 @@
   .admin-users,
   .admin-stats {
     padding: 0 1rem 1rem;
+  }
+
+  .admin-stats {
+    padding: 0 0.5rem 1rem;
   }
 
   .users-header {
@@ -550,7 +651,119 @@
     gap: 0.25rem;
   }
 
-  .stats-cards {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .admin-tabs {
+    padding: 0 1rem;
+    gap: 0.4rem;
+  }
+
+  .tab-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .tab-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem 0.5rem;
+    border-radius: 14px;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .stat-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .stat-sub {
+    gap: 0.4rem;
+  }
+
+  .admin-badge-small,
+  .user-badge-small {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .admin-tabs {
+    padding: 0 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .tab-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .users-table {
+    font-size: 0.75rem;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 0.5rem;
+  }
+}
+
+/* Telas muito pequenas (menos de 400px) */
+@media (max-width: 380px) {
+  .stats-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
   }
 }

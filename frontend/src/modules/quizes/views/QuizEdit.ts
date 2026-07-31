@@ -3,6 +3,23 @@ import { useRouter, useRoute } from 'vue-router'
 import { useQuizes } from '../composables/useQuizes'
 import { useAlert } from '@/shared/composables/useAlert'
 
+// Tipo para o erro da API
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
+}
+
+// Tipo para o usuário do localStorage
+interface UserData {
+  id: number
+  nome?: string
+  email?: string
+}
+
 export function useQuizEdit() {
   const router = useRouter()
   const route = useRoute()
@@ -49,10 +66,14 @@ export function useQuizEdit() {
       // Buscar quiz por ID (implementar no service se necessário)
       const userData = localStorage.getItem('user')
       if (userData) {
-        const user = JSON.parse(userData)
+        const user = JSON.parse(userData) as UserData
         await loadQuizes(user.id)
         // Atualizar form com os dados do quiz
       }
+    } catch (err: unknown) {
+      console.error('Erro ao carregar quiz:', err)
+      const apiError = err as ApiError
+      error(apiError.message || 'Erro ao carregar quiz')
     } finally {
       loading.value = false
     }
@@ -67,7 +88,7 @@ export function useQuizEdit() {
       return
     }
 
-    const user = JSON.parse(userData)
+    const user = JSON.parse(userData) as UserData
     loading.value = true
 
     try {
@@ -79,7 +100,7 @@ export function useQuizEdit() {
         tempo_limite: form.tempo_limite ?? undefined,
         total_questoes: 0,
         publico: form.publico,
-        tipo_criacao: 'manual',
+        tipo_criacao: 'manual' as const,
       }
 
       if (form.id) {
@@ -87,8 +108,9 @@ export function useQuizEdit() {
         success('Quiz atualizado com sucesso!')
       }
       router.push('/quizes')
-    } catch (err: any) {
-      error(err.message || 'Erro ao salvar quiz')
+    } catch (err: unknown) {
+      const apiError = err as ApiError
+      error(apiError.message || 'Erro ao salvar quiz')
     } finally {
       loading.value = false
     }
@@ -106,8 +128,9 @@ export function useQuizEdit() {
       await deleteQuiz(form.id)
       success('Quiz excluído com sucesso!')
       router.push('/quizes')
-    } catch (err: any) {
-      error(err.message || 'Erro ao excluir quiz')
+    } catch (err: unknown) {
+      const apiError = err as ApiError
+      error(apiError.message || 'Erro ao excluir quiz')
       showDeleteModal.value = false
     } finally {
       deleteLoading.value = false

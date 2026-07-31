@@ -1,4 +1,3 @@
-// frontend/src/modules/traducoes/composables/useTraducoes.ts
 import { ref } from 'vue'
 import { traducaoService } from '../services/traducaoService'
 import type { Traducao, ApiResponse } from '@/core/types'

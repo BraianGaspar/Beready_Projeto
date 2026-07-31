@@ -15,8 +15,9 @@ export function useTags() {
       const response = await tagService.getByUsuario(usuarioId)
       tags.value = response.data.data || []
       return tags.value
-    } catch (err: any) {
-      error(err.response?.data?.message || t('tags.errorLoad'))
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string } } }
+      error(apiError.response?.data?.message || t('tags.errorLoad'))
       throw err
     } finally {
       loading.value = false
@@ -30,8 +31,9 @@ export function useTags() {
       tags.value.unshift(response.data.data)
       success(t('tags.successCreate'))
       return response.data.data
-    } catch (err: any) {
-      error(err.response?.data?.message || t('tags.errorSave'))
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string } } }
+      error(apiError.response?.data?.message || t('tags.errorSave'))
       throw err
     } finally {
       loading.value = false
@@ -46,8 +48,9 @@ export function useTags() {
       if (index !== -1) tags.value[index] = response.data.data
       success(t('tags.successUpdate'))
       return response.data.data
-    } catch (err: any) {
-      error(err.response?.data?.message || t('tags.errorSave'))
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string } } }
+      error(apiError.response?.data?.message || t('tags.errorSave'))
       throw err
     } finally {
       loading.value = false
@@ -60,8 +63,9 @@ export function useTags() {
       await tagService.delete(id)
       tags.value = tags.value.filter((t) => t.id !== id)
       success(t('tags.successDelete'))
-    } catch (err: any) {
-      error(err.response?.data?.message || t('tags.errorDelete'))
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string } } }
+      error(apiError.response?.data?.message || t('tags.errorDelete'))
       throw err
     } finally {
       loading.value = false

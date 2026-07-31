@@ -3,21 +3,28 @@ import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '@/shared/config/env'
 import { useI18n } from 'vue-i18n'
 
-// Composables internos para evitar erros de import
-function useForm(initialData: any) {
-  const form = ref(initialData)
-  const errors = ref({})
+// Tipos
+type ValidationRule = (value: string) => string | null
+type ValidationRules = Record<string, ValidationRule>
+type FormData = Record<string, string | number | boolean | null | undefined>
 
-  const validate = (rules: any) => {
+// Composables internos para evitar erros de import
+function useForm(initialData: FormData) {
+  const form = ref(initialData)
+  const errors = ref<Record<string, string>>({})
+
+  const validate = (rules: ValidationRules) => {
     let isValid = true
-    const newErrors: any = {}
+    const newErrors: Record<string, string> = {}
 
     for (const field in rules) {
       const rule = rules[field]
-      const error = rule(form.value[field])
-      if (error) {
-        newErrors[field] = error
-        isValid = false
+      if (rule) {
+        const error = rule(String(form.value[field] ?? ''))
+        if (error) {
+          newErrors[field] = error
+          isValid = false
+        }
       }
     }
 
@@ -245,8 +252,17 @@ export function useRegister() {
   }
 
   const handleSubmit = async () => {
-    if (form.value.telefone) {
-      const digits = form.value.telefone.replace(/\D/g, '')
+    // Função auxiliar para garantir que o telefone seja string
+    const getTelefoneAsString = (): string => {
+      const telefone = form.value.telefone
+      if (typeof telefone === 'string') return telefone
+      if (typeof telefone === 'number') return String(telefone)
+      return ''
+    }
+
+    const telefoneStr = getTelefoneAsString()
+    if (telefoneStr) {
+      const digits = telefoneStr.replace(/\D/g, '')
       if (digits.length > 0 && digits.length < 11) {
         error(t('register.phoneInvalid'))
         return
@@ -268,7 +284,7 @@ export function useRegister() {
           nome: form.value.nome,
           email: form.value.email,
           senha: form.value.senha,
-          telefone: form.value.telefone,
+          telefone: telefoneStr,
           nivel_ingles: form.value.nivel_ingles || 'iniciante',
           idioma_preferido: form.value.idioma_preferido || 'pt-BR',
           objetivos_aprendizado: form.value.objetivos_aprendizado,
