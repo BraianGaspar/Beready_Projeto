@@ -1,14 +1,25 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFlashcards } from '../composables/useFlashcards'
-import type { Flashcard, User } from '@/core/types'
+import type { User } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
+
+// Definir Flashcard localmente para compatibilidade
+interface Flashcard {
+  id: number
+  usuario_id?: number
+  frente: string
+  verso: string
+  nivel_dificuldade?: 'facil' | 'medio' | 'dificil'
+  criado_em?: string
+  atualizado_em?: string
+}
 
 interface FormData {
   frente: string
   verso: string
-  nivel_dificuldade: string
+  nivel_dificuldade: 'facil' | 'medio' | 'dificil'
 }
 
 export function useFlashcardsView() {

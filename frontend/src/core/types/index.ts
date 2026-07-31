@@ -2,15 +2,25 @@ export interface User {
   id: number
   nome: string
   email: string
+  role?: 'user' | 'admin'
   senha_hash?: string
   telefone?: string
   nivel_ingles: string
   idioma_preferido: string
   objetivos_aprendizado?: string
   status: string
+  foto_perfil?: string
+  uuid?: string
   criado_em?: string
   atualizado_em?: string
   ultimo_login?: string
+  assinatura?: {
+    plano: {
+      nome: string
+      recursos?: string[]
+      limites?: Record<string, number>
+    }
+  }
 }
 
 export interface Tag {
@@ -25,7 +35,7 @@ export interface Tag {
 
 export interface Prompt {
   id: number
-  usuario_id: number
+  usuario_id?: number
   texto_original: string
   idioma_original: string
   contexto: string
@@ -73,9 +83,16 @@ export interface Flashcard {
   usuario_id: number
   frente: string
   verso: string
-  nivel_dificuldade: string
+  nivel_dificuldade: 'facil' | 'medio' | 'dificil'
   criado_em: string
   atualizado_em: string
+}
+
+export interface FlashcardData {
+  frente: string
+  verso: string
+  nivel_dificuldade?: string
+  usuario_id?: number
 }
 
 export interface Quiz {

@@ -26,122 +26,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { useAppAlert } from './AppAlert'
 
-const props = defineProps<{
+defineProps<{
   message: string
   type: 'success' | 'error' | 'warning' | 'info'
   duration: number
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'close'): void
 }>()
 
-const visible = ref(true)
-
-const close = () => {
-  visible.value = false
-  setTimeout(() => emit('close'), 300)
-}
-
-onMounted(() => {
-  setTimeout(() => close(), props.duration)
-})
+const { visible, close } = useAppAlert()
 </script>
 
 <style scoped>
-.alert {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: 0.75rem;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease;
-  position: relative;
-  min-width: 280px;
-  max-width: 400px;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.alert.success {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-}
-
-.alert.error {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-}
-
-.alert.warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
-}
-
-.alert.info {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-}
-
-.alert-icon svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-}
-
-.alert-message {
-  flex: 1;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.alert-close {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 50%;
-  width: 1.5rem;
-  height: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: white;
-  flex-shrink: 0;
-}
-
-.alert-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
-}
-
-.alert-close svg {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.alert-enter-active,
-.alert-leave-active {
-  transition: all 0.3s ease;
-}
-
-.alert-enter-from,
-.alert-leave-to {
-  opacity: 0;
-  transform: translateX(100%);
-}
+@import '@/styles/components/alert.css';
 </style>

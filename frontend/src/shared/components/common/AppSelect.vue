@@ -41,41 +41,5 @@ defineEmits<{
 </script>
 
 <style scoped>
-.input-group {
-  margin-bottom: 1rem;
-}
-.input-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #374151;
-}
-.select-container {
-  position: relative;
-}
-.select-field {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  appearance: none;
-  background: white;
-}
-.select-arrow {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1.25rem;
-  height: 1.25rem;
-  pointer-events: none;
-}
-.has-error .select-field {
-  border-color: #ef4444;
-}
-.input-error {
-  color: #ef4444;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-}
+@import '@/styles/components/select.css';
 </style>

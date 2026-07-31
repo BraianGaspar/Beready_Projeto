@@ -97,7 +97,7 @@
 
 <script setup lang="ts">
 import { useHome } from './Home'
-import Button from '@/shared/components/common/Button.vue'
+import Button from '@/shared/components/common/AppButton.vue'
 
 useHome()
 </script>

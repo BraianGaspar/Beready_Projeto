@@ -1,6 +1,9 @@
+// src/shared/composables/usePhoneMask.ts
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export function usePhoneMask() {
+  const { t } = useI18n()
   const phoneError = ref('')
 
   const handlePhoneInput = (event: Event) => {
@@ -20,7 +23,7 @@ export function usePhoneMask() {
     }
     
     if (value.length > 0 && value.length < 11) {
-      phoneError.value = 'Telefone deve ter 10 ou 11 dígitos'
+      phoneError.value = t('register.phoneInvalid')
     } else {
       phoneError.value = ''
     }

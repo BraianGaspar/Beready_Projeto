@@ -1,33 +1,35 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { usePermissionStore } from '@/stores/permissionStore'
 
-// Todas as views agora com lazy loading
-const Home = () => import('../views/_global/Home.vue')
-const Dashboard = () => import('../views/_global/Dashboard.vue')
+const Home = () => import('../views/_global/HomePage.vue')
+const DashboardPage = () => import('../views/_global/DashboardPage.vue')
 
-const Login = () => import('../modules/auth/views/Login.vue')
-const Register = () => import('../modules/auth/views/Register.vue')
-const Profile = () => import('../modules/auth/views/Profile.vue')
+const UserLogin = () => import('../modules/auth/views/UserLogin.vue')
+const UserRegister = () => import('../modules/auth/views/UserRegister.vue')
+const UserProfile = () => import('../modules/auth/views/UserProfile.vue')
 const ProfileEdit = () => import('../modules/auth/views/ProfileEdit.vue')
 const ForgotPassword = () => import('../modules/auth/views/ForgotPassword.vue')
 const ResetPassword = () => import('../modules/auth/views/ResetPassword.vue')
 const OAuthCallback = () => import('../modules/auth/views/OAuthCallback.vue')
 
-const Flashcards = () => import('../modules/flashcards/views/Flashcards.vue')
+const FlashcardList = () => import('../modules/flashcards/views/FlashcardList.vue')
 const FlashcardView = () => import('../modules/flashcards/views/FlashcardView.vue')
 const FlashcardStudy = () => import('../modules/flashcards/views/FlashcardStudy.vue')
 
-const Quizes = () => import('../modules/quizes/views/Quizes.vue')
+const QuizList = () => import('../modules/quizes/views/QuizList.vue')
 const QuizView = () => import('../modules/quizes/views/QuizView.vue')
 const QuizPlay = () => import('../modules/quizes/views/QuizPlay.vue')
 const QuizAdd = () => import('../modules/quizes/views/QuizAdd.vue')
 const QuizEdit = () => import('../modules/quizes/views/QuizEdit.vue')
 
-const Prompts = () => import('../modules/prompts/views/Prompts.vue')
+const PromptList = () => import('../modules/prompts/views/PromptList.vue')
 const PromptDetail = () => import('../modules/prompts/views/PromptDetail.vue')
-const Tags = () => import('../modules/tags/views/Tags.vue')
-const ProgressoDashboard = () => import('../modules/progresso/views/ProgressoDashboard.vue')
-const Preferencias = () => import('../modules/preferencias/views/Preferencias.vue')
+const TagList = () => import('../modules/tags/views/TagList.vue')
+
+// CORRIGIDO: Caminho correto para ProgressDashboard
+const ProgressDashboard = () => import('../modules/progresso/views/ProgressoDashboard.vue')
+
+const UserPreferences = () => import('../modules/preferencias/views/UserPreferences.vue')
 const TraducoesPrompt = () => import('../modules/traducoes/views/TraducoesPrompt.vue')
 const ImagensPrompt = () => import('../modules/imagens/views/ImagensPrompt.vue')
 const FrasesPrompt = () => import('../modules/frases/views/FrasesPrompt.vue')
@@ -35,17 +37,17 @@ const FrasesPrompt = () => import('../modules/frases/views/FrasesPrompt.vue')
 // Admin Panel
 const AdminPanel = () => import('../modules/admin/views/AdminPanel.vue')
 
-// Planos Page
-const PlanosPage = () => import('../views/PlanosPage.vue')
+// CORRIGIDO: Caminho correto para PlanosPage
+const PlansPage = () => import('../views/PlanosPage.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: Home, meta: { requiresAuth: false } },
-    { path: '/login', name: 'login', component: Login, meta: { requiresAuth: false } },
-    { path: '/register', name: 'register', component: Register, meta: { requiresAuth: false } },
-    { path: '/dashboard', name: 'dashboard', component: Dashboard, meta: { requiresAuth: true } },
-    { path: '/profile', name: 'profile', component: Profile, meta: { requiresAuth: true } },
+    { path: '/login', name: 'login', component: UserLogin, meta: { requiresAuth: false } },
+    { path: '/register', name: 'register', component: UserRegister, meta: { requiresAuth: false } },
+    { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
+    { path: '/profile', name: 'profile', component: UserProfile, meta: { requiresAuth: true } },
     {
       path: '/profile/edit',
       name: 'profile-edit',
@@ -73,7 +75,7 @@ const router = createRouter({
     {
       path: '/flashcards',
       name: 'flashcards',
-      component: Flashcards,
+      component: FlashcardList,
       meta: { requiresAuth: true },
     },
     {
@@ -88,7 +90,7 @@ const router = createRouter({
       component: FlashcardStudy,
       meta: { requiresAuth: true },
     },
-    { path: '/quizes', name: 'quizes', component: Quizes, meta: { requiresAuth: true } },
+    { path: '/quizes', name: 'quizes', component: QuizList, meta: { requiresAuth: true } },
     { path: '/quizes/add', name: 'quiz-add', component: QuizAdd, meta: { requiresAuth: true } },
     {
       path: '/quizes/edit/:id',
@@ -103,8 +105,8 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     { path: '/quizes/:id', name: 'quiz-view', component: QuizView, meta: { requiresAuth: true } },
-    { path: '/tags', name: 'tags', component: Tags, meta: { requiresAuth: true } },
-    { path: '/prompts', name: 'prompts', component: Prompts, meta: { requiresAuth: true } },
+    { path: '/tags', name: 'tags', component: TagList, meta: { requiresAuth: true } },
+    { path: '/prompts', name: 'prompts', component: PromptList, meta: { requiresAuth: true } },
     {
       path: '/prompts/:id',
       name: 'prompt-detail',
@@ -114,13 +116,13 @@ const router = createRouter({
     {
       path: '/progresso',
       name: 'progresso',
-      component: ProgressoDashboard,
+      component: ProgressDashboard,
       meta: { requiresAuth: true },
     },
     {
       path: '/preferencias',
       name: 'preferencias',
-      component: Preferencias,
+      component: UserPreferences,
       meta: { requiresAuth: true },
     },
     {
@@ -145,7 +147,7 @@ const router = createRouter({
     {
       path: '/planos',
       name: 'planos',
-      component: PlanosPage,
+      component: PlansPage,
       meta: { requiresAuth: false },
     },
     // Rota Admin com permissao

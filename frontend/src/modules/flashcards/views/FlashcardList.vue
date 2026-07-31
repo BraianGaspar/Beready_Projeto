@@ -33,7 +33,6 @@
         </div>
         <h1 class="hero-title">{{ $t('flashcards.title') }}</h1>
         <p class="hero-subtitle">{{ $t('flashcards.subtitle') }}</p>
-        <!-- Botão removido daqui -->
       </div>
     </div>
 
@@ -109,10 +108,9 @@
             />
           </svg>
           {{ $t('flashcards.createFirst') }}
-          <span class="limit-badge"> {{ $t('common.limiteAtingido') }}</span>
+          <span class="limit-badge">{{ $t('common.limiteAtingido') }}</span>
         </div>
       </div>
-      <!-- Mensagem de limite no empty -->
       <div v-if="!canCreateMoreFlashcards" class="limit-message empty-limit">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -126,8 +124,12 @@
 
     <!-- Grid -->
     <div v-else class="flashcards-grid">
-      <!-- Botão de criar flashcard na grid -->
-      <div class="flashcard-card create-card" @click="openCreateModal">
+      <!-- Card de criar -->
+      <div 
+        v-if="canCreateFlashcard" 
+        class="flashcard-card create-card" 
+        @click="openCreateModal"
+      >
         <div class="create-card-content">
           <div class="create-card-icon">
             <svg
@@ -147,6 +149,30 @@
           </div>
           <h3 class="create-card-title">{{ $t('flashcards.newFlashcard') }}</h3>
           <p class="create-card-subtitle">{{ $t('flashcards.createSubtitle') }}</p>
+        </div>
+      </div>
+      <!-- Card de criar desabilitado -->
+      <div v-else class="flashcard-card create-card create-card-disabled">
+        <div class="create-card-content">
+          <div class="create-card-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </div>
+          <h3 class="create-card-title">{{ $t('flashcards.newFlashcard') }}</h3>
+          <p class="create-card-subtitle">{{ $t('flashcards.createSubtitle') }}</p>
+          <span class="create-limit">{{ $t('common.limiteAtingido') }}</span>
         </div>
       </div>
 

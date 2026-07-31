@@ -266,8 +266,8 @@
 </template>
 
 <script setup lang="ts">
-import { useDashboard } from './Dashboard'
-import Navbar from '@/components/layout/Navbar.vue'
+import { useDashboard } from './DashboardPage'
+import Navbar from '@/components/layout/AppNavbar.vue'
 import { useAuth } from '@/shared/composables/useAuth'
 import { useRouter } from 'vue-router'
 

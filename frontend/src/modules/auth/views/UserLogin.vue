@@ -112,9 +112,9 @@
 
 <script setup lang="ts">
 import { useLogin } from './Login'
-import Card from '@/shared/components/common/Card.vue'
-import Input from '@/shared/components/common/Input.vue'
-import Button from '@/shared/components/common/Button.vue'
+import Card from '@/shared/components/common/AppCard.vue'
+import Input from '@/shared/components/common/AppInput.vue'
+import Button from '@/shared/components/common/AppButton.vue'
 
 const { form, errors, loading, handleSubmit, loginWithProvider } = useLogin()
 </script>

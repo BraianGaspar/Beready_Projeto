@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '@/shared/config/env'
 import { useI18n } from 'vue-i18n'
@@ -6,38 +6,25 @@ import { useI18n } from 'vue-i18n'
 // Tipos
 type ValidationRule = (value: string) => string | null
 type ValidationRules = Record<string, ValidationRule>
-type FormData = Record<string, string | number | boolean | null | undefined>
 
-// Composables internos para evitar erros de import
-function useForm(initialData: FormData) {
-  const form = ref(initialData)
-  const errors = ref<Record<string, string>>({})
+// Interface para o formulário
+interface RegisterForm {
+  nome: string
+  email: string
+  telefone: string
+  senha: string
+  confirmar_senha: string
+  nivel_ingles: string
+  idioma_preferido: string
+  objetivos_aprendizado: string
+}
 
-  const validate = (rules: ValidationRules) => {
-    let isValid = true
-    const newErrors: Record<string, string> = {}
-
-    for (const field in rules) {
-      const rule = rules[field]
-      if (rule) {
-        const error = rule(String(form.value[field] ?? ''))
-        if (error) {
-          newErrors[field] = error
-          isValid = false
-        }
-      }
-    }
-
-    errors.value = newErrors
-    return isValid
-  }
-
-  const resetForm = () => {
-    form.value = { ...initialData }
-    errors.value = {}
-  }
-
-  return { form, errors, validate, resetForm }
+// Interface para erros
+interface RegisterErrors {
+  nome: string
+  email: string
+  senha: string
+  confirmar_senha: string
 }
 
 function usePasswordStrength() {
@@ -86,18 +73,8 @@ function usePasswordStrength() {
 }
 
 function usePhoneMask() {
+  const { t } = useI18n() // ADICIONADO
   const phoneError = ref('')
-
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '')
-    if (digits.length === 11) {
-      return digits.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
-    }
-    if (digits.length === 10) {
-      return digits.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
-    }
-    return value
-  }
 
   const handlePhoneInput = (event: Event) => {
     const input = event.target as HTMLInputElement
@@ -122,8 +99,9 @@ function usePhoneMask() {
 
     input.value = formatted
 
+    // CORRIGIDO: usando tradução
     if (value.length > 0 && value.length < 11) {
-      phoneError.value = 'Telefone deve ter 10 ou 11 dígitos'
+      phoneError.value = t('register.phoneInvalid')
     } else {
       phoneError.value = ''
     }
@@ -149,7 +127,7 @@ function usePhoneMask() {
     }
   }
 
-  return { phoneError, handlePhoneInput, handlePhoneKeydown, formatPhone }
+  return { phoneError, handlePhoneInput, handlePhoneKeydown }
 }
 
 function useAlert() {
@@ -202,74 +180,103 @@ export function useRegister() {
   const { t } = useI18n()
   const { success, error } = useAlert()
   const loading = ref(false)
-  const showPassword = ref(false)
-  const showConfirmPassword = ref(false)
 
   const { strengthClass, strengthText, strengthWidth, checkPasswordStrength } =
     usePasswordStrength()
   const {
     phoneError,
-    handlePhoneInput: handlePhoneMaskInput,
-    handlePhoneKeydown: handlePhoneMaskKeydown,
+    handlePhoneInput,
+    handlePhoneKeydown,
   } = usePhoneMask()
 
-  const { form, errors, validate } = useForm({
+  // Formulário reativo
+  const form = reactive<RegisterForm>({
     nome: '',
     email: '',
     telefone: '',
     senha: '',
     confirmar_senha: '',
-    nivel_ingles: '',
-    idioma_preferido: '',
+    nivel_ingles: 'iniciante',
+    idioma_preferido: 'pt-BR',
     objetivos_aprendizado: '',
   })
 
-  const passwordsMatch = computed(() => form.value.senha === form.value.confirmar_senha)
+  const errors = reactive<RegisterErrors>({
+    nome: '',
+    email: '',
+    senha: '',
+    confirmar_senha: '',
+  })
 
-  const rules = {
-    nome: (value: string) => (!value ? t('register.nomeRequired') : null),
-    email: (value: string) => {
-      if (!value) return t('register.emailRequired')
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('register.emailInvalid')
-      return null
-    },
-    senha: (value: string) => {
-      if (!value) return t('register.passwordRequired')
-      if (value.length < 6) return t('passwordValidation.minLength')
-      return null
-    },
-    confirmar_senha: (value: string) => {
-      if (!value) return t('register.confirmPasswordRequired')
-      if (form.value.senha !== value) return t('passwordValidation.doNotMatch')
-      return null
-    },
-  }
+  const passwordsMatch = computed(() => form.senha === form.confirmar_senha)
 
-  const checkPasswordMatch = () => {
-    if (form.value.confirmar_senha) {
-      validate(rules)
+  // Opções para selects com tradução
+  const nivelOptions = [
+    { value: 'iniciante', label: t('common.iniciante') },
+    { value: 'intermediario', label: t('common.intermediario') },
+    { value: 'avancado', label: t('common.avancado') },
+  ]
+
+  const idiomaOptions = [
+    { value: 'pt-BR', label: t('idiomas.pt') },
+    { value: 'en', label: t('idiomas.en') },
+    { value: 'es', label: t('idiomas.es') },
+    { value: 'fr', label: t('idiomas.fr') },
+    { value: 'de', label: t('idiomas.de') },
+    { value: 'it', label: t('idiomas.it') },
+  ]
+
+  const validateForm = (): boolean => {
+    let valid = true
+
+    if (!form.nome.trim()) {
+      errors.nome = t('register.nomeRequired')
+      valid = false
+    } else {
+      errors.nome = ''
     }
+
+    if (!form.email.trim()) {
+      errors.email = t('register.emailRequired')
+      valid = false
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = t('register.emailInvalid')
+      valid = false
+    } else {
+      errors.email = ''
+    }
+
+    if (!form.senha) {
+      errors.senha = t('register.passwordRequired')
+      valid = false
+    } else if (form.senha.length < 6) {
+      errors.senha = t('passwordValidation.minLength')
+      valid = false
+    } else {
+      errors.senha = ''
+    }
+
+    if (form.senha !== form.confirmar_senha) {
+      errors.confirmar_senha = t('passwordValidation.doNotMatch')
+      valid = false
+    } else {
+      errors.confirmar_senha = ''
+    }
+
+    // Validar telefone - já usa tradução via phoneError
+    const digits = form.telefone.replace(/\D/g, '')
+    if (digits.length > 0 && digits.length < 11) {
+      // phoneError já foi definido pelo handlePhoneInput
+      valid = false
+    } else {
+      phoneError.value = ''
+    }
+
+    return valid
   }
 
   const handleSubmit = async () => {
-    // Função auxiliar para garantir que o telefone seja string
-    const getTelefoneAsString = (): string => {
-      const telefone = form.value.telefone
-      if (typeof telefone === 'string') return telefone
-      if (typeof telefone === 'number') return String(telefone)
-      return ''
-    }
-
-    const telefoneStr = getTelefoneAsString()
-    if (telefoneStr) {
-      const digits = telefoneStr.replace(/\D/g, '')
-      if (digits.length > 0 && digits.length < 11) {
-        error(t('register.phoneInvalid'))
-        return
-      }
-    }
-
-    if (!validate(rules)) return
+    if (!validateForm()) return
 
     loading.value = true
 
@@ -281,13 +288,13 @@ export function useRegister() {
           Accept: 'application/json',
         },
         body: JSON.stringify({
-          nome: form.value.nome,
-          email: form.value.email,
-          senha: form.value.senha,
-          telefone: telefoneStr,
-          nivel_ingles: form.value.nivel_ingles || 'iniciante',
-          idioma_preferido: form.value.idioma_preferido || 'pt-BR',
-          objetivos_aprendizado: form.value.objetivos_aprendizado,
+          nome: form.nome,
+          email: form.email,
+          senha: form.senha,
+          telefone: form.telefone,
+          nivel_ingles: form.nivel_ingles || 'iniciante',
+          idioma_preferido: form.idioma_preferido || 'pt-BR',
+          objetivos_aprendizado: form.objetivos_aprendizado,
         }),
       })
 
@@ -299,29 +306,31 @@ export function useRegister() {
       } else {
         error(data.message || t('register.error'))
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Erro:', err)
-      error(t('errors.networkError'))
+      const errorMessage = err && typeof err === 'object' && 'message' in err
+        ? String((err as { message: string }).message)
+        : t('errors.networkError')
+      error(errorMessage)
     } finally {
       loading.value = false
     }
   }
 
   return {
-    form: form.value,
-    errors: errors.value,
+    form,
+    errors,
     loading,
-    showPassword,
-    showConfirmPassword,
     strengthClass,
     strengthText,
     strengthWidth,
     phoneError,
     passwordsMatch,
-    handlePhoneInput: handlePhoneMaskInput,
-    handlePhoneKeydown: handlePhoneMaskKeydown,
+    nivelOptions,
+    idiomaOptions,
+    handlePhoneInput,
+    handlePhoneKeydown,
     checkPasswordStrength,
-    checkPasswordMatch,
     handleSubmit,
   }
 }

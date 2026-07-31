@@ -4,7 +4,7 @@
     <div class="input-container" :class="{ 'has-icon': icon, 'has-error': error }">
       <component :is="icon" v-if="icon" class="input-icon" />
       <input
-        :type="getInputType(type)"
+        :type="getInputType(type || 'text')"
         :value="modelValue"
         :placeholder="placeholder"
         :required="required"
@@ -63,50 +63,26 @@
 </template>
 
 <script setup lang="ts">
-import { useInput } from './Input'
+import { useAppInput } from './AppInput'
 
-const props = defineProps({
-  modelValue: {
-    type: String,
-    default: '',
-  },
-  label: {
-    type: String,
-    default: '',
-  },
-  type: {
-    type: String,
-    default: 'text',
-  },
-  placeholder: {
-    type: String,
-    default: '',
-  },
-  required: {
-    type: Boolean,
-    default: false,
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-  error: {
-    type: String,
-    default: '',
-  },
-  hint: {
-    type: String,
-    default: '',
-  },
-  icon: {
-    type: Object,
-    default: null,
-  },
-})
+defineProps<{
+  modelValue?: string
+  label?: string
+  type?: string
+  placeholder?: string
+  required?: boolean
+  disabled?: boolean
+  error?: string
+  hint?: string
+  icon?: object | null
+}>()
 
-const emit = defineEmits(['update:modelValue', 'blur'])
+defineEmits<{
+  (e: 'update:modelValue', value: string): void
+  (e: 'blur'): void
+}>()
 
-const { showPassword, togglePasswordVisibility, getInputType } = useInput()
+const { showPassword, togglePasswordVisibility, getInputType } = useAppInput()
 </script>
 
 <style scoped>

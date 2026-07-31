@@ -27,11 +27,5 @@ defineEmits<{
 </script>
 
 <style scoped>
-.textarea-field {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  resize: vertical;
-}
+@import '@/styles/components/textarea.css';
 </style>

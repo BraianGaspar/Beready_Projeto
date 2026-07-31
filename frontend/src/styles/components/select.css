@@ -1,0 +1,112 @@
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #374151);
+  margin-bottom: 0.5rem;
+}
+
+.select-container {
+  position: relative;
+}
+
+.select-container.has-error .select-field {
+  border-color: #ef4444;
+}
+
+.select-container.has-error .select-field:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.select-field {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-primary, #1f2937);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.select-field:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+.select-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.select-field option {
+  color: var(--text-primary, #1f2937);
+  background: var(--input-bg, #ffffff);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-secondary, #6b7280);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.select-field:focus + .select-arrow {
+  color: #667eea;
+}
+
+.input-error {
+  display: block;
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.375rem;
+}
+
+/* DARK MODE= */
+.dark-mode .input-label {
+  color: var(--text-primary-dark, #f1f5f9);
+}
+
+.dark-mode .select-field {
+  background: var(--input-bg-dark, #1e293b);
+  border-color: var(--border-color-dark, #334155);
+  color: var(--text-primary-dark, #f1f5f9);
+}
+
+.dark-mode .select-field option {
+  color: var(--text-primary-dark, #f1f5f9);
+  background: var(--input-bg-dark, #1e293b);
+}
+
+.dark-mode .select-field:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.dark-mode .select-arrow {
+  color: var(--text-secondary-dark, #94a3b8);
+}
+
+/* RESPONSIVO  */
+@media (max-width: 480px) {
+  .select-field {
+    font-size: 0.875rem;
+    padding: 0.625rem 2.25rem 0.625rem 0.75rem;
+  }
+}

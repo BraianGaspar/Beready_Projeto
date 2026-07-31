@@ -7,19 +7,27 @@ import { usePlan } from '@/shared/composables/usePlan'
 
 export interface Flashcard {
   id: number
+  usuario_id?: number
   frente: string
   verso: string
-  nivel_dificuldade?: string
-  usuario_id?: number
-  created_at?: string
-  updated_at?: string
+  nivel_dificuldade?: 'facil' | 'medio' | 'dificil'
+  criado_em?: string
+  atualizado_em?: string
 }
 
 export interface FlashcardData {
   frente: string
   verso: string
-  nivel_dificuldade?: string
+  nivel_dificuldade?: 'facil' | 'medio' | 'dificil'
   usuario_id?: number
+}
+
+// Tipo para o serviço
+interface ServiceFlashcardData {
+  pergunta: string
+  resposta: string
+  dificuldade: 'facil' | 'medio' | 'dificil'
+  usuario_id: number
 }
 
 export function useFlashcards() {
@@ -65,10 +73,31 @@ export function useFlashcards() {
 
     loading.value = true
     try {
-      const response = await flashcardService.create(data)
-      flashcards.value.unshift(response.data.data)
+      // Garantir que usuario_id seja number
+      const usuarioId = data.usuario_id || 0
+      
+      // Mapear os campos para o que o serviço espera
+      const serviceData: ServiceFlashcardData = {
+        pergunta: data.frente,
+        resposta: data.verso,
+        dificuldade: data.nivel_dificuldade || 'medio',
+        usuario_id: usuarioId
+      }
+      const response = await flashcardService.create(serviceData)
+      
+      // Mapear a resposta de volta para o formato esperado
+      const flashcard: Flashcard = {
+        id: response.data.data.id || 0,
+        frente: response.data.data.pergunta || data.frente,
+        verso: response.data.data.resposta || data.verso,
+        nivel_dificuldade: response.data.data.dificuldade || data.nivel_dificuldade || 'medio',
+        usuario_id: usuarioId,
+        criado_em: response.data.data.criado_em || new Date().toISOString(),
+        atualizado_em: response.data.data.atualizado_em || new Date().toISOString()
+      }
+      flashcards.value.unshift(flashcard)
       success(t('flashcards.successCreate'))
-      return response.data.data
+      return flashcard
     } catch (err: unknown) {
       const apiError = err as { response?: { data?: { message?: string } } }
       error(apiError.response?.data?.message || t('flashcards.errorCreate'))
@@ -86,10 +115,29 @@ export function useFlashcards() {
 
     loading.value = true
     try {
-      const response = await flashcardService.update(id, data)
+      // Mapear os campos para o que o serviço espera
+      const serviceData: Partial<ServiceFlashcardData> = {}
+      if (data.frente !== undefined) serviceData.pergunta = data.frente
+      if (data.verso !== undefined) serviceData.resposta = data.verso
+      if (data.nivel_dificuldade !== undefined) serviceData.dificuldade = data.nivel_dificuldade
+      if (data.usuario_id !== undefined) serviceData.usuario_id = data.usuario_id
+
+      const response = await flashcardService.update(id, serviceData)
+      
+      // Buscar o índice do flashcard
       const index = flashcards.value.findIndex(f => f.id === id)
       if (index !== -1) {
-        flashcards.value[index] = { ...flashcards.value[index], ...response.data.data }
+        const current = flashcards.value[index]
+        // Garantir que current existe
+        if (current) {
+          flashcards.value[index] = {
+            ...current,
+            frente: response.data.data.pergunta || current.frente,
+            verso: response.data.data.resposta || current.verso,
+            nivel_dificuldade: response.data.data.dificuldade || current.nivel_dificuldade,
+            atualizado_em: response.data.data.atualizado_em || new Date().toISOString()
+          }
+        }
       }
       success(t('flashcards.successUpdate'))
       return response.data.data
