@@ -1,13 +1,15 @@
 <template>
-  <div class="alert-container">
-    <AppAlert
-      v-for="alert in alerts"
-      :key="alert.id"
-      :message="alert.message"
-      :type="alert.type"
-      :duration="alert.duration || 3000"
-      @close="removeAlert(alert.id)"
-    />
+  <div class="alert-container-wrapper">
+    <div class="alert-container">
+      <AppAlert
+        v-for="alert in alerts"
+        :key="alert.id"
+        :message="alert.message"
+        :type="alert.type"
+        :duration="alert.duration || 3000"
+        @close="removeAlert(alert.id)"
+      />
+    </div>
   </div>
 </template>
 

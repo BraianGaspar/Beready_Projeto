@@ -1,20 +1,9 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFlashcards } from '../composables/useFlashcards'
-import type { User } from '@/core/types'
+import type { Flashcard, User } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
-
-// Definir Flashcard localmente para compatibilidade
-interface Flashcard {
-  id: number
-  usuario_id?: number
-  frente: string
-  verso: string
-  nivel_dificuldade?: 'facil' | 'medio' | 'dificil'
-  criado_em?: string
-  atualizado_em?: string
-}
 
 interface FormData {
   frente: string
@@ -26,13 +15,13 @@ export function useFlashcardsView() {
   const router = useRouter()
   const { t } = useI18n()
   const permissionStore = usePermissionStore()
-  
-  const { 
-    flashcards, 
-    loading, 
-    loadFlashcards, 
-    createFlashcard, 
-    updateFlashcard, 
+
+  const {
+    flashcards,
+    loading,
+    loadFlashcards,
+    createFlashcard,
+    updateFlashcard,
     deleteFlashcard,
     canCreateMore
   } = useFlashcards()
@@ -51,19 +40,23 @@ export function useFlashcardsView() {
     nivel_dificuldade: 'medio',
   })
 
+  const flashcardsList = computed<Flashcard[]>(() => {
+    return flashcards.value as unknown as Flashcard[]
+  })
+
   const flashcardsCount = computed(() => flashcards.value.length)
-  
+
   // Computeds para o template - usando o permissionStore diretamente
   const canView = computed(() => permissionStore.canView('flashcards'))
   const canCreate = computed(() => permissionStore.canCreate('flashcards'))
   const canEdit = computed(() => permissionStore.canEdit('flashcards'))
   const canDelete = computed(() => permissionStore.canDelete('flashcards'))
-  
+
   // Verifica se pode criar (permissão + limite)
   const canCreateFlashcard = computed(() => {
     return canCreate.value && canCreateMore()
   })
-  
+
   const canCreateMoreFlashcards = computed(() => canCreateMore())
 
   const resetForm = (): void => {
@@ -75,26 +68,15 @@ export function useFlashcardsView() {
   }
 
   const openCreateModal = (): void => {
-    if (!canCreate.value) {
-      console.warn('Sem permissão para criar flashcards')
-      return
-    }
-    
-    if (!canCreateMore()) {
-      console.warn('Limite de flashcards atingido')
-      return
-    }
-    
+    if (!canCreate.value) return
+    if (!canCreateMore()) return
     resetForm()
     isEditing.value = false
     showModal.value = true
   }
 
   const openEditModal = (flashcard: Flashcard): void => {
-    if (!canEdit.value) {
-      console.warn('Sem permissão para editar flashcards')
-      return
-    }
+    if (!canEdit.value) return
     form.frente = flashcard.frente
     form.verso = flashcard.verso
     form.nivel_dificuldade = flashcard.nivel_dificuldade || 'medio'
@@ -104,26 +86,17 @@ export function useFlashcardsView() {
   }
 
   const viewFlashcard = (id: number): void => {
-    if (!canView.value) {
-      console.warn('Sem permissão para visualizar flashcards')
-      return
-    }
+    if (!canView.value) return
     router.push(`/flashcards/${id}`)
   }
 
   const studyFlashcard = (id: number): void => {
-    if (!canView.value) {
-      console.warn('Sem permissão para visualizar flashcards')
-      return
-    }
+    if (!canView.value) return
     router.push(`/flashcards/${id}/study`)
   }
 
   const confirmDelete = (flashcard: Flashcard): void => {
-    if (!canDelete.value) {
-      console.warn('Sem permissão para excluir flashcards')
-      return
-    }
+    if (!canDelete.value) return
     deletingFlashcard.value = flashcard
     showDeleteModal.value = true
   }
@@ -139,7 +112,7 @@ export function useFlashcardsView() {
         const user = JSON.parse(userData) as User
         await loadFlashcards(user.id)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro ao deletar flashcard:', error)
     } finally {
       deleting.value = false
@@ -154,7 +127,7 @@ export function useFlashcardsView() {
     let user: User
     try {
       user = JSON.parse(userData) as User
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('Erro ao fazer parse do userData:', e)
       return
     }
@@ -177,7 +150,7 @@ export function useFlashcardsView() {
 
       closeModal()
       await loadFlashcards(user.id)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro ao salvar flashcard:', error)
     } finally {
       submitting.value = false
@@ -200,9 +173,7 @@ export function useFlashcardsView() {
   }
 
   onMounted(async () => {
-    // Carregar permissões antes de tudo
     await permissionStore.loadPermissions()
-    
     const user = getUserFromLocalStorage()
     if (user?.id) {
       await loadFlashcards(user.id)
@@ -210,7 +181,7 @@ export function useFlashcardsView() {
   })
 
   return {
-    flashcards,
+    flashcards: flashcardsList,
     loading,
     showModal,
     showDeleteModal,

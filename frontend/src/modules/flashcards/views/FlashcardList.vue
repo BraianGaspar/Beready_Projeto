@@ -36,13 +36,11 @@
       </div>
     </div>
 
-    <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
       <p>{{ $t('flashcards.carregando') }}</p>
     </div>
 
-    <!-- Sem Permissao -->
     <div v-else-if="!canView" class="no-permission-state">
       <div class="no-permission-icon">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,7 +52,6 @@
       <button class="no-permission-btn" @click="$router.push('/dashboard')">{{ $t('common.voltarDashboard') }}</button>
     </div>
 
-    <!-- Empty -->
     <div v-else-if="flashcards.length === 0" class="empty-state">
       <div class="empty-icon">
         <svg
@@ -71,41 +68,15 @@
       <h2 class="empty-title">{{ $t('flashcards.emptyTitle') }}</h2>
       <p class="empty-description">{{ $t('flashcards.emptyDescription') }}</p>
       <div class="empty-actions">
-        <button 
-          v-if="canCreateFlashcard" 
-          class="empty-btn" 
-          @click="openCreateModal"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
+        <button v-if="canCreateFlashcard" class="empty-btn" @click="openCreateModal">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           {{ $t('flashcards.createFirst') }}
         </button>
         <div v-else class="empty-btn-disabled">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           {{ $t('flashcards.createFirst') }}
           <span class="limit-badge">{{ $t('common.limiteAtingido') }}</span>
@@ -122,52 +93,23 @@
       </div>
     </div>
 
-    <!-- Grid -->
     <div v-else class="flashcards-grid">
-      <!-- Card de criar -->
-      <div 
-        v-if="canCreateFlashcard" 
-        class="flashcard-card create-card" 
-        @click="openCreateModal"
-      >
+      <div v-if="canCreateFlashcard" class="flashcard-card create-card" @click="openCreateModal">
         <div class="create-card-content">
           <div class="create-card-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </div>
           <h3 class="create-card-title">{{ $t('flashcards.newFlashcard') }}</h3>
           <p class="create-card-subtitle">{{ $t('flashcards.createSubtitle') }}</p>
         </div>
       </div>
-      <!-- Card de criar desabilitado -->
       <div v-else class="flashcard-card create-card create-card-disabled">
         <div class="create-card-content">
           <div class="create-card-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </div>
           <h3 class="create-card-title">{{ $t('flashcards.newFlashcard') }}</h3>
@@ -176,54 +118,35 @@
         </div>
       </div>
 
+      <!-- CORREÇÃO FINAL: V-FOR LIMPO SEM O 'as' E SEM 'index' -->
       <div v-for="flashcard in flashcards" :key="flashcard.id" class="flashcard-card">
         <div class="flashcard-card-actions">
           <button v-if="canEdit" class="btn-edit" @click.stop="openEditModal(flashcard)">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
           <button v-if="canDelete" class="btn-delete" @click.stop="confirmDelete(flashcard)">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         </div>
-        <div class="flashcard-content" @click="viewFlashcard(flashcard.id)">
+        
+        <div class="flashcard-content" @click="flashcard.id !== undefined && viewFlashcard(flashcard.id)">
           <div class="flashcard-question">
             <div class="question-label">{{ $t('flashcards.perguntaLabel') }}</div>
             <div class="question-text">{{ flashcard.frente }}</div>
           </div>
           <div class="flashcard-answer">
-            <div class="answer-label">{{ $t('flashcards.respostalabel') }}</div>
+            <div class="answer-label">{{ $t('flashcards.resposta') }}</div>
             <div class="answer-text">{{ flashcard.verso }}</div>
           </div>
         </div>
+        
         <div class="flashcard-footer">
-          <button class="btn-study" @click.stop="studyFlashcard(flashcard.id)">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+          <button class="btn-study" @click.stop="flashcard.id !== undefined && studyFlashcard(flashcard.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 8v4l3 3" />
             </svg>
@@ -251,23 +174,11 @@
           <div class="modal-body">
             <div class="form-group">
               <label class="form-label">{{ $t('flashcards.pergunta') }}</label>
-              <textarea
-                v-model="form.frente"
-                class="form-textarea"
-                rows="3"
-                required
-                :placeholder="$t('flashcards.perguntaPlaceholder')"
-              ></textarea>
+              <textarea v-model="form.frente" class="form-textarea" rows="3" required :placeholder="$t('flashcards.perguntaPlaceholder')"></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">{{ $t('flashcards.resposta') }}</label>
-              <textarea
-                v-model="form.verso"
-                class="form-textarea"
-                rows="3"
-                required
-                :placeholder="$t('flashcards.respostaPlaceholder')"
-              ></textarea>
+              <textarea v-model="form.verso" class="form-textarea" rows="3" required :placeholder="$t('flashcards.respostaPlaceholder')"></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">{{ $t('flashcards.dificuldade') }}</label>
@@ -283,13 +194,7 @@
               {{ $t('common.cancelar') }}
             </button>
             <button type="submit" class="btn-create" :disabled="submitting">
-              {{
-                submitting
-                  ? $t('common.salvando')
-                  : isEditing
-                    ? $t('common.atualizar')
-                    : $t('common.criar')
-              }}
+              {{ submitting ? $t('common.salvando') : isEditing ? $t('common.atualizar') : $t('common.criar') }}
             </button>
           </div>
         </form>
@@ -301,17 +206,7 @@
       <div class="modal-container confirm-modal" @click.stop>
         <div class="confirm-header">
           <div class="confirm-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="35"
-              height="35"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -340,6 +235,7 @@
 <script setup lang="ts">
 import { useFlashcardsView } from './Flashcards'
 
+// NÃO PRECISAMOS MAIS IMPORTAR Flashcard AQUI, POIS O RETORNO DE useFlashcardsView JÁ É 100% TIPADO!
 const {
   flashcards,
   loading,

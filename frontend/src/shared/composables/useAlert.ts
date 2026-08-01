@@ -29,6 +29,7 @@ export function useAlert() {
   const error = (message: string, duration?: number) => addAlert(message, 'error', duration)
   const warning = (message: string, duration?: number) => addAlert(message, 'warning', duration)
   const info = (message: string, duration?: number) => addAlert(message, 'info', duration)
+  
   const clearAllAlerts = () => {
     alerts.value = []
   }

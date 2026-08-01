@@ -1,28 +1,57 @@
+/* styles/components/alert-container.css */
+
 .alert-container-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
+  top: 1rem;
+  right: 1rem;
   z-index: 9999;
+  pointer-events: none;
+  width: 100%;
+  max-width: 420px;
 }
 
-.alert-item {
+.alert-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.alert-container > * {
   pointer-events: auto;
-  animation: fadeInUp 0.3s ease;
+  width: 100%;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+/* Animações de entrada/saída */
+.alert-enter-active,
+.alert-leave-active {
+  transition: all 0.3s ease;
+}
+
+.alert-enter-from {
+  opacity: 0;
+  transform: translateX(30px) scale(0.95);
+}
+
+.alert-leave-to {
+  opacity: 0;
+  transform: translateX(30px) scale(0.95);
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+  .alert-container-wrapper {
+    top: 0.5rem;
+    right: 0.5rem;
+    max-width: calc(100% - 1rem);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .alert-container-wrapper {
+    top: 0.25rem;
+    right: 0.25rem;
+    max-width: calc(100% - 0.5rem);
   }
 }

@@ -5,9 +5,9 @@ export interface Flashcard {
   usuario_id: number
   prompt_id?: number
   frase_id?: number
-  pergunta: string
-  resposta: string
-  dificuldade: 'facil' | 'medio' | 'dificil'
+  frente: string
+  verso: string
+  nivel_dificuldade: 'facil' | 'medio' | 'dificil'
   ultima_revisao?: string
   proxima_revisao?: string
   intervalo_dias?: number
