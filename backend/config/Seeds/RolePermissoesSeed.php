@@ -293,6 +293,22 @@ class RolePermissoesSeed extends BaseSeed
             ],
         ];
 
+        // Mesmos pares da migration CorrigePermissoesDosPlanos (bancos já existentes):
+        // Gratuito (role 3) cria e edita dentro dos limites do plano; Premium (role 2) exclui.
+        $correcoes = [
+            3 => [7, 6, 11, 8, 15, 19, 13, 21, 22],
+            2 => [2, 3, 18, 23],
+        ];
+        foreach ($correcoes as $roleId => $permissaoIds) {
+            foreach ($permissaoIds as $permissaoId) {
+                $data[] = [
+                    'role_id' => $roleId,
+                    'permissao_id' => $permissaoId,
+                    'created_at' => '2026-10-06 00:00:00',
+                ];
+            }
+        }
+
         $table = $this->table('role_permissoes');
         $table->insert($data)->save();
     }
