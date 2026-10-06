@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Daily Goal (minutes)',
     metaDiariaHelper: 'Set your daily study goal',
     idioma: 'App Language',
+    idiomaNaoSalvo: 'Language changed on this device only: it could not be saved to your account.',
     carregando: 'Loading preferences...',
     salvando: 'Saving...',
     salvar: 'Save Preferences',

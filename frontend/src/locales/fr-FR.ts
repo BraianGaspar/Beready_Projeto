@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Objectif Quotidien (minutes)',
     metaDiariaHelper: 'Définissez votre objectif d\'étude quotidien',
     idioma: 'Langue de l\'App',
+    idiomaNaoSalvo: 'Langue modifiée sur cet appareil uniquement : impossible de l\'enregistrer dans votre compte.',
     carregando: 'Chargement des préférences...',
     salvando: 'Enregistrement...',
     salvar: 'Enregistrer les Préférences',

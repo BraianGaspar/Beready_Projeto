@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'الهدف اليومي (دقائق)',
     metaDiariaHelper: 'حدد هدفك اليومي للدراسة',
     idioma: 'لغة التطبيق',
+    idiomaNaoSalvo: 'تم تغيير اللغة على هذا الجهاز فقط: تعذّر حفظها في حسابك.',
     carregando: 'جاري تحميل التفضيلات...',
     salvando: 'جاري الحفظ...',
     salvar: 'حفظ التفضيلات',

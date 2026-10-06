@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Dagligt mål (minuter)',
     metaDiariaHelper: 'Ställ in ditt dagliga studiemål',
     idioma: 'App-språk',
+    idiomaNaoSalvo: 'Språket ändrades bara på den här enheten: det gick inte att spara det i ditt konto.',
     carregando: 'Laddar inställningar...',
     salvando: 'Sparar...',
     salvar: 'Spara inställningar',

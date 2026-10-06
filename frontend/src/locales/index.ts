@@ -15,29 +15,47 @@ import pl from './pl' // Polonês
 import tr from './tr' // Turco
 import ar from './ar' // Árabe
 
-// Obtém o idioma salvo no localStorage ou do navegador
-const getSavedLocale = (): string => {
-  const saved = localStorage.getItem('app_locale')
-  if (saved) return saved
+// Códigos de idioma do app (chaves das mensagens e de `idiomas.*`)
+export const SUPPORTED_LOCALES = ['pt', 'en', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'ru', 'nl', 'sv', 'pl', 'tr', 'ar'] as const
+export type AppLocale = (typeof SUPPORTED_LOCALES)[number]
 
-  const browserLang = navigator.language?.split('-')[0] || 'pt'
-  const supported = [
-    'pt',
-    'en',
-    'es',
-    'fr',
-    'de',
-    'it',
-    'ja',
-    'ko',
-    'ru',
-    'nl',
-    'sv',
-    'pl',
-    'tr',
-    'ar',
-  ]
-  return supported.includes(browserLang) ? browserLang : 'pt'
+/**
+ * Converte um valor de idioma (do banco, do navegador ou do localStorage) para o
+ * código do app: 'pt-BR' / 'pt_BR' / 'pt' -> 'pt', 'en-US' -> 'en'. Null se não suportado.
+ */
+export const toAppLocale = (value?: string | null): AppLocale | null => {
+  const code = (String(value ?? '').split(/[-_]/)[0] ?? '').toLowerCase()
+  return (SUPPORTED_LOCALES as readonly string[]).includes(code) ? (code as AppLocale) : null
+}
+
+/**
+ * Valor gravado em users.idioma_preferido. Mantém 'pt-BR' (padrão do banco) para o português.
+ */
+export const toUserLanguage = (locale: AppLocale): string => (locale === 'pt' ? 'pt-BR' : locale)
+
+/**
+ * Opções de idioma do usuário (cadastro e perfil): os 14 idiomas do app, com o valor
+ * no formato de users.idioma_preferido e o rótulo traduzido (`idiomas.*`).
+ */
+export const userLanguageOptions = (t: (key: string) => string): { value: string; label: string }[] =>
+  SUPPORTED_LOCALES.map((code) => ({ value: toUserLanguage(code), label: t(`idiomas.${code}`) }))
+
+// Rótulo traduzido de um valor de idioma salvo (ex.: 'pt-BR' -> "Português")
+export const userLanguageLabel = (t: (key: string) => string, value?: string | null): string | null => {
+  const locale = toAppLocale(value)
+  return locale ? t(`idiomas.${locale}`) : null
+}
+
+// Antes do login: idioma salvo no localStorage ou o do navegador.
+// Logado, vale users.idioma_preferido (aplicado pelo store de auth).
+const getSavedLocale = (): AppLocale => {
+  let saved: string | null = null
+  try {
+    saved = localStorage.getItem('app_locale')
+  } catch {
+    // Armazenamento indisponível
+  }
+  return toAppLocale(saved) ?? toAppLocale(navigator.language) ?? 'pt'
 }
 
 const i18n = createI18n({
@@ -76,8 +94,10 @@ export const applyDocumentLocale = (locale: string): void => {
 /**
  * Troca o idioma do app, persiste a escolha e ajusta lang/dir do documento.
  */
-export const setLocale = (locale: string): void => {
-  i18n.global.locale.value = locale as typeof i18n.global.locale.value
+export const setLocale = (value: string): void => {
+  const locale = toAppLocale(value)
+  if (!locale) return
+  i18n.global.locale.value = locale
   try {
     localStorage.setItem('app_locale', locale)
   } catch {

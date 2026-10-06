@@ -361,6 +361,7 @@ export default {
     metaDiaria: '1日の目標（分）',
     metaDiariaHelper: '1日の学習目標を設定',
     idioma: 'アプリの言語',
+    idiomaNaoSalvo: '言語はこの端末でのみ変更されました。アカウントに保存できませんでした。',
     carregando: '設定を読み込み中...',
     salvando: '保存中...',
     salvar: '設定を保存',

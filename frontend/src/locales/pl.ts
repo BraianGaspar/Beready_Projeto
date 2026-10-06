@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Codzienny cel (minuty)',
     metaDiariaHelper: 'Ustaw codzienny cel nauki',
     idioma: 'Język aplikacji',
+    idiomaNaoSalvo: 'Język zmieniono tylko na tym urządzeniu: nie udało się zapisać go na Twoim koncie.',
     carregando: 'Ładowanie preferencji...',
     salvando: 'Zapisywanie...',
     salvar: 'Zapisz preferencje',

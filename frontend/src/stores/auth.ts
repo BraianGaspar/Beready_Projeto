@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import api, { getApiErrorMessage } from '@/core/services/api'
 import router from '@/router'
-import i18n from '@/locales'
+import i18n, { setLocale, toAppLocale, toUserLanguage } from '@/locales'
 import { usePermissionStore } from '@/stores/permissionStore'
 import type { ApiResponse, LoginResponseData, RefreshResponseData, User } from '@/core/types'
 
@@ -44,6 +44,15 @@ export const useAuthStore = defineStore('auth', () => {
   const setUser = (newUser: User | null): void => {
     user.value = newUser
   }
+
+  // Logado, o idioma do app é o salvo no usuário (users.idioma_preferido).
+  // Cobre login, login social, refresh no boot, /users/me e edição do perfil.
+  watch(
+    () => user.value?.idioma_preferido,
+    (idioma) => {
+      if (idioma) setLocale(idioma)
+    },
+  )
 
   // Carrega dados dependentes do usuário (permissões e assinatura/limites do plano)
   const loadUserContext = async (): Promise<void> => {
@@ -177,6 +186,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * Troca o idioma do app e, logado, grava em users.idioma_preferido para valer em
+   * qualquer dispositivo. Se a gravação falhar, a troca continua valendo localmente.
+   */
+  const changeLanguage = async (value: string): Promise<boolean> => {
+    const locale = toAppLocale(value)
+    if (!locale) return false
+    setLocale(locale)
+
+    const current = user.value
+    if (!current?.id) return true
+
+    const idioma = toUserLanguage(locale)
+    if (current.idioma_preferido === idioma) return true
+
+    try {
+      const { data } = await api.put<ApiResponse<{ user: User }>>(`/users/update/${current.id}`, {
+        idioma_preferido: idioma,
+      })
+      user.value = data.data?.user?.id ? data.data.user : { ...current, idioma_preferido: idioma }
+      return true
+    } catch {
+      return false
+    }
+  }
+
   return {
     user,
     accessToken,
@@ -184,6 +219,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isAdmin,
     setUser,
+    changeLanguage,
     login,
     loginWithSocialCode,
     refresh,

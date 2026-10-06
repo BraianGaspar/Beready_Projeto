@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Dagelijks doel (minuten)',
     metaDiariaHelper: 'Stel uw dagelijkse studiedoel in',
     idioma: 'App-taal',
+    idiomaNaoSalvo: 'Taal alleen op dit apparaat gewijzigd: kon niet in je account worden opgeslagen.',
     carregando: 'Voorkeuren laden...',
     salvando: 'Opslaan...',
     salvar: 'Voorkeuren opslaan',

@@ -361,6 +361,7 @@ export default {
     metaDiaria: '일일 목표 (분)',
     metaDiariaHelper: '일일 학습 목표 설정',
     idioma: '앱 언어',
+    idiomaNaoSalvo: '이 기기에서만 언어가 변경되었습니다. 계정에 저장하지 못했습니다.',
     carregando: '환경설정 로딩 중...',
     salvando: '저장 중...',
     salvar: '환경설정 저장',

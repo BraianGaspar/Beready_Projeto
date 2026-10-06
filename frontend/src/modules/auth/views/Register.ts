@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
 import { usePasswordStrength } from '@/shared/composables/usePasswordStrength'
 import { usePhoneMask } from '@/shared/composables/usePhoneMask'
+import { userLanguageOptions } from '@/locales'
 
 // Interface para o formulário
 interface RegisterForm {
@@ -76,14 +77,7 @@ export function useRegister() {
     { value: 'avancado', label: t('common.avancado') },
   ]
 
-  const idiomaOptions = [
-    { value: 'pt-BR', label: t('idiomas.pt') },
-    { value: 'en', label: t('idiomas.en') },
-    { value: 'es', label: t('idiomas.es') },
-    { value: 'fr', label: t('idiomas.fr') },
-    { value: 'de', label: t('idiomas.de') },
-    { value: 'it', label: t('idiomas.it') },
-  ]
+  const idiomaOptions = computed(() => userLanguageOptions(t))
 
   const validateForm = (): boolean => {
     let valid = true

@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Tägliches Ziel (Minuten)',
     metaDiariaHelper: 'Legen Sie Ihr tägliches Lernziel fest',
     idioma: 'App-Sprache',
+    idiomaNaoSalvo: 'Sprache nur auf diesem Gerät geändert: Sie konnte nicht in Ihrem Konto gespeichert werden.',
     carregando: 'Lade Einstellungen...',
     salvando: 'Speichern...',
     salvar: 'Einstellungen speichern',

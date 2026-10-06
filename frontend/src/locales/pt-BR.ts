@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Meta Diária (minutos)',
     metaDiariaHelper: 'Defina sua meta diária de estudo',
     idioma: 'Idioma do App',
+    idiomaNaoSalvo: 'Idioma alterado só neste dispositivo: não foi possível salvar na sua conta.',
     carregando: 'Carregando preferências...',
     salvando: 'Salvando...',
     salvar: 'Salvar Preferências',

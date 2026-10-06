@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Obiettivo Giornaliero (minuti)',
     metaDiariaHelper: 'Imposta il tuo obiettivo di studio giornaliero',
     idioma: 'Lingua dell\'App',
+    idiomaNaoSalvo: 'Lingua cambiata solo su questo dispositivo: non è stato possibile salvarla nel tuo account.',
     carregando: 'Caricamento preferenze...',
     salvando: 'Salvataggio...',
     salvar: 'Salva Preferenze',

@@ -361,6 +361,7 @@ export default {
     metaDiaria: 'Günlük Hedef (dakika)',
     metaDiariaHelper: 'Günlük çalışma hedefinizi belirleyin',
     idioma: 'Uygulama Dili',
+    idiomaNaoSalvo: 'Dil yalnızca bu cihazda değiştirildi: hesabınıza kaydedilemedi.',
     carregando: 'Tercihler yükleniyor...',
     salvando: 'Kaydediliyor...',
     salvar: 'Tercihleri Kaydet',

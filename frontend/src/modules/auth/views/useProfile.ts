@@ -5,6 +5,7 @@ import api, { getApiErrorMessage } from '@/core/services/api'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { formatPhone } from '@/shared/composables/usePhoneMask'
+import { userLanguageLabel } from '@/locales'
 
 export function useProfile() {
   const authStore = useAuthStore()
@@ -29,15 +30,8 @@ export function useProfile() {
     return (nivel && niveis[nivel]) || nivel || t('profile.naoInformado')
   }
 
-  const getIdiomaPreferido = (idioma?: string) => {
-    const idiomas: Record<string, string> = {
-      'pt-BR': t('idiomas.pt'),
-      en: t('idiomas.en'),
-      es: t('idiomas.es'),
-      fr: t('idiomas.fr'),
-    }
-    return (idioma && idiomas[idioma]) || idioma || t('profile.naoInformado')
-  }
+  const getIdiomaPreferido = (idioma?: string) =>
+    userLanguageLabel(t, idioma) || idioma || t('profile.naoInformado')
 
   const handleDeleteAccount = async () => {
     if (confirmEmail.value !== user.value?.email) {
