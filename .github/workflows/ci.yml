@@ -25,6 +25,22 @@ jobs:
       run:
         working-directory: backend
 
+    # Postgres descartável: o tests/bootstrap.php aplica as migrations e os seeds a cada execução
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: beready_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d beready_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,7 +49,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: mbstring, intl, pdo_sqlite
+          extensions: mbstring, intl, pdo_pgsql
           coverage: none
 
       - name: Install dependencies
@@ -41,19 +57,27 @@ jobs:
         with:
           working-directory: backend
 
+      # Valores apenas de teste (não são segredos). APP_NAME definido faz o bootstrap ignorar o .env.
       - name: Run PHPUnit
         run: vendor/bin/phpunit
         env:
-          APP_ENV: test
           APP_NAME: Beready
-          APP_DEBUG: true
-          APP_DEFAULT_TIMEZONE: UTC
-          APP_DEFAULT_LOCALE: pt_BR
+          APP_ENV: test
+          DEBUG: false
           APP_ENCODING: UTF-8
-          SECURITY_SALT: test_salt_1234567890
-          DATABASE_URL: "sqlite:///:memory:"
-          JWT_SECRET: test_jwt_secret_1234567890
+          APP_DEFAULT_LOCALE: pt_BR
+          APP_DEFAULT_TIMEZONE: America/Sao_Paulo
           APP_BASE_URL: http://localhost:5173/
+          SECURITY_SALT: ci_security_salt_somente_para_testes_0123456789
+          JWT_SECRET: ci_jwt_secret_somente_para_testes_0123456789abcdef
+          DATABASE_URL: postgres://postgres:test@127.0.0.1:5432/beready_test
+          TEST_DATABASE_URL: postgres://postgres:test@127.0.0.1:5432/beready_test
+          CORS_ALLOWED_ORIGINS: http://localhost:5173
+          EMAIL_FROM: noreply@beready.test
+          EMAIL_FROM_NAME: BeReady
+          REFRESH_COOKIE_SAMESITE: Lax
+          REFRESH_COOKIE_SECURE: false
+          STRIPE_WEBHOOK_SECRET: whsec_ci_somente_para_testes
           SENTRY_DSN: ""
 
   coding-standard:

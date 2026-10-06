@@ -3,6 +3,7 @@
 # ============================================
 /config/app_local.php
 /config/.env
+backend/config/app_local.php
 /logs/*
 /tmp/*
 /vendor/*
