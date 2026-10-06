@@ -63,29 +63,27 @@ O projeto utiliza PostgreSQL via Supabase.
 
 ## Configurar conexão
 
-Edite o arquivo:
+Toda a configuração vem do `.env` (não há valores padrão no código). Copie os exemplos e preencha:
 
-```txt
-backend/config/app_local.php
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
-Exemplo:
+A conexão do banco fica em `DATABASE_URL` no `backend/.env`:
 
-```php
-'Datasources' => [
-    'default' => [
-        'className' => 'Cake\Database\Connection',
-        'driver' => 'Cake\Database\Driver\Postgres',
-        'persistent' => false,
-        'host' => 'db.supabase.co',
-        'username' => 'postgres',
-        'password' => 'SUA_SENHA',
-        'database' => 'postgres',
-        'encoding' => 'utf8',
-        'timezone' => 'UTC',
-        'cacheMetadata' => true,
-    ],
-],
+```txt
+DATABASE_URL="postgres://usuario:senha@host:6543/postgres?encoding=utf8&timezone=UTC&cacheMetadata=true"
+```
+
+## Criar o banco do zero
+
+A migration `Initial` cria todas as tabelas, e os seeds inserem roles, permissões e planos:
+
+```bash
+cd backend
+php bin/cake.php migrations migrate
+php bin/cake.php migrations seed
 ```
 
 ---
@@ -130,6 +128,21 @@ No Windows:
 
 ```bash
 php bin/cake.php migrations migrate
+```
+
+---
+
+## Rodar os testes
+
+Os testes usam um Postgres separado, definido em `TEST_DATABASE_URL` no `backend/.env`. O banco de teste é apagado e recriado a cada execução, então nunca aponte para o banco real. Para subir um Postgres local de teste:
+
+```bash
+docker run -d --name beready_migtest -e POSTGRES_PASSWORD=test -e POSTGRES_DB=beready_test -p 55432:5432 postgres:15-alpine
+```
+
+```bash
+cd backend
+vendor/bin/phpunit
 ```
 
 ---
