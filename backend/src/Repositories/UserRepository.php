@@ -9,6 +9,23 @@ use Cake\ORM\TableRegistry;
 
 class UserRepository implements UserRepositoryInterface
 {
+    private const PUBLIC_FIELDS = [
+        'id',
+        'nome',
+        'email',
+        'role',
+        'status',
+        'telefone',
+        'nivel_ingles',
+        'idioma_preferido',
+        'objetivos_aprendizado',
+        'foto_perfil',
+        'uuid',
+        'criado_em',
+        'atualizado_em',
+        'ultimo_login',
+    ];
+
     private $usersTable;
 
     public function __construct()
@@ -16,87 +33,38 @@ class UserRepository implements UserRepositoryInterface
         $this->usersTable = TableRegistry::getTableLocator()->get('Users');
     }
 
+    /**
+     * Inclui senha_hash (oculto no toArray) para quem precisa conferir a senha.
+     */
     public function findById(int $id): ?array
     {
-        $user = $this->usersTable->find()
-          ->select([
-              'id',
-              'nome',
-              'email',
-              'senha_hash',
-              'role',
-              'status',
-              'telefone',
-              'nivel_ingles',
-              'idioma_preferido',
-              'objetivos_aprendizado',
-              'foto_perfil',
-              'uuid',
-              'criado_em',
-              'atualizado_em',
-              'ultimo_login'
-          ])
-          ->where(['id' => $id])
-          ->first();
-
-        if (!$user) {
-            return null;
-        }
-
-        $data = $user->toArray();
-
-        // Garantir que senha_hash está presente
-        if (isset($user->senha_hash)) {
-            $data['senha_hash'] = $user->senha_hash;
-        }
-
-        if (!isset($data['role']) || empty($data['role'])) {
-            $data['role'] = 'user';
-        }
-
-        return $data;
+        return $this->findOne(['id' => $id]);
     }
 
     public function findByEmail(string $email): ?array
     {
-        $user = $this->usersTable->find()
-            ->select(['id', 'nome', 'email', 'senha_hash', 'role', 'status', 'telefone', 'nivel_ingles', 'idioma_preferido', 'objetivos_aprendizado', 'uuid', 'criado_em', 'atualizado_em', 'ultimo_login'])
-            ->where(['email' => $email])
-            ->first();
-
-        if (!$user) {
-            return null;
-        }
-
-        $data = $user->toArray();
-
-        if (isset($user->senha_hash)) {
-            $data['senha_hash'] = $user->senha_hash;
-        }
-
-        if (!isset($data['role']) || empty($data['role'])) {
-            $data['role'] = 'user';
-        }
-
-        return $data;
+        return $this->findOne(['email' => $email]);
     }
 
-    public function create(array $data): array
+    public function create(array $data, array $protected = []): array
     {
-        if (!isset($data['role'])) {
-            $data['role'] = 'user';
-        }
-
         $user = $this->usersTable->newEntity($data);
+        // Campos protegidos não são atribuíveis em massa: guard desligado de propósito
+        $user->patch($protected + ['role' => 'user'], ['guard' => false]);
         $this->usersTable->saveOrFail($user);
+
         return $user->toArray();
     }
 
-    public function update(int $id, array $data): array
+    public function update(int $id, array $data, array $protected = []): array
     {
         $user = $this->usersTable->get($id);
         $user = $this->usersTable->patchEntity($user, $data);
+        if ($protected) {
+            $user->patch($protected, ['guard' => false]);
+        }
         $this->usersTable->saveOrFail($user);
+
         return $user->toArray();
     }
 
@@ -118,34 +86,49 @@ class UserRepository implements UserRepositoryInterface
     public function findByUuid(string $uuid): ?array
     {
         $user = $this->usersTable->find()
-        ->select([
-            'id',
-            'nome',
-            'email',
-            'role',
-            'status',
-            'foto_perfil',
-            'uuid'
-        ])
-        ->where(['uuid' => $uuid])
-        ->first();
+            ->select(['id', 'nome', 'email', 'role', 'status', 'foto_perfil', 'uuid'])
+            ->where(['uuid' => $uuid])
+            ->first();
+
         return $user ? $user->toArray() : null;
     }
 
-    public function findByResetToken(string $token): ?array
+    public function findByResetTokenHash(string $tokenHash): ?array
     {
         $user = $this->usersTable->find()
-            ->select(['id', 'nome', 'email', 'role', 'reset_token', 'reset_token_expires'])
-            ->where(['reset_token' => $token, 'reset_token_expires >' => date('Y-m-d H:i:s')])
+            ->select(['id', 'nome', 'email', 'role'])
+            ->where(['reset_token' => $tokenHash, 'reset_token_expires >' => date('Y-m-d H:i:s')])
             ->first();
+
         return $user ? $user->toArray() : null;
     }
 
-    public function updateResetToken(int $id, ?string $token, ?string $expires): bool
+    public function updateResetToken(int $id, ?string $tokenHash, ?string $expires): bool
     {
         $user = $this->usersTable->get($id);
-        $user->reset_token = $token;
-        $user->reset_token_expires = $expires;
-        return (bool) $this->usersTable->save($user);
+        $user->patch(['reset_token' => $tokenHash, 'reset_token_expires' => $expires], ['guard' => false]);
+
+        return (bool)$this->usersTable->save($user);
+    }
+
+    private function findOne(array $conditions): ?array
+    {
+        $user = $this->usersTable->find()
+            ->select(array_merge(self::PUBLIC_FIELDS, ['senha_hash']))
+            ->where($conditions)
+            ->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        $data = $user->toArray();
+        $data['senha_hash'] = $user->senha_hash;
+
+        if (empty($data['role'])) {
+            $data['role'] = 'user';
+        }
+
+        return $data;
     }
 }

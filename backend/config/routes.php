@@ -126,6 +126,7 @@ $routes->connect('/planos/{id}/assinar', [
     'controller' => 'Planos',
     'action' => 'assinar'
 ])->setPatterns(['id' => '\d+'])
+->setPass(['id'])
 ->setMethods(['POST']);
 
 /**
@@ -134,6 +135,14 @@ $routes->connect('/planos/{id}/assinar', [
 $routes->connect('/planos/cancelar', [
     'controller' => 'Planos',
     'action' => 'cancelar'
+])->setMethods(['POST']);
+
+/**
+ * STRIPE ROUTES
+ */
+$routes->connect('/payments/webhook', [
+    'controller' => 'Payments',
+    'action' => 'webhook'
 ])->setMethods(['POST']);
 
 /**
@@ -149,45 +158,31 @@ $routes->connect('/auth/login', [
     'action' => 'login'
 ])->setMethods(['POST']);
 
-/** SOCIAL AUTH ROUTES - INÍCIO */
-$routes->connect('/auth/login/google', [
-    'plugin' => 'ADmad/SocialAuth',
-    'controller' => 'Auth',
-    'action' => 'login',
-    'provider' => 'google'
-])->setMethods(['GET', 'POST']);
-
-$routes->connect('/auth/login/facebook', [
-    'plugin' => 'ADmad/SocialAuth',
-    'controller' => 'Auth',
-    'action' => 'login',
-    'provider' => 'facebook'
-])->setMethods(['GET', 'POST']);
-
-$routes->connect('/auth/login/linkedin', [
-    'plugin' => 'ADmad/SocialAuth',
-    'controller' => 'Auth',
-    'action' => 'login',
-    'provider' => 'linkedin'
-])->setMethods(['GET', 'POST']);
-
-$routes->connect('/social-auth/callback/google', [
+/**
+ * SOCIAL AUTH
+ * login/{provider} redireciona ao provedor; o callback gera um código de uso único
+ * que o frontend troca por tokens em /auth/social/exchange.
+ */
+$routes->connect('/auth/login/{provider}', [
     'controller' => 'SocialAuth',
-    'action' => 'callback',
-    'provider' => 'google'
-])->setMethods(['GET']);
+    'action' => 'login'
+])->setPatterns([
+    'provider' => 'google|facebook|linkedin'
+])->setPass(['provider'])
+->setMethods(['GET']);
 
-$routes->connect('/social-auth/callback/facebook', [
+$routes->connect('/social-auth/callback/{provider}', [
     'controller' => 'SocialAuth',
-    'action' => 'callback',
-    'provider' => 'facebook'
-])->setMethods(['GET']);
+    'action' => 'callback'
+])->setPatterns([
+    'provider' => 'google|facebook|linkedin'
+])->setPass(['provider'])
+->setMethods(['GET']);
 
-$routes->connect('/social-auth/callback/linkedin', [
-    'controller' => 'SocialAuth',
-    'action' => 'callback',
-    'provider' => 'linkedin'
-])->setMethods(['GET']);
+$routes->connect('/auth/social/exchange', [
+    'controller' => 'Users',
+    'action' => 'socialExchange'
+])->setMethods(['POST']);
 
 $routes->connect('/auth/logout', [
     'controller' => 'Users',
@@ -639,22 +634,6 @@ $routes->connect('/flashcard-tags', [
     'action' => 'remove'
 ])->setMethods(['DELETE']);
 
-/**
- * FALLBACK
- */
-$routes->connect('/*', [
-    'controller' => 'Users',
-    'action' => 'notFound'
-]);
-
-/**
- * RESPOSTAS
- */
-$routes->connect('/respostas', [
-    'controller' => 'Respostas',
-    'action' => 'save'
-])->setMethods(['POST']);
-
 $routes->connect('/progresso/incrementar-flashcards', [
     'controller' => 'Progresso',
     'action' => 'incrementarFlashcards'
@@ -664,3 +643,11 @@ $routes->connect('/progresso/incrementar-tempo', [
     'controller' => 'Progresso',
     'action' => 'incrementarTempo'
 ])->setMethods(['POST']);
+
+/**
+ * FALLBACK (deve ser sempre a última rota)
+ */
+$routes->connect('/*', [
+    'controller' => 'Users',
+    'action' => 'notFound'
+]);

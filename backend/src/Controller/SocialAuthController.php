@@ -4,126 +4,116 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Services\SocialAuthService;
-use Cake\ORM\TableRegistry;
 use Cake\Http\Client;
-use App\Mailer\UserMailer;
+use Cake\Http\Cookie\Cookie;
+use Cake\Log\Log;
 
+/**
+ * Login social (Google, Facebook, LinkedIn) via OAuth 2.0 authorization code.
+ *
+ * GET /auth/login/{provider}          -> gera o "state", guarda em cookie httpOnly e redireciona ao provedor
+ * GET /social-auth/callback/{provider} -> valida o "state", obtém o perfil e redireciona ao frontend
+ *                                        com um código de uso único (trocado em POST /auth/social/exchange)
+ */
 class SocialAuthController extends AppController
 {
+    private const STATE_COOKIE = 'oauth_state';
+    private const STATE_TTL = 600;
+
+    private const SCOPES = [
+        'google' => 'openid email profile',
+        'facebook' => 'email,public_profile',
+        'linkedin' => 'openid profile email',
+    ];
+
     private SocialAuthService $socialAuthService;
 
     public function initialize(): void
     {
         parent::initialize();
         $this->socialAuthService = new SocialAuthService();
-        $this->autoRender = false;
     }
 
-    public function callback($provider = null)
+    public function login(string $provider)
     {
-        $provider = $this->request->getParam('provider') ?? null;
-        
-        if (empty($provider)) {
-            $path = $this->request->getUri()->getPath();
-            if (preg_match('/\/callback\/([a-zA-Z]+)/', $path, $matches)) {
-                $provider = $matches[1];
-            }
-        }
-        
-        if (!in_array($provider, ['google', 'facebook', 'linkedin'])) {
-            return $this->jsonError('Provedor não suportado: ' . $provider, 400);
-        }
-        
-        $code = $this->request->getQuery('code');
-        
-        if (!$code) {
-            return $this->jsonError('Código de autorização não encontrado', 400);
-        }
+        $state = bin2hex(random_bytes(32));
+        $prefix = strtoupper($provider);
 
-        if ($provider === 'google') {
-            $tokenData = $this->getGoogleAccessToken($code);
-        } elseif ($provider === 'facebook') {
-            $tokenData = $this->getFacebookAccessToken($code);
-        } elseif ($provider === 'linkedin') {
-            $tokenData = $this->getLinkedInAccessToken($code);
-        } else {
-            return $this->jsonError('Provedor não suportado', 400);
-        }
-        
-        if (!$tokenData) {
-            return $this->jsonError('Erro ao obter token do ' . ucfirst($provider), 400);
-        }
-
-        if ($provider === 'google') {
-            $userInfo = $this->getGoogleUserInfo($tokenData['access_token']);
-        } elseif ($provider === 'facebook') {
-            $userInfo = $this->getFacebookUserInfo($tokenData['access_token']);
-        } elseif ($provider === 'linkedin') {
-            $userInfo = $this->getLinkedInUserInfo($tokenData['access_token']);
-        }
-        
-        if (!$userInfo || !isset($userInfo['email'])) {
-            return $this->jsonError('Erro ao obter informações do usuário', 400);
-        }
-
-        $usersTable = TableRegistry::getTableLocator()->get('Users');
-        $user = $usersTable->find()->where(['email' => $userInfo['email']])->first();
-        
-        $name = $userInfo['name'] ?? $userInfo['given_name'] ?? $userInfo['first_name'] ?? 'Usuário';
-        if (!empty($userInfo['given_name']) && !empty($userInfo['family_name'])) {
-            $name = $userInfo['given_name'] . ' ' . $userInfo['family_name'];
-        }
-        $picture = $userInfo['picture'] ?? $userInfo['avatar'] ?? null;
-        
-        $isNewUser = false;
-        
-        if (!$user) {
-            $isNewUser = true;
-            $user = $usersTable->newEntity([
-                'email' => $userInfo['email'],
-                'nome' => $name,
-                'uuid' => \Ramsey\Uuid\Uuid::uuid4()->toString(),
-                'status' => 'ativo',
-                'role' => 'user',
-                'nivel_ingles' => 'iniciante',
-                'idioma_preferido' => 'pt-BR',
-                'foto_perfil' => $picture,
-            ]);
-            $usersTable->save($user);
-        } else {
-            $updateData = [];
-            if (empty($user->nome) || $user->nome === 'Usuário') {
-                $updateData['nome'] = $name;
-            }
-            if (empty($user->foto_perfil) && $picture) {
-                $updateData['foto_perfil'] = $picture;
-            }
-            if (!empty($updateData)) {
-                $user = $usersTable->patchEntity($user, $updateData);
-                $usersTable->save($user);
-            }
-        }
-
-        // ENVIA E-MAIL DE BOAS-VINDAS PARA NOVOS USUÁRIOS
-        if ($isNewUser) {
-            try {
-                $mailer = new UserMailer();
-                $mailer->welcome($user);
-            } catch (\Exception $e) {
-                error_log("❌ Erro ao enviar e-mail de boas-vindas: " . $e->getMessage());
-            }
-        }
-
-        $result = $this->socialAuthService->handleLogin($user);
-
-        $frontendUrl = env('APP_BASE_URL');
-        $redirectUrl = $frontendUrl . 'oauth-callback?' . http_build_query([
-            'token' => $result['tokens']['access_token'],
-            'refresh_token' => $result['tokens']['refresh_token'],
-            'user' => json_encode($result['user'])
+        $authUrl = env($prefix . '_AUTH_URL') . '?' . http_build_query([
+            'client_id' => env($prefix . '_CLIENT_ID'),
+            'redirect_uri' => env($prefix . '_REDIRECT_URI'),
+            'response_type' => 'code',
+            'scope' => self::SCOPES[$provider],
+            'state' => $state,
         ]);
 
-        return $this->redirect($redirectUrl);
+        return $this->redirect($authUrl)
+            ->withCookie($this->stateCookie($state, new \DateTimeImmutable('+' . self::STATE_TTL . ' seconds')));
+    }
+
+    public function callback(string $provider)
+    {
+        $expectedState = (string)$this->request->getCookie(self::STATE_COOKIE);
+        $state = (string)$this->request->getQuery('state');
+        $code = (string)$this->request->getQuery('code');
+
+        if ($expectedState === '' || $state === '' || !hash_equals($expectedState, $state) || $code === '') {
+            return $this->failureRedirect('state inválido ou código ausente (' . $provider . ')');
+        }
+
+        try {
+            $userInfo = $this->fetchUserInfo($provider, $code);
+            if (empty($userInfo['email'])) {
+                return $this->failureRedirect('perfil sem e-mail (' . $provider . ')');
+            }
+
+            $userId = $this->socialAuthService->findOrCreateUser($userInfo);
+            $loginCode = $this->socialAuthService->createLoginCode($userId);
+        } catch (\Exception $e) {
+            return $this->failureRedirect($e->getMessage());
+        }
+
+        return $this->redirect(env('APP_BASE_URL') . 'oauth-callback?code=' . $loginCode)
+            ->withExpiredCookie($this->stateCookie(''));
+    }
+
+    private function failureRedirect(string $reason)
+    {
+        Log::warning('Falha no login social: ' . $reason);
+
+        return $this->redirect(env('APP_BASE_URL') . 'login?error=social_auth_failed')
+            ->withExpiredCookie($this->stateCookie(''));
+    }
+
+    private function stateCookie(string $value, ?\DateTimeInterface $expires = null): Cookie
+    {
+        return Cookie::create(self::STATE_COOKIE, $value, [
+            'expires' => $expires,
+            'path' => '/social-auth',
+            'httponly' => true,
+            'secure' => filter_var(env('REFRESH_COOKIE_SECURE'), FILTER_VALIDATE_BOOLEAN),
+            // Lax é necessário para o cookie voltar no redirecionamento (GET top-level) do provedor
+            'samesite' => 'Lax',
+        ]);
+    }
+
+    private function fetchUserInfo(string $provider, string $code): ?array
+    {
+        $tokenData = match ($provider) {
+            'google' => $this->getGoogleAccessToken($code),
+            'facebook' => $this->getFacebookAccessToken($code),
+            'linkedin' => $this->getLinkedInAccessToken($code),
+        };
+
+        if (empty($tokenData['access_token'])) {
+            return null;
+        }
+
+        return match ($provider) {
+            'google' => $this->getGoogleUserInfo($tokenData['access_token']),
+            'facebook' => $this->getFacebookUserInfo($tokenData['access_token']),
+            'linkedin' => $this->getLinkedInUserInfo($tokenData['access_token']),
+        };
     }
 
     // GOOGLE
@@ -142,7 +132,7 @@ class SocialAuthController extends AppController
             return $response->getJson();
         }
 
-        error_log("Erro ao obter token Google: " . $response->getBody());
+        Log::error('Erro ao obter token Google: ' . $response->getStatusCode());
         return null;
     }
 
@@ -159,7 +149,7 @@ class SocialAuthController extends AppController
             return $response->getJson();
         }
 
-        error_log("Erro ao obter user info Google: " . $response->getBody());
+        Log::error('Erro ao obter user info Google: ' . $response->getStatusCode());
         return null;
     }
 
@@ -178,7 +168,7 @@ class SocialAuthController extends AppController
             return $response->getJson();
         }
 
-        error_log("Erro ao obter token Facebook: " . $response->getBody());
+        Log::error('Erro ao obter token Facebook: ' . $response->getStatusCode());
         return null;
     }
 
@@ -198,7 +188,7 @@ class SocialAuthController extends AppController
             return $data;
         }
 
-        error_log("Erro ao obter user info Facebook: " . $response->getBody());
+        Log::error('Erro ao obter user info Facebook: ' . $response->getStatusCode());
         return null;
     }
 
@@ -218,7 +208,7 @@ class SocialAuthController extends AppController
             return $response->getJson();
         }
 
-        error_log("Erro ao obter token LinkedIn: " . $response->getBody());
+        Log::error('Erro ao obter token LinkedIn: ' . $response->getStatusCode());
         return null;
     }
 
@@ -235,7 +225,7 @@ class SocialAuthController extends AppController
             return $response->getJson();
         }
 
-        error_log("Erro ao obter user info LinkedIn: " . $response->getBody());
+        Log::error('Erro ao obter user info LinkedIn: ' . $response->getStatusCode());
         return null;
     }
 }

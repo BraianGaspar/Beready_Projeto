@@ -27,7 +27,7 @@ class TraducaoRepository implements TraducaoRepositoryInterface
 
     public function findById(int $id): ?array
     {
-        $traducao = $this->table->get($id);
+        $traducao = $this->table->find()->where(['id' => $id])->first();
         return $traducao ? $traducao->toArray() : null;
     }
 

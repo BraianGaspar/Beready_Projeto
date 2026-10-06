@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model\Table;
 
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
@@ -32,8 +33,7 @@ class TagsTable extends Table
             ->scalar('nome')
             ->maxLength('nome', 100)
             ->requirePresence('nome', 'create')
-            ->notEmptyString('nome')
-            ->add('nome', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
+            ->notEmptyString('nome');
 
         $validator
             ->scalar('cor')
@@ -49,5 +49,16 @@ class TagsTable extends Table
             ->allowEmptyString('tag_sistema');
 
         return $validator;
+    }
+
+    public function buildRules(RulesChecker $rules): RulesChecker
+    {
+        // Nome único por dono; tags sem dono (criado_por nulo) também não se repetem entre si
+        $rules->add($rules->isUnique(['nome', 'criado_por'], ['allowMultipleNulls' => false]), [
+            'errorField' => 'nome',
+            'message' => 'Tag já existe',
+        ]);
+
+        return $rules;
     }
 }

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Traits\ResourceErrorTrait;
 use App\Services\TagService;
 use App\Repositories\TagRepository;
 
 class TagsController extends AppController
 {
+    use ResourceErrorTrait;
+
     private TagService $service;
 
     public function initialize(): void
@@ -17,14 +20,14 @@ class TagsController extends AppController
         $this->service = new TagService(new TagRepository());
     }
 
-    // GET /tags
+    // GET /tags — tags do usuário atual + tags de sistema
     public function index()
     {
         try {
-            $tags = $this->service->getAllTags();
+            $tags = $this->service->getTagsVisibleToUsuario($this->currentUserId());
             return $this->jsonSuccess($tags);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar tags');
         }
     }
 
@@ -38,10 +41,14 @@ class TagsController extends AppController
         }
 
         try {
+            if (!$this->canAccessUser((int)$userId)) {
+                return $this->jsonError('Acesso negado', 403);
+            }
+
             $tags = $this->service->getTagsByUsuario((int)$userId);
             return $this->jsonSuccess($tags);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar tags');
         }
     }
 
@@ -56,29 +63,25 @@ class TagsController extends AppController
 
         try {
             $tag = $this->service->getTagById((int)$tagId);
+            if (empty($tag['tag_sistema']) && !$this->canAccessUser((int)$tag['criado_por'])) {
+                return $this->jsonError('Tag não encontrada', 404);
+            }
             return $this->jsonSuccess($tag);
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode());
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e);
         }
     }
 
     // POST /tags
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
+        $data = $this->getRequestData();
 
         try {
-            $tag = $this->service->createTag($data);
+            $tag = $this->service->createTag($this->currentUserId(), $data, $this->canSetTagSistema($data));
             return $this->jsonSuccess($tag, 'Tag criada com sucesso', 201);
-        } catch (\InvalidArgumentException $e) {
-            return $this->jsonError($e->getMessage(), 400);
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode());
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao criar tag');
         }
     }
 
@@ -91,16 +94,14 @@ class TagsController extends AppController
             return $this->jsonError('ID da tag não informado', 400);
         }
 
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
+        $data = $this->getRequestData();
 
         try {
-            $tag = $this->service->updateTag((int)$tagId, $data);
+            $this->findOwnedTag((int)$tagId);
+            $tag = $this->service->updateTag((int)$tagId, $data, $this->canSetTagSistema($data));
             return $this->jsonSuccess($tag, 'Tag atualizada com sucesso');
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode());
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao atualizar tag');
         }
     }
 
@@ -114,12 +115,29 @@ class TagsController extends AppController
         }
 
         try {
+            $this->findOwnedTag((int)$tagId);
             $this->service->deleteTag((int)$tagId);
             return $this->jsonSuccess(null, 'Tag excluída com sucesso');
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode());
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao excluir tag');
         }
+    }
+
+    /**
+     * Alterar/excluir: só o criador ou admin (inclusive tags de sistema). Senão 404.
+     */
+    private function findOwnedTag(int $id): array
+    {
+        $tag = $this->service->getTagById($id);
+        if (!$this->canAccessUser((int)$tag['criado_por'])) {
+            throw new \RuntimeException('Tag não encontrada', 404);
+        }
+
+        return $tag;
+    }
+
+    private function canSetTagSistema(array $data): bool
+    {
+        return array_key_exists('tag_sistema', $data) && $this->isAdmin();
     }
 }

@@ -11,5 +11,4 @@ return [
     'Migrations' => [
         'onlyCli' => true,
     ],
-    'ADmad/SocialAuth' => [],
 ];

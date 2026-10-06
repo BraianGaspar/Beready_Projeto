@@ -4,103 +4,43 @@ declare(strict_types=1);
 
 namespace App;
 
-use Cake\Http\BaseApplication;
-use Cake\Http\MiddlewareQueue;
-use Cake\Routing\RouteBuilder;
-use App\Middleware\CorsMiddleware;
-use App\Middleware\RateLimitMiddleware;
-use App\Middleware\JwtAuthMiddleware;
-use Cake\Error\Middleware\ErrorHandlerMiddleware;
-use Cake\Http\Response;
-// Exceptions custom
-use App\Exceptions\EmailAlreadyExistsException;
-use App\Exceptions\WeakPasswordException;
-use App\Exceptions\InvalidTokenException;
-use App\Exceptions\UserNotFoundException;
-use App\Exceptions\FlashcardNotFoundException;
-use App\Exceptions\QuizNotFoundException;
 use App\Exceptions\SentryExceptionRenderer;
-
-use ADmad\SocialAuth\Middleware\SocialAuthMiddleware;
+use App\Middleware\AdminMiddleware;
+use App\Middleware\CorsMiddleware;
+use App\Middleware\JwtAuthMiddleware;
+use App\Middleware\RateLimitMiddleware;
+use Cake\Error\Middleware\ErrorHandlerMiddleware;
+use Cake\Http\BaseApplication;
+use Cake\Http\Middleware\BodyParserMiddleware;
+use Cake\Http\MiddlewareQueue;
+use Cake\Routing\Middleware\AssetMiddleware;
+use Cake\Routing\Middleware\RoutingMiddleware;
+use Cake\Routing\RouteBuilder;
 
 class Application extends BaseApplication
 {
-    public function bootstrap(): void
-    {
-        parent::bootstrap();
-
-        $dsn = env('SENTRY_DSN');
-        if (!empty($dsn)) {
-            \Sentry\init([
-                'dsn' => $dsn,
-                'environment' => env('APP_ENV', 'development'),
-                'traces_sample_rate' => 1.0,
-                'send_default_pii' => false,
-                'release' => '1.0.0',
-                'http_ssl_verify_peer' => false,
-            ]);
-        }
-    }
-
     public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue
     {
-        // CORS
+        // CORS primeiro, para que respostas de erro também levem os headers
         $middlewareQueue->add(new CorsMiddleware());
 
-        // Body Parser
-        $middlewareQueue->add(new \Cake\Http\Middleware\BodyParserMiddleware());
+        // Error Handler logo após o CORS, cobrindo todo o resto da fila
+        $middlewareQueue->add(new ErrorHandlerMiddleware([
+            'exceptionRenderer' => SentryExceptionRenderer::class,
+        ]));
 
-        // Rate Limit
-        $middlewareQueue->add(new RateLimitMiddleware(100, 60));
+        $middlewareQueue->add(new BodyParserMiddleware());
 
-        // JWT
+        // Rate Limit: 300 req/min por IP no geral e 10 req/min por IP nas rotas de autenticação
+        $middlewareQueue->add(new RateLimitMiddleware(300, 10, 60));
+
+        // JWT (define user_id/role) e, em seguida, a restrição do escopo /admin
         $middlewareQueue->add(new JwtAuthMiddleware());
+        $middlewareQueue->add(new AdminMiddleware());
 
-        // Error Handler
-         $middlewareQueue->add(new ErrorHandlerMiddleware([
-            'exceptionRenderer' => \App\Exceptions\SentryExceptionRenderer::class
-        ]));
+        $middlewareQueue->add(new RoutingMiddleware($this));
 
-        // Router
-        $middlewareQueue->add(new \Cake\Routing\Middleware\RoutingMiddleware($this));
-
-        // SOCIAL AUTH
-        $middlewareQueue->add(new SocialAuthMiddleware([
-            'requestMethod' => 'GET',
-            'loginUrl' => '/login',
-            'loginRedirect' => env('APP_BASE_URL') . 'oauth-callback',
-            'userModel' => 'Users',
-            'userFinder' => 'getUser',
-            'redirectUri' => env('GOOGLE_REDIRECT_URI'),
-            'serviceConfig' => [
-                'provider' => [
-                    'google' => [
-                        'applicationId' => env('GOOGLE_CLIENT_ID'),
-                        'applicationSecret' => env('GOOGLE_CLIENT_SECRET'),
-                        'redirectUri' => env('GOOGLE_REDIRECT_URI'),
-                        'scope' => [
-                            'https://www.googleapis.com/auth/userinfo.email',
-                            'https://www.googleapis.com/auth/userinfo.profile',
-                        ],
-                    ],
-                    'facebook' => [
-                        'applicationId' => env('FACEBOOK_CLIENT_ID'),
-                        'applicationSecret' => env('FACEBOOK_CLIENT_SECRET'),
-                        'redirectUri' => env('FACEBOOK_REDIRECT_URI'),
-                        'scope' => ['email', 'public_profile'],
-                    ],
-                    'linkedin' => [
-                        'applicationId' => env('LINKEDIN_CLIENT_ID'),
-                        'applicationSecret' => env('LINKEDIN_CLIENT_SECRET'),
-                        'redirectUri' => env('LINKEDIN_REDIRECT_URI'),
-                        'scope' => ['openid', 'profile', 'email'],
-                    ],
-                ],
-            ],
-        ]));
-
-        // Asset
-        $middlewareQueue->add(new \Cake\Routing\Middleware\AssetMiddleware());
+        $middlewareQueue->add(new AssetMiddleware());
 
         return $middlewareQueue;
     }

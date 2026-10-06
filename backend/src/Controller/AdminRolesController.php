@@ -2,43 +2,24 @@
 
 namespace App\Controller;
 
+use App\Services\PermissionService;
+use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
-use App\Services\JwtService;
 
+/**
+ * Acesso restrito a admins pelo AdminMiddleware (escopo /admin).
+ */
 class AdminRolesController extends AppController
 {
     private $rolesTable;
-    private $permissoesTable;
-    private $rolePermissoesTable;
+    private PermissionService $permissionService;
 
     public function initialize(): void
     {
         parent::initialize();
-        
         $this->rolesTable = TableRegistry::getTableLocator()->get('Roles');
-        $this->permissoesTable = TableRegistry::getTableLocator()->get('Permissoes');
-        $this->rolePermissoesTable = TableRegistry::getTableLocator()->get('RolePermissoes');
-
-        $authHeader = $this->request->getHeaderLine('Authorization');
-        $role = 'user';
-
-        if (preg_match('/Bearer\s+(.+)/', $authHeader, $matches)) {
-            $token = $matches[1];
-            $jwtService = new JwtService();
-            $payload = $jwtService->validateToken($token);
-            $role = $payload['role'] ?? 'user';
-        }
-
-        if ($role !== 'admin') {
-            $this->response = $this->response->withStatus(403);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'Acesso negado. Área administrativa.'
-            ]));
-            $this->response = $this->response->withType('application/json');
-            $this->autoRender = false;
-            return;
-        }
+        $this->permissionService = new PermissionService();
     }
 
     public function index()
@@ -52,103 +33,72 @@ class AdminRolesController extends AppController
 
             return $this->jsonSuccess($roles);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            Log::error('AdminRolesController::index: ' . $e->getMessage());
+            return $this->jsonError('Erro ao listar roles', 500);
         }
     }
 
     public function add()
     {
         try {
-            $data = $this->request->getData();
-            $permissionIds = $data['permission_ids'] ?? [];
-            unset($data['permission_ids']);
-
-            $role = $this->rolesTable->newEntity($data);
-            
-            if ($this->rolesTable->save($role)) {
-                if (!empty($permissionIds)) {
-                    foreach ($permissionIds as $permId) {
-                        $this->rolePermissoesTable->save(
-                            $this->rolePermissoesTable->newEntity([
-                                'role_id' => $role->id,
-                                'permissao_id' => $permId,
-                            ])
-                        );
-                    }
-                }
-
-                return $this->jsonSuccess(
-                    $this->rolesTable->get($role->id, ['contain' => ['Permissoes']]),
-                    'Role criada com sucesso'
-                );
-            }
-
-            $errors = $role->getErrors();
-            $errorMessages = [];
-            foreach ($errors as $field => $fieldErrors) {
-                $errorMessages[] = $field . ': ' . implode(', ', $fieldErrors);
-            }
-            return $this->jsonError(implode('; ', $errorMessages), 400);
-            
+            $result = $this->permissionService->createRole($this->getRequestData());
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            Log::error('AdminRolesController::add: ' . $e->getMessage());
+            return $this->jsonError('Erro ao criar role', 500);
         }
+
+        if (!$result['success']) {
+            return $this->validationError($result['errors']);
+        }
+
+        return $this->jsonSuccess($result['data'], 'Role criada com sucesso');
     }
 
     public function edit($id)
     {
         try {
-            $role = $this->rolesTable->get($id);
-            $data = $this->request->getData();
-            $permissionIds = $data['permission_ids'] ?? null;
-            unset($data['permission_ids']);
-
-            $role = $this->rolesTable->patchEntity($role, $data);
-            
-            if ($this->rolesTable->save($role)) {
-                if ($permissionIds !== null) {
-                    $this->rolePermissoesTable->deleteAll(['role_id' => $role->id]);
-                    
-                    foreach ($permissionIds as $permId) {
-                        $this->rolePermissoesTable->save(
-                            $this->rolePermissoesTable->newEntity([
-                                'role_id' => $role->id,
-                                'permissao_id' => $permId,
-                            ])
-                        );
-                    }
-                }
-
-                return $this->jsonSuccess(
-                    $this->rolesTable->get($role->id, ['contain' => ['Permissoes']]),
-                    'Role atualizada com sucesso'
-                );
-            }
-
-            $errors = $role->getErrors();
-            $errorMessages = [];
-            foreach ($errors as $field => $fieldErrors) {
-                $errorMessages[] = $field . ': ' . implode(', ', $fieldErrors);
-            }
-            return $this->jsonError(implode('; ', $errorMessages), 400);
-            
+            $result = $this->permissionService->updateRole((int)$id, $this->getRequestData());
+        } catch (RecordNotFoundException $e) {
+            return $this->jsonError('Role não encontrada', 404);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            Log::error('AdminRolesController::edit: ' . $e->getMessage());
+            return $this->jsonError('Erro ao atualizar role', 500);
         }
+
+        if (!$result['success']) {
+            return $this->validationError($result['errors']);
+        }
+
+        return $this->jsonSuccess($result['data'], 'Role atualizada com sucesso');
     }
 
     public function delete($id)
     {
         try {
-            $role = $this->rolesTable->get($id);
-            
-            if ($this->rolesTable->delete($role)) {
-                return $this->jsonSuccess(null, 'Role excluída com sucesso');
-            }
-
-            return $this->jsonError('Erro ao excluir role', 500);
+            $result = $this->permissionService->deleteRole((int)$id);
+        } catch (RecordNotFoundException $e) {
+            return $this->jsonError('Role não encontrada', 404);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            Log::error('AdminRolesController::delete: ' . $e->getMessage());
+            return $this->jsonError('Erro ao excluir role', 500);
         }
+
+        if (!$result['success']) {
+            return isset($result['error'])
+                ? $this->jsonError($result['error'], 403)
+                : $this->jsonError('Erro ao excluir role', 500);
+        }
+
+        return $this->jsonSuccess(null, 'Role excluída com sucesso');
+    }
+
+    private function validationError(array $errors)
+    {
+        $errorMessages = [];
+        foreach ($errors as $field => $fieldErrors) {
+            $errorMessages[] = $field . ': ' . implode(', ', $fieldErrors);
+        }
+
+        return $this->jsonError(implode('; ', $errorMessages), 400, $errors);
     }
 }

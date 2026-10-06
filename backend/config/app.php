@@ -2,7 +2,6 @@
 
 use Cake\Cache\Engine\FileEngine;
 use Cake\Database\Connection;
-use Cake\Database\Driver\Mysql;
 use Cake\Log\Engine\FileLog;
 use Cake\Mailer\Transport\MailTransport;
 use Cake\Database\Driver\Postgres;
@@ -15,7 +14,7 @@ return [
      * Production Mode: false
      * Development Mode: true
      */
-    'debug' => filter_var(env('DEBUG', false), FILTER_VALIDATE_BOOLEAN),
+    'debug' => filter_var(env('DEBUG'), FILTER_VALIDATE_BOOLEAN),
 
     /*
      * Configure basic information about the application.
@@ -71,7 +70,23 @@ return [
         'default' => [
             'className' => FileEngine::class,
             'path' => CACHE,
-            'url' => env('CACHE_DEFAULT_URL', null),
+            'url' => env('CACHE_DEFAULT_URL'),
+        ],
+        // rate_limit e social_login ficam no temp do sistema: dentro do OneDrive o is_writable()
+        // falha para tmp/cache e o FileEngine se recusa a gravar.
+        // Contadores do RateLimitMiddleware (janela de 60s)
+        'rate_limit' => [
+            'className' => FileEngine::class,
+            'path' => sys_get_temp_dir() . DS,
+            'prefix' => 'beready_rl_',
+            'duration' => '+2 minutes',
+        ],
+        // Códigos de uso único do login social (trocados em /auth/social/exchange)
+        'social_login' => [
+            'className' => FileEngine::class,
+            'path' => sys_get_temp_dir() . DS,
+            'prefix' => 'beready_sl_',
+            'duration' => '+60 seconds',
         ],
         '_cake_core_' => [
             'className' => 'Array',
@@ -121,16 +136,8 @@ return [
             'port' => env('EMAIL_PORT'),
             'username' => env('EMAIL_USERNAME'),
             'password' => env('EMAIL_PASSWORD'),
-            'tls' => env('EMAIL_TLS'),
+            'tls' => filter_var(env('EMAIL_TLS'), FILTER_VALIDATE_BOOLEAN),
             'timeout' => 30,
-            'ssl_allow_self_signed' => true,
-            'context' => [
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true,
-                ],
-            ],
         ],
     ],
 
@@ -138,6 +145,8 @@ return [
         'default' => [
             'transport' => 'default',
             'from' => [env('EMAIL_FROM') => env('EMAIL_FROM_NAME')],
+            'charset' => env('APP_ENCODING'),
+            'headerCharset' => env('APP_ENCODING'),
         ],
     ],
 
@@ -155,13 +164,13 @@ return [
             'quoteIdentifiers' => false,
         ],
 
+        // Banco usado pelo PHPUnit; o schema é recriado a partir das migrations (tests/bootstrap.php)
         'test' => [
             'className' => Connection::class,
-            'driver' => Mysql::class,
-            'persistent' => false,
+            'driver' => Postgres::class,
+            'url' => env('TEST_DATABASE_URL'),
+            'encoding' => 'utf8',
             'timezone' => 'UTC',
-            'encoding' => 'utf8mb4',
-            'flags' => [],
             'cacheMetadata' => true,
             'quoteIdentifiers' => false,
             'log' => false,
@@ -176,7 +185,7 @@ return [
             'className' => FileLog::class,
             'path' => LOGS,
             'file' => 'debug',
-            'url' => env('LOG_DEBUG_URL', null),
+            'url' => env('LOG_DEBUG_URL'),
             'scopes' => null,
             'levels' => ['notice', 'info', 'debug'],
         ],
@@ -184,7 +193,7 @@ return [
             'className' => FileLog::class,
             'path' => LOGS,
             'file' => 'error',
-            'url' => env('LOG_ERROR_URL', null),
+            'url' => env('LOG_ERROR_URL'),
             'scopes' => null,
             'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
         ],
@@ -192,7 +201,7 @@ return [
             'className' => FileLog::class,
             'path' => LOGS,
             'file' => 'queries',
-            'url' => env('LOG_QUERIES_URL', null),
+            'url' => env('LOG_QUERIES_URL'),
             'scopes' => ['cake.database.queries'],
         ],
     ],
@@ -209,8 +218,8 @@ return [
      */
     'DebugKit' => [
         'forceEnable' => false,
-        'safeTld' => env('DEBUG_KIT_SAFE_TLD', null),
-        'ignoreAuthorization' => env('DEBUG_KIT_IGNORE_AUTHORIZATION', false),
+        'safeTld' => env('DEBUG_KIT_SAFE_TLD'),
+        'ignoreAuthorization' => env('DEBUG_KIT_IGNORE_AUTHORIZATION'),
     ],
 
     'TestSuite' => [

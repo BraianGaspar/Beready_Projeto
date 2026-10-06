@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Traits\ResourceErrorTrait;
 use App\Services\QuizService;
 use App\Repositories\QuizRepository;
 
 class QuizesController extends AppController
 {
+    use ResourceErrorTrait;
+
     private QuizService $quizService;
 
     public function initialize(): void
@@ -21,10 +24,10 @@ class QuizesController extends AppController
     public function index()
     {
         try {
-            $quizzes = $this->quizService->getAllQuizzes();
+            $quizzes = $this->quizService->getQuizzesByUsuario($this->currentUserId());
             return $this->jsonSuccess($quizzes);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro ao carregar quizzes: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar quizzes');
         }
     }
 
@@ -39,43 +42,24 @@ class QuizesController extends AppController
 
         try {
             $quiz = $this->quizService->getQuizById((int)$quizId);
+            // Quiz público pode ser visualizado por qualquer usuário autenticado; alterar, só o dono.
+            if (empty($quiz['publico']) && !$this->canAccessUser((int)$quiz['usuario_id'])) {
+                return $this->jsonError('Quiz não encontrado', 404);
+            }
             return $this->jsonSuccess($quiz);
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e);
         }
     }
 
     // POST /quizes
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        // Log para debug
-        error_log("=== QUIZ ADD ===");
-        error_log("Dados recebidos: " . print_r($data, true));
-
-        // Validar campos obrigatórios
-        if (empty($data['usuario_id'])) {
-            return $this->jsonError('ID do usuário é obrigatório', 400);
-        }
-
-        if (empty($data['titulo'])) {
-            return $this->jsonError('Título é obrigatório', 400);
-        }
-
         try {
-            $quiz = $this->quizService->createQuiz($data);
+            $quiz = $this->quizService->createQuiz($this->currentUserId(), $this->getRequestData());
             return $this->jsonSuccess($quiz, 'Quiz criado com sucesso', 201);
-        } catch (\InvalidArgumentException $e) {
-            return $this->jsonError($e->getMessage(), 400);
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            error_log("ERRO ao criar quiz: " . $e->getMessage());
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao criar quiz');
         }
     }
 
@@ -88,20 +72,12 @@ class QuizesController extends AppController
             return $this->jsonError('ID do quiz não informado', 400);
         }
 
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        error_log("=== QUIZ EDIT ===");
-        error_log("ID: " . $quizId);
-        error_log("Dados: " . print_r($data, true));
-
         try {
-            $quiz = $this->quizService->updateQuiz((int)$quizId, $data);
+            $this->findOwnedQuiz((int)$quizId);
+            $quiz = $this->quizService->updateQuiz((int)$quizId, $this->getRequestData());
             return $this->jsonSuccess($quiz, 'Quiz atualizado com sucesso');
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao atualizar quiz');
         }
     }
 
@@ -114,16 +90,25 @@ class QuizesController extends AppController
             return $this->jsonError('ID do quiz não informado', 400);
         }
 
-        error_log("=== QUIZ DELETE ===");
-        error_log("ID: " . $quizId);
-
         try {
+            $this->findOwnedQuiz((int)$quizId);
             $this->quizService->deleteQuiz((int)$quizId);
             return $this->jsonSuccess(null, 'Quiz excluído com sucesso');
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao excluir quiz');
         }
+    }
+
+    /**
+     * Quiz de outro usuário responde 404 (admin acessa todos).
+     */
+    private function findOwnedQuiz(int $id): array
+    {
+        $quiz = $this->quizService->getQuizById($id);
+        if (!$this->canAccessUser((int)$quiz['usuario_id'])) {
+            throw new \RuntimeException('Quiz não encontrado', 404);
+        }
+
+        return $quiz;
     }
 }

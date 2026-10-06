@@ -15,9 +15,9 @@ class TagService
         $this->repository = $repository;
     }
 
-    public function getAllTags(): array
+    public function getTagsVisibleToUsuario(int $usuarioId): array
     {
-        return $this->repository->findAll();
+        return $this->repository->findVisibleToUsuario($usuarioId);
     }
 
     public function getTagById(int $id): array
@@ -34,18 +34,21 @@ class TagService
         return $this->repository->findByUsuarioId($usuarioId);
     }
 
-    public function createTag(array $data): array
+    /**
+     * Só admin pode marcar tag_sistema (tag visível a todos).
+     */
+    public function createTag(int $usuarioId, array $data, bool $podeTagSistema = false): array
     {
         if (empty($data['nome'])) {
             throw new \InvalidArgumentException('Nome da tag é obrigatório');
         }
 
-        if (empty($data['criado_por'])) {
-            throw new \InvalidArgumentException('ID do criador é obrigatório');
+        $data['criado_por'] = $usuarioId;
+        if (!$podeTagSistema) {
+            unset($data['tag_sistema']);
         }
 
-        // Verifica se tag já existe
-        $existing = $this->repository->findByName($data['nome']);
+        $existing = $this->repository->findByName($data['nome'], $usuarioId);
         if ($existing) {
             throw new \RuntimeException('Tag já existe', 409);
         }
@@ -53,16 +56,21 @@ class TagService
         return $this->repository->create($data);
     }
 
-    public function updateTag(int $id, array $data): array
+    /**
+     * O chamador deve validar o dono antes (getTagById).
+     */
+    public function updateTag(int $id, array $data, bool $podeTagSistema = false): array
     {
-        $tag = $this->repository->findById($id);
-        if (!$tag) {
-            throw new \RuntimeException('Tag não encontrada', 404);
+        $tag = $this->getTagById($id);
+
+        unset($data['criado_por']);
+        if (!$podeTagSistema) {
+            unset($data['tag_sistema']);
         }
 
         // Verifica se novo nome já existe (se for diferente)
         if (isset($data['nome']) && $data['nome'] !== $tag['nome']) {
-            $existing = $this->repository->findByName($data['nome']);
+            $existing = $this->repository->findByName($data['nome'], $tag['criado_por']);
             if ($existing) {
                 throw new \RuntimeException('Tag já existe', 409);
             }
@@ -73,11 +81,6 @@ class TagService
 
     public function deleteTag(int $id): bool
     {
-        $tag = $this->repository->findById($id);
-        if (!$tag) {
-            throw new \RuntimeException('Tag não encontrada', 404);
-        }
-
         return $this->repository->delete($id);
     }
 }

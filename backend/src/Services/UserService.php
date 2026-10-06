@@ -11,10 +11,26 @@ use App\Exceptions\WeakPasswordException;
 use App\Exceptions\InvalidTokenException;
 use App\Exceptions\UserNotFoundException;
 use App\Mailer\UserMailer;
+use Cake\Log\Log;
 use Ramsey\Uuid\Uuid;
 
 class UserService implements UserUseCaseInterface
 {
+    public const STATUS_ATIVO = 'ativo';
+
+    /**
+     * Campos que o próprio usuário pode informar no registro/edição de perfil (além de "senha").
+     */
+    public const EDITABLE_FIELDS = [
+        'nome',
+        'email',
+        'telefone',
+        'nivel_ingles',
+        'idioma_preferido',
+        'objetivos_aprendizado',
+        'foto_perfil',
+    ];
+
     private UserRepositoryInterface $userRepository;
 
     public function __construct(UserRepositoryInterface $userRepository)
@@ -33,19 +49,22 @@ class UserService implements UserUseCaseInterface
         if ($this->userRepository->emailExists($data['email'])) {
             throw new EmailAlreadyExistsException();
         }
-        $data['uuid'] = Uuid::uuid4()->toString();
-        $data['senha_hash'] = password_hash($data['senha'], PASSWORD_DEFAULT);
-        unset($data['senha']);
-        $user = $this->userRepository->create($data);
-        unset($user['senha_hash']);
 
-        // ENVIA E-MAIL DE BOAS-VINDAS
+        $user = $this->userRepository->create(
+            array_intersect_key($data, array_flip(self::EDITABLE_FIELDS)),
+            [
+                'uuid' => Uuid::uuid4()->toString(),
+                'senha_hash' => password_hash($data['senha'], PASSWORD_DEFAULT),
+                'role' => 'user',
+                'status' => self::STATUS_ATIVO,
+            ]
+        );
+
         try {
-            $mailer = new UserMailer();
-            $mailer->welcome((object)$user);
+            (new UserMailer())->welcome((object)$user);
         } catch (\Exception $e) {
-            error_log("❌ Erro ao enviar e-mail de boas-vindas: " . $e->getMessage());
             // Não interrompe o registro se o e-mail falhar
+            Log::error('Erro ao enviar e-mail de boas-vindas: ' . $e->getMessage());
         }
 
         return $user;
@@ -53,36 +72,37 @@ class UserService implements UserUseCaseInterface
 
     public function login(string $email, string $password): array
     {
-        error_log("=== LOGIN SERVICE ===");
-        error_log("Email: " . $email);
-
         if (empty($email) || empty($password)) {
             throw new \InvalidArgumentException('E-mail e senha são obrigatórios');
         }
 
         $user = $this->userRepository->findByEmail($email);
 
-        error_log("User found: " . ($user ? 'YES' : 'NO'));
-
-        if (!$user) {
+        if (!$user || !password_verify($password, $user['senha_hash'] ?? '')) {
             throw new \RuntimeException('E-mail ou senha inválidos', 401);
         }
 
-        error_log("senha_hash exists: " . (isset($user['senha_hash']) ? 'YES' : 'NO'));
-        error_log("senha_hash value: " . ($user['senha_hash'] ?? 'NULL'));
-
-        $passwordVerify = password_verify($password, $user['senha_hash'] ?? '');
-        error_log("Password verify: " . ($passwordVerify ? 'TRUE' : 'FALSE'));
-
-        if (!$passwordVerify) {
-            throw new \RuntimeException('E-mail ou senha inválidos', 401);
+        if (!$this->isActive($user)) {
+            throw new \RuntimeException('Conta inativa ou bloqueada', 403);
         }
 
-        $this->userRepository->update($user['id'], ['ultimo_login' => date('Y-m-d H:i:s')]);
-
+        $this->registerLogin((int)$user['id']);
         unset($user['senha_hash']);
 
         return $user;
+    }
+
+    /**
+     * Status nulo (legado) conta como ativo; qualquer outro valor (inativo, bloqueado...) bloqueia o acesso.
+     */
+    public function isActive(array $user): bool
+    {
+        return empty($user['status']) || $user['status'] === self::STATUS_ATIVO;
+    }
+
+    public function registerLogin(int $id): void
+    {
+        $this->userRepository->update($id, ['ultimo_login' => date('Y-m-d H:i:s')]);
     }
 
     public function getUserById(int $id): array
@@ -101,11 +121,14 @@ class UserService implements UserUseCaseInterface
         if (!$user) {
             throw new UserNotFoundException();
         }
-        unset($user['senha_hash']);
         return $user;
     }
 
-    public function updateUser(int $id, array $data): array
+    /**
+     * @param array $data Campos de EDITABLE_FIELDS e, opcionalmente, "senha" (vira senha_hash)
+     * @param array $protected Campos restritos (role/status), já autorizados pelo chamador
+     */
+    public function updateUser(int $id, array $data, array $protected = []): array
     {
         $user = $this->userRepository->findById($id);
         if (!$user) {
@@ -116,18 +139,18 @@ class UserService implements UserUseCaseInterface
             throw new EmailAlreadyExistsException('Este e-mail já está em uso');
         }
 
-        if (isset($data['senha'])) {
+        if (isset($data['senha']) && $data['senha'] !== '') {
             if (strlen($data['senha']) < 6) {
                 throw new WeakPasswordException('A senha deve ter pelo menos 6 caracteres');
             }
-            $data['senha_hash'] = password_hash($data['senha'], PASSWORD_DEFAULT);
-            unset($data['senha']);
+            $protected['senha_hash'] = password_hash($data['senha'], PASSWORD_DEFAULT);
         }
 
-        $updatedUser = $this->userRepository->update($id, $data);
-        unset($updatedUser['senha_hash']);
-
-        return $updatedUser;
+        return $this->userRepository->update(
+            $id,
+            array_intersect_key($data, array_flip(self::EDITABLE_FIELDS)),
+            $protected
+        );
     }
 
     public function deleteUser(int $id): bool
@@ -140,37 +163,42 @@ class UserService implements UserUseCaseInterface
         return $this->userRepository->delete($id);
     }
 
+    /**
+     * Nunca revela se o e-mail existe: falhas de envio são apenas registradas no log.
+     * O banco guarda só o hash SHA-256 do token; o token puro vai apenas no e-mail.
+     */
     public function forgotPassword(string $email): void
     {
         $user = $this->userRepository->findByEmail($email);
         if (!$user) {
-            // Não revelamos se o e-mail existe ou não (segurança)
             return;
         }
 
         $token = bin2hex(random_bytes(32));
         $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
-        $this->userRepository->updateResetToken($user['id'], $token, $expires);
+        $this->userRepository->updateResetToken((int)$user['id'], hash('sha256', $token), $expires);
 
         try {
-            $mailer = new UserMailer();
-            $mailer->resetPassword((object)$user, $token);
+            (new UserMailer())->resetPassword((object)$user, $token);
         } catch (\Exception $e) {
-            throw new \RuntimeException('Erro ao enviar email de recuperação');
+            Log::error('Erro ao enviar e-mail de recuperação de senha: ' . $e->getMessage());
         }
     }
 
     public function resetPassword(string $token, string $newPassword): void
     {
-        $user = $this->userRepository->findByResetToken($token);
+        $user = $this->userRepository->findByResetTokenHash(hash('sha256', $token));
         if (!$user) {
             throw new InvalidTokenException('Token inválido ou expirado');
         }
         if (strlen($newPassword) < 6) {
             throw new WeakPasswordException('A senha deve ter pelo menos 6 caracteres');
         }
-        $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
-        $this->userRepository->update($user['id'], ['senha_hash' => $hashed]);
-        $this->userRepository->updateResetToken($user['id'], null, null);
+
+        $this->userRepository->update((int)$user['id'], [], [
+            'senha_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
+            'reset_token' => null,
+            'reset_token_expires' => null,
+        ]);
     }
 }

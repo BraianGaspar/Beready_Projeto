@@ -86,11 +86,15 @@ class PermissionService
         // 2. Verificar role da assinatura ativa
         $assinatura = $this->assinaturasTable->find()
             ->where([
-                'usuario_id' => $usuarioId,
-                'status' => 'active',
-                'is_ativo' => true,
+                'Assinaturas.usuario_id' => $usuarioId,
+                'Assinaturas.status' => 'active',
+                'Assinaturas.is_ativo' => true,
+                'OR' => [
+                    'Assinaturas.data_fim IS' => null,
+                    'Assinaturas.data_fim >' => date('Y-m-d H:i:s'),
+                ],
             ])
-            ->contain(['Plano.Role.Permissoes'])
+            ->contain(['Planos.Roles.Permissoes'])
             ->first();
 
         if ($assinatura && $assinatura->plano && $assinatura->plano->role) {
@@ -178,52 +182,69 @@ class PermissionService
      */
     public function createRole(array $data): array
     {
-        $role = $this->rolesTable->newEntity($data);
-        
-        if ($this->rolesTable->save($role)) {
-            if (!empty($data['permission_ids'])) {
-                foreach ($data['permission_ids'] as $permId) {
-                    $this->rolePermissoesTable->save(
-                        $this->rolePermissoesTable->newEntity([
-                            'role_id' => $role->id,
-                            'permissao_id' => $permId,
-                        ])
-                    );
-                }
-            }
+        $permissionIds = (array)($data['permission_ids'] ?? []);
+        unset($data['permission_ids'], $data['is_sistema']);
 
-            return ['success' => true, 'data' => $role];
+        $role = $this->rolesTable->newEntity($data);
+
+        $saved = $this->rolesTable->getConnection()->transactional(function () use ($role, $permissionIds) {
+            if (!$this->rolesTable->save($role)) {
+                return false;
+            }
+            $this->savePermissoes((int)$role->id, $permissionIds);
+
+            return true;
+        });
+
+        if (!$saved) {
+            return ['success' => false, 'errors' => $role->getErrors()];
         }
 
-        return ['success' => false, 'errors' => $role->getErrors()];
+        return ['success' => true, 'data' => $this->rolesTable->get($role->id, contain: ['Permissoes'])];
     }
 
     /**
-     * Atualiza role
+     * Atualiza role. "permission_ids" ausente mantém as permissões atuais.
      */
     public function updateRole(int $roleId, array $data): array
     {
-        $role = $this->rolesTable->get($roleId);
-        $role = $this->rolesTable->patchEntity($role, $data);
-        
-        if ($this->rolesTable->save($role)) {
-            if (isset($data['permission_ids'])) {
+        $permissionIds = array_key_exists('permission_ids', $data) ? (array)$data['permission_ids'] : null;
+        unset($data['permission_ids'], $data['is_sistema']);
+
+        $role = $this->rolesTable->patchEntity($this->rolesTable->get($roleId), $data);
+
+        $saved = $this->rolesTable->getConnection()->transactional(function () use ($role, $roleId, $permissionIds) {
+            if (!$this->rolesTable->save($role)) {
+                return false;
+            }
+            if ($permissionIds !== null) {
                 $this->rolePermissoesTable->deleteAll(['role_id' => $roleId]);
-                
-                foreach ($data['permission_ids'] as $permId) {
-                    $this->rolePermissoesTable->save(
-                        $this->rolePermissoesTable->newEntity([
-                            'role_id' => $roleId,
-                            'permissao_id' => $permId,
-                        ])
-                    );
-                }
+                $this->savePermissoes($roleId, $permissionIds);
             }
 
-            return ['success' => true, 'data' => $role];
+            return true;
+        });
+
+        if (!$saved) {
+            return ['success' => false, 'errors' => $role->getErrors()];
         }
 
-        return ['success' => false, 'errors' => $role->getErrors()];
+        return ['success' => true, 'data' => $this->rolesTable->get($roleId, contain: ['Permissoes'])];
+    }
+
+    /**
+     * Insere os vínculos role_permissoes; falha lança exceção e desfaz a transação do chamador.
+     */
+    private function savePermissoes(int $roleId, array $permissionIds): void
+    {
+        foreach (array_unique(array_map('intval', $permissionIds)) as $permId) {
+            $this->rolePermissoesTable->saveOrFail(
+                $this->rolePermissoesTable->newEntity([
+                    'role_id' => $roleId,
+                    'permissao_id' => $permId,
+                ])
+            );
+        }
     }
 
     /**

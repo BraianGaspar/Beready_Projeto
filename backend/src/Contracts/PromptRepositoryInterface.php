@@ -6,7 +6,6 @@ namespace App\Contracts;
 
 interface PromptRepositoryInterface
 {
-    public function findAll(): array;
     public function findById(int $id): ?array;
     public function findByUsuarioId(int $usuarioId): array;
     public function create(array $data): array;

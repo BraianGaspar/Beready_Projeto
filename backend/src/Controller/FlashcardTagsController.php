@@ -4,175 +4,104 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Cake\ORM\TableRegistry;
+use App\Controller\Traits\ResourceErrorTrait;
+use App\Repositories\FlashcardRepository;
+use App\Repositories\FlashcardTagRepository;
+use App\Repositories\TagRepository;
+use App\Services\FlashcardService;
+use App\Services\FlashcardTagService;
+use App\Services\TagService;
 
+/**
+ * A associação pertence ao dono do flashcard; a tag precisa ser do usuário ou de sistema.
+ */
 class FlashcardTagsController extends AppController
 {
-    private $table;
+    use ResourceErrorTrait;
+
+    private FlashcardTagService $service;
+    private FlashcardService $flashcardService;
+    private TagService $tagService;
 
     public function initialize(): void
     {
         parent::initialize();
-        $this->table = TableRegistry::getTableLocator()->get('FlashcardTags');
+        $this->service = new FlashcardTagService(new FlashcardTagRepository());
+        $this->flashcardService = new FlashcardService(new FlashcardRepository());
+        $this->tagService = new TagService(new TagRepository());
     }
 
     // GET /flashcard-tags/flashcard/{flashcardId}
     public function getByFlashcard($flashcardId = null)
     {
+        $flashcardId = $flashcardId ?? $this->request->getParam('flashcardId');
+
         if (!$flashcardId) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'ID do flashcard não informado'
-            ]));
-            return $this->response;
+            return $this->jsonError('ID do flashcard não informado', 400);
         }
 
         try {
-            $relations = $this->table->find()
-                ->where(['flashcard_id' => $flashcardId])
-                ->contain(['Tags'])
-                ->all();
-
-            $result = [];
-            foreach ($relations as $relation) {
-                $item = $relation->toArray();
-                if ($relation->has('tag')) {
-                    $item['tag'] = $relation->tag->toArray();
-                }
-                $result[] = $item;
-            }
-
-            $this->response->getBody()->write(json_encode([
-                'success' => true,
-                'data' => $result
-            ]));
-            return $this->response;
+            $this->assertFlashcardAccess((int)$flashcardId);
+            return $this->jsonSuccess($this->service->getTagsByFlashcard((int)$flashcardId));
         } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
+            return $this->errorResponse($e, 'Erro ao carregar tags do flashcard');
         }
     }
 
     // POST /flashcard-tags
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
+        $data = $this->getRequestData();
 
         if (empty($data['flashcard_id']) || empty($data['tag_id'])) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'flashcard_id e tag_id são obrigatórios'
-            ]));
-            return $this->response;
+            return $this->jsonError('flashcard_id e tag_id são obrigatórios', 400);
         }
 
         try {
-            // Verifica se já existe
-            $exists = $this->table->find()
-                ->where([
-                    'flashcard_id' => $data['flashcard_id'],
-                    'tag_id' => $data['tag_id']
-                ])
-                ->first();
+            $this->assertFlashcardAccess((int)$data['flashcard_id']);
 
-            if ($exists) {
-                $this->response = $this->response->withStatus(409);
-                $this->response->getBody()->write(json_encode([
-                    'success' => false,
-                    'message' => 'Tag já associada a este flashcard'
-                ]));
-                return $this->response;
+            $tag = $this->tagService->getTagById((int)$data['tag_id']);
+            if (empty($tag['tag_sistema']) && !$this->canAccessUser((int)$tag['criado_por'])) {
+                return $this->jsonError('Tag não encontrada', 404);
             }
 
-            $relation = $this->table->newEntity($data);
-
-            if ($this->table->save($relation)) {
-                $this->response = $this->response->withStatus(201);
-                $this->response->getBody()->write(json_encode([
-                    'success' => true,
-                    'message' => 'Tag adicionada ao flashcard com sucesso',
-                    'data' => $relation
-                ]));
-                return $this->response;
-            }
-
-            $this->response = $this->response->withStatus(422);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'Erro ao associar tag',
-                'errors' => $relation->getErrors()
-            ]));
-            return $this->response;
+            $relation = $this->service->addTagToFlashcard((int)$data['flashcard_id'], (int)$data['tag_id']);
+            return $this->jsonSuccess($relation, 'Tag adicionada ao flashcard com sucesso', 201);
         } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]));
-            return $this->response;
+            return $this->errorResponse($e, 'Erro ao associar tag');
         }
     }
 
     // DELETE /flashcard-tags (com body)
     public function remove()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
+        $data = $this->getRequestData();
 
         if (empty($data['flashcard_id']) || empty($data['tag_id'])) {
-            $this->response = $this->response->withStatus(400);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'flashcard_id e tag_id são obrigatórios'
-            ]));
-            return $this->response;
+            return $this->jsonError('flashcard_id e tag_id são obrigatórios', 400);
         }
 
         try {
-            $relation = $this->table->find()
-                ->where([
-                    'flashcard_id' => $data['flashcard_id'],
-                    'tag_id' => $data['tag_id']
-                ])
-                ->first();
+            $this->assertFlashcardAccess((int)$data['flashcard_id']);
 
-            if (!$relation) {
-                $this->response = $this->response->withStatus(404);
-                $this->response->getBody()->write(json_encode([
-                    'success' => false,
-                    'message' => 'Associação não encontrada'
-                ]));
-                return $this->response;
+            if (!$this->service->removeTagFromFlashcard((int)$data['flashcard_id'], (int)$data['tag_id'])) {
+                return $this->jsonError('Erro ao remover tag', 500);
             }
 
-            if ($this->table->delete($relation)) {
-                $this->response->getBody()->write(json_encode([
-                    'success' => true,
-                    'message' => 'Tag removida do flashcard com sucesso'
-                ]));
-                return $this->response;
-            }
-
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-                'message' => 'Erro ao remover tag'
-            ]));
-            return $this->response;
+            return $this->jsonSuccess(null, 'Tag removida do flashcard com sucesso');
         } catch (\Exception $e) {
-            $this->response = $this->response->withStatus(500);
-            $this->response->getBody()->write(json_encode([
-                'success' => false,
-            'message' => $e->getMessage()
-            ]));
-            return $this->response;
+            return $this->errorResponse($e, 'Erro ao remover tag');
+        }
+    }
+
+    /**
+     * Flashcard de outro usuário responde 404 (admin acessa todos).
+     */
+    private function assertFlashcardAccess(int $flashcardId): void
+    {
+        $flashcard = $this->flashcardService->getFlashcardById($flashcardId);
+        if (!$this->canAccessUser((int)$flashcard['usuario_id'])) {
+            throw new \RuntimeException('Flashcard não encontrado', 404);
         }
     }
 }

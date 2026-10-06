@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\CloudinaryServiceInterface;
+use Composer\CaBundle\CaBundle;
 
 class CloudinaryService implements CloudinaryServiceInterface
 {
@@ -13,7 +14,6 @@ class CloudinaryService implements CloudinaryServiceInterface
     private string $apiSecret;
     private string $uploadFolder;
     private string $apiBaseUrl;
-    private bool $disableSSL;
 
     public function __construct()
     {
@@ -22,7 +22,6 @@ class CloudinaryService implements CloudinaryServiceInterface
         $this->apiSecret    = env('CLOUDINARY_API_SECRET');
         $this->uploadFolder = env('CLOUDINARY_UPLOAD_FOLDER');
         $this->apiBaseUrl   = env('CLOUDINARY_API_URL');
-        $this->disableSSL   = filter_var(env('CLOUDINARY_DISABLE_SSL'), FILTER_VALIDATE_BOOLEAN);
     }
 
     public function uploadProfilePhoto(array $file): string
@@ -50,11 +49,8 @@ class CloudinaryService implements CloudinaryServiceInterface
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        if ($this->disableSSL) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        }
+        // TLS sempre verificado; usa o CA do sistema ou o bundle do composer quando o php.ini não define curl.cainfo
+        curl_setopt($ch, CURLOPT_CAINFO, CaBundle::getSystemCaRootBundlePath());
 
         $response = curl_exec($ch);
         $error = curl_error($ch);

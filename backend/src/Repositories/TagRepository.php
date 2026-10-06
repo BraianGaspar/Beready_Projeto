@@ -16,20 +16,22 @@ class TagRepository implements TagRepositoryInterface
         $this->table = TableRegistry::getTableLocator()->get('Tags');
     }
 
-    public function findAll(): array
+    /**
+     * Tags do usuário + tags de sistema (compartilhadas).
+     */
+    public function findVisibleToUsuario(int $usuarioId): array
     {
-        $tags = $this->table->find()->orderBy(['nome' => 'ASC'])->all();
+        $tags = $this->table->find()
+            ->where(['OR' => ['criado_por' => $usuarioId, 'tag_sistema' => true]])
+            ->orderBy(['nome' => 'ASC'])
+            ->all();
         return array_map(fn($t) => $t->toArray(), $tags->toArray());
     }
 
     public function findById(int $id): ?array
     {
-        try {
-            $tag = $this->table->get($id);
-            return $tag->toArray();
-        } catch (\Exception $e) {
-            return null;
-        }
+        $tag = $this->table->find()->where(['id' => $id])->first();
+        return $tag ? $tag->toArray() : null;
     }
 
     public function findByUsuarioId(int $usuarioId): array
@@ -41,9 +43,12 @@ class TagRepository implements TagRepositoryInterface
         return array_map(fn($t) => $t->toArray(), $tags->toArray());
     }
 
-    public function findByName(string $name): ?array
+    /**
+     * O nome é único por dono (índice tags_criado_por_nome_key).
+     */
+    public function findByName(string $name, ?int $criadoPor): ?array
     {
-        $tag = $this->table->find()->where(['nome' => $name])->first();
+        $tag = $this->table->find()->where(['nome' => $name, 'criado_por IS' => $criadoPor])->first();
         return $tag ? $tag->toArray() : null;
     }
 

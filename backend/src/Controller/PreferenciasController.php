@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Cake\ORM\TableRegistry;
+use App\Controller\Traits\ResourceErrorTrait;
+use App\Repositories\PreferenciaRepository;
+use App\Services\PreferenciaService;
 
 class PreferenciasController extends AppController
 {
-    private $table;
+    use ResourceErrorTrait;
+
+    private PreferenciaService $service;
 
     public function initialize(): void
     {
         parent::initialize();
-        $this->table = TableRegistry::getTableLocator()->get('PreferenciasUsuario');
+        $this->service = new PreferenciaService(new PreferenciaRepository());
     }
 
     // GET /preferencias/usuario/{usuarioId}
@@ -21,79 +25,29 @@ class PreferenciasController extends AppController
     {
         $userId = $usuarioId ?? $this->request->getParam('usuarioId') ?? $this->request->getQuery('usuarioId');
 
-        error_log("=== GET PREFERENCIAS ===");
-        error_log("Final userId: " . $userId);
-
         if (!$userId) {
             return $this->jsonError('ID do usuário não informado', 400);
         }
 
         try {
-            $preferencia = $this->table->find()
-                ->where(['usuario_id' => $userId])
-                ->first();
-
-            if (!$preferencia) {
-                return $this->jsonSuccess([
-                    'usuario_id' => (int)$userId,
-                    'tema' => 'claro',
-                    'modo_daltonico' => false,
-                    'notificacoes_ativas' => true,
-                    'som_ativo' => true,
-                    'traducao_automatica' => true,
-                    'preferencia_dificuldade' => 'adaptativo',
-                    'meta_diaria_minutos' => 30,
-                ]);
+            if (!$this->canAccessUser((int)$userId)) {
+                return $this->jsonError('Acesso negado', 403);
             }
 
-            return $this->jsonSuccess($preferencia);
+            return $this->jsonSuccess($this->service->getByUsuarioId((int)$userId));
         } catch (\Exception $e) {
-            error_log("ERRO getByUsuario: " . $e->getMessage());
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar preferências');
         }
     }
 
-    // POST /preferencias
+    // POST /preferencias — sempre do usuário autenticado (usuario_id do corpo é ignorado)
     public function save()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        error_log("=== SAVE PREFERENCIAS ===");
-        error_log("Dados recebidos: " . print_r($data, true));
-
-        if (empty($data['usuario_id'])) {
-            return $this->jsonError('ID do usuário é obrigatório', 400);
-        }
-
         try {
-            $existing = $this->table->find()
-                ->where(['usuario_id' => $data['usuario_id']])
-                ->first();
-
-            // Campos permitidos
-            $allowedFields = ['tema', 'modo_daltonico', 'notificacoes_ativas', 'som_ativo', 'traducao_automatica', 'preferencia_dificuldade', 'meta_diaria_minutos'];
-            $saveData = array_intersect_key($data, array_flip($allowedFields));
-            $saveData['usuario_id'] = $data['usuario_id'];
-
-            error_log("Dados para salvar: " . print_r($saveData, true));
-
-            if ($existing) {
-                $entity = $this->table->patchEntity($existing, $saveData);
-            } else {
-                $entity = $this->table->newEntity($saveData);
-            }
-
-            if ($this->table->save($entity)) {
-                error_log("Preferências salvas com sucesso ID: " . $entity->id);
-                return $this->jsonSuccess($entity, 'Preferências salvas com sucesso');
-            }
-
-            error_log("Erro ao salvar: " . print_r($entity->getErrors(), true));
-            return $this->jsonError('Erro ao salvar preferências', 422, $entity->getErrors());
+            $preferencias = $this->service->save($this->currentUserId(), $this->getRequestData());
+            return $this->jsonSuccess($preferencias, 'Preferências salvas com sucesso');
         } catch (\Exception $e) {
-            error_log("EXCEÇÃO ao salvar preferências: " . $e->getMessage());
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao salvar preferências');
         }
     }
 }

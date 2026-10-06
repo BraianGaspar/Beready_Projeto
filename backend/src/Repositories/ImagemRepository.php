@@ -27,7 +27,7 @@ class ImagemRepository implements ImagemRepositoryInterface
 
     public function findById(int $id): ?array
     {
-        $imagem = $this->table->get($id);
+        $imagem = $this->table->find()->where(['id' => $id])->first();
         return $imagem ? $imagem->toArray() : null;
     }
 

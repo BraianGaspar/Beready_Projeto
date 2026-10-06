@@ -6,16 +6,25 @@ namespace App\Controller;
 
 use App\Services\UserService;
 use App\Services\JwtService;
+use App\Services\SocialAuthService;
 use App\Repositories\UserRepository;
 use App\Exceptions\EmailAlreadyExistsException;
 use App\Exceptions\WeakPasswordException;
 use App\Exceptions\InvalidTokenException;
 use App\Exceptions\UserNotFoundException;
 use Cake\Http\Client;
+use Cake\Http\Cookie\Cookie;
+use Cake\Log\Log;
 use App\Services\PermissionService;
+use App\Services\AssinaturaService;
 
 class UsersController extends AppController
 {
+    private const REFRESH_COOKIE = 'refresh_token';
+
+    private const ROLES = ['user', 'admin'];
+    private const STATUSES = [UserService::STATUS_ATIVO, 'inativo', 'bloqueado'];
+
     private UserService $userService;
     private JwtService $jwtService;
     private PermissionService $permissionService;
@@ -30,38 +39,17 @@ class UsersController extends AppController
 
     /**
      * GET /user/permissions
-     * Retorna as permissões do usuário autenticado
+     * Retorna as permissões do usuário autenticado (admin recebe todas)
      */
     public function permissions()
     {
         $this->request->allowMethod(['get']);
-        
-        $token = $this->jwtService->getTokenFromRequest($this->request);
-        if (!$token) {
-            return $this->jsonError('Token não informado', 401);
-        }
-
-        $payload = $this->jwtService->validateToken($token);
-        if (!$payload) {
-            return $this->jsonError('Token inválido ou expirado', 401);
-        }
 
         try {
-            $user = $this->userService->getUserById($payload['sub']);
-            
-            // Se for admin, retorna todas as permissões
-            if ($user['role'] === 'admin') {
-                $allPermissions = $this->permissionService->getAllPermissions();
-                return $this->jsonSuccess($allPermissions);
-            }
-
-            // Busca permissões do usuário
-            $permissions = $this->permissionService->getUserPermissions($user['id']);
-            return $this->jsonSuccess($permissions);
-        } catch (UserNotFoundException $e) {
-            return $this->jsonError('Usuário não encontrado', 404);
+            return $this->jsonSuccess($this->permissionService->getUserPermissions($this->currentUserId()));
         } catch (\Exception $e) {
-            return $this->jsonError('Erro ao carregar permissões: ' . $e->getMessage(), 500);
+            Log::error('Erro ao carregar permissões: ' . $e->getMessage());
+            return $this->jsonError('Erro ao carregar permissões', 500);
         }
     }
 
@@ -75,48 +63,77 @@ class UsersController extends AppController
         $data = $this->getRequestData();
         try {
             $user = $this->userService->register($data);
+
+            try {
+                (new AssinaturaService())->ativarPlanoGratuito((int)$user['id']);
+            } catch (\Exception $e) {
+                Log::error('Erro ao atribuir plano gratuito: ' . $e->getMessage());
+            }
+
             return $this->jsonSuccess(['user' => $user], 'Registro realizado com sucesso', 201);
         } catch (EmailAlreadyExistsException | WeakPasswordException | \InvalidArgumentException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 400);
+            return $this->jsonError($e->getMessage(), $this->httpStatusFrom($e, 400));
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            Log::error('Erro no registro: ' . $e->getMessage());
+            return $this->jsonError('Erro interno ao realizar o registro', 500);
         }
     }
 
     public function login()
     {
         $data = $this->getRequestData();
-        
+
         if (empty($data['email']) || empty($data['password'])) {
             return $this->jsonError('E-mail e senha são obrigatórios', 400);
         }
 
-        // VALIDA O reCAPTCHA
         $recaptchaToken = $data['recaptcha_token'] ?? null;
-        
         if (!$recaptchaToken) {
             return $this->jsonError('Token de segurança não enviado', 400);
         }
-        
-        $isValid = $this->validateRecaptcha($recaptchaToken);
-        
-        if (!$isValid) {
+
+        if (!$this->validateRecaptcha($recaptchaToken)) {
             return $this->jsonError('Falha na verificação de segurança. Tente novamente.', 400);
         }
 
         try {
             $user = $this->userService->login($data['email'], $data['password']);
-            $tokens = $this->jwtService->generateTokens($user);
-
-            return $this->jsonSuccess([
-                'user' => $user,
-                'tokens' => $tokens
-            ], 'Login realizado com sucesso');
         } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 401);
+            return $this->jsonError($e->getMessage(), $this->httpStatusFrom($e, 401));
         } catch (\Exception $e) {
+            Log::error('Erro no login: ' . $e->getMessage());
             return $this->jsonError('Erro interno', 500);
         }
+
+        return $this->authResponse($user, 'Login realizado com sucesso');
+    }
+
+    /**
+     * POST /auth/social/exchange
+     * Troca o código de uso único gerado no callback do login social pelos tokens.
+     */
+    public function socialExchange()
+    {
+        $code = (string)($this->getRequestData()['code'] ?? '');
+        $userId = (new SocialAuthService())->consumeLoginCode($code);
+
+        if (!$userId) {
+            return $this->jsonError('Código inválido ou expirado', 400);
+        }
+
+        try {
+            $user = $this->userService->getUserById($userId);
+        } catch (UserNotFoundException $e) {
+            return $this->jsonError('Código inválido ou expirado', 400);
+        }
+
+        if (!$this->userService->isActive($user)) {
+            return $this->jsonError('Conta inativa ou bloqueada', 403);
+        }
+
+        $this->userService->registerLogin($userId);
+
+        return $this->authResponse($user, 'Login realizado com sucesso');
     }
 
     /**
@@ -125,14 +142,11 @@ class UsersController extends AppController
     private function validateRecaptcha(string $token): bool
     {
         $secretKey = env('RECAPTCHA_SECRET_KEY');
-        $verifyUrl = env('RECAPTCHA_VERIFY_URL');
-        
         if (empty($secretKey)) {
             return false;
         }
 
-        $http = new Client();
-        $response = $http->post($verifyUrl, [
+        $response = (new Client())->post(env('RECAPTCHA_VERIFY_URL'), [
             'secret' => $secretKey,
             'response' => $token,
         ]);
@@ -142,54 +156,49 @@ class UsersController extends AppController
         }
 
         $data = $response->getJson();
-
-        if (!$data['success']) {
-            $errorCodes = implode(', ', $data['error-codes'] ?? []);
+        if (empty($data['success'])) {
             return false;
         }
 
-        if (isset($data['score']) && $data['score'] < 0.5) {
-            return false;
-        }
-
-        return true;
+        return !isset($data['score']) || $data['score'] >= 0.5;
     }
 
+    /**
+     * POST /auth/refresh
+     * Lê o refresh token do cookie httpOnly e devolve um novo access token + usuário.
+     */
     public function refresh()
     {
-        $data = $this->getRequestData();
-        $refreshToken = $data['refresh_token'] ?? null;
+        $refreshToken = (string)$this->request->getCookie(self::REFRESH_COOKIE);
+        $payload = $refreshToken !== '' ? $this->jwtService->validateToken($refreshToken, JwtService::TYPE_REFRESH) : null;
 
-        if (!$refreshToken) {
-            return $this->jsonError('Refresh token não informado', 400);
+        if (!$payload) {
+            return $this->jsonError('Refresh token inválido ou expirado', 401)
+                ->withExpiredCookie($this->refreshCookie(''));
         }
 
-        $newTokens = $this->jwtService->refreshAccessToken($refreshToken);
-
-        if (!$newTokens) {
-            return $this->jsonError('Refresh token inválido ou expirado', 401);
+        try {
+            $user = $this->userService->getUserById((int)$payload['sub']);
+        } catch (UserNotFoundException $e) {
+            return $this->jsonError('Refresh token inválido ou expirado', 401)
+                ->withExpiredCookie($this->refreshCookie(''));
         }
 
-        return $this->jsonSuccess($newTokens, 'Token renovado com sucesso');
+        if (!$this->userService->isActive($user)) {
+            return $this->jsonError('Conta inativa ou bloqueada', 401)
+                ->withExpiredCookie($this->refreshCookie(''));
+        }
+
+        return $this->jsonSuccess(
+            $this->jwtService->generateAccessToken($user) + ['user' => $user],
+            'Token renovado com sucesso'
+        );
     }
 
     public function me()
     {
-        $token = $this->jwtService->getTokenFromRequest($this->request);
-
-        if (!$token) {
-            return $this->jsonError('Token não informado', 401);
-        }
-
-        $payload = $this->jwtService->validateToken($token);
-
-        if (!$payload) {
-            return $this->jsonError('Token inválido ou expirado', 401);
-        }
-
         try {
-            $user = $this->userService->getUserById($payload['sub']);
-            return $this->jsonSuccess($user);
+            return $this->jsonSuccess($this->userService->getUserById($this->currentUserId()));
         } catch (UserNotFoundException $e) {
             return $this->jsonError('Usuário não encontrado', 404);
         }
@@ -197,76 +206,121 @@ class UsersController extends AppController
 
     public function logout()
     {
-        // JWT é stateless, o logout é feito no frontend removendo os tokens
-        return $this->jsonSuccess(null, 'Logout realizado com sucesso');
+        return $this->jsonSuccess(null, 'Logout realizado com sucesso')
+            ->withExpiredCookie($this->refreshCookie(''));
     }
 
     public function view($id = null)
     {
-        $userId = $id ?? $this->request->getParam('id');
+        $userId = (int)($id ?? $this->request->getParam('id'));
         if (!$userId) {
             return $this->jsonError('ID do usuário não informado', 400);
         }
+        if (!$this->canAccessUser($userId)) {
+            return $this->jsonError('Acesso negado', 403);
+        }
+
         try {
-            $user = $this->userService->getUserById((int)$userId);
-            return $this->jsonSuccess(['user' => $user]);
+            return $this->jsonSuccess(['user' => $this->userService->getUserById($userId)]);
         } catch (UserNotFoundException $e) {
             return $this->jsonError($e->getMessage(), 404);
-        } catch (\Exception $e) {
-            return $this->jsonError('Erro interno', 500);
         }
     }
 
-    public function viewByUuid($uuid)
+    public function viewByUuid($uuid = null)
     {
+        $uuid = (string)($uuid ?? $this->request->getParam('uuid'));
+
         try {
             $user = $this->userService->getUserByUuid($uuid);
-            return $this->jsonSuccess(['user' => $user]);
         } catch (UserNotFoundException $e) {
             return $this->jsonError($e->getMessage(), 404);
-        } catch (\Exception $e) {
-            return $this->jsonError('Erro interno', 500);
         }
+
+        if (!$this->canAccessUser((int)$user['id'])) {
+            return $this->jsonError('Acesso negado', 403);
+        }
+
+        return $this->jsonSuccess(['user' => $user]);
     }
 
+    /**
+     * O próprio usuário edita apenas UserService::EDITABLE_FIELDS e a senha; role/status só o admin.
+     */
     public function update($id = null)
     {
-        $userId = $id ?? $this->request->getParam('id');
+        $userId = (int)($id ?? $this->request->getParam('id'));
         if (!$userId) {
             return $this->jsonError('ID do usuário não informado', 400);
         }
+        if (!$this->canAccessUser($userId)) {
+            return $this->jsonError('Acesso negado', 403);
+        }
+
         $data = $this->getRequestData();
+        $editable = array_intersect_key($data, array_flip([...UserService::EDITABLE_FIELDS, 'senha']));
+
+        $protected = [];
+        if ($this->isAdmin()) {
+            if (isset($data['role'])) {
+                if (!in_array($data['role'], self::ROLES, true)) {
+                    return $this->jsonError('Role inválida. Use "user" ou "admin"', 400);
+                }
+                if ($userId === $this->currentUserId() && $data['role'] !== 'admin') {
+                    return $this->jsonError('Você não pode rebaixar seu próprio nível de acesso', 403);
+                }
+                $protected['role'] = $data['role'];
+            }
+            if (isset($data['status'])) {
+                if (!in_array($data['status'], self::STATUSES, true)) {
+                    return $this->jsonError('Status inválido. Use: ' . implode(', ', self::STATUSES), 400);
+                }
+                $protected['status'] = $data['status'];
+            }
+        }
+
         try {
-            $user = $this->userService->updateUser((int)$userId, $data);
+            $user = $this->userService->updateUser($userId, $editable, $protected);
             return $this->jsonSuccess(['user' => $user], 'Perfil atualizado com sucesso');
         } catch (UserNotFoundException $e) {
             return $this->jsonError($e->getMessage(), 404);
         } catch (EmailAlreadyExistsException | WeakPasswordException | \InvalidArgumentException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 400);
+            return $this->jsonError($e->getMessage(), $this->httpStatusFrom($e, 400));
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            Log::error('Erro ao atualizar usuário: ' . $e->getMessage());
+            return $this->jsonError('Erro interno ao atualizar o perfil', 500);
         }
     }
 
     public function delete($id = null)
     {
-        $userId = $id ?? $this->request->getParam('id');
+        $userId = (int)($id ?? $this->request->getParam('id'));
         if (!$userId) {
             return $this->jsonError('ID do usuário não informado', 400);
         }
-        if ($userId == 1) {
-            return $this->jsonError('Não é possível excluir o usuário administrador', 403);
+        if (!$this->canAccessUser($userId)) {
+            return $this->jsonError('Acesso negado', 403);
         }
+
         try {
-            $this->userService->deleteUser((int)$userId);
+            $user = $this->userService->getUserById($userId);
+            if ($user['role'] === 'admin') {
+                return $this->jsonError('Não é possível excluir um usuário administrador', 403);
+            }
+
+            $this->userService->deleteUser($userId);
             return $this->jsonSuccess(null, 'Conta excluída com sucesso');
         } catch (UserNotFoundException $e) {
             return $this->jsonError($e->getMessage(), 404);
         } catch (\Exception $e) {
+            Log::error('Erro ao excluir usuário: ' . $e->getMessage());
             return $this->jsonError('Erro interno', 500);
         }
     }
 
+    /**
+     * Sempre responde 200 para não revelar se o e-mail está cadastrado.
+     */
     public function forgotPassword()
     {
         $this->request->allowMethod(['post']);
@@ -274,37 +328,38 @@ class UsersController extends AppController
         if (empty($data['email'])) {
             return $this->jsonError('E-mail é obrigatório', 400);
         }
+
         try {
-            $this->userService->forgotPassword($data['email']);
-            return $this->jsonSuccess(null, 'Se o e-mail existir, você receberá um link de recuperação');
+            $this->userService->forgotPassword((string)$data['email']);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro ao processar solicitação', 500);
+            Log::error('Erro ao processar recuperação de senha: ' . $e->getMessage());
         }
+
+        return $this->jsonSuccess(null, 'Se o e-mail existir, você receberá um link de recuperação');
     }
 
     public function resetPassword($token = null)
     {
         $this->request->allowMethod(['post']);
-        
+
         if (empty($token)) {
             return $this->jsonError('Token não fornecido', 400);
         }
-        
+
         $data = $this->getRequestData();
         $newPassword = $data['senha'] ?? $data['password'] ?? '';
-        
+
         if (empty($newPassword)) {
             return $this->jsonError('Nova senha é obrigatória', 400);
         }
-        
+
         try {
             $this->userService->resetPassword($token, $newPassword);
             return $this->jsonSuccess(null, 'Senha redefinida com sucesso');
-        } catch (InvalidTokenException $e) {
-            return $this->jsonError($e->getMessage(), 400);
-        } catch (WeakPasswordException $e) {
+        } catch (InvalidTokenException | WeakPasswordException $e) {
             return $this->jsonError($e->getMessage(), 400);
         } catch (\Exception $e) {
+            Log::error('Erro ao redefinir senha: ' . $e->getMessage());
             return $this->jsonError('Erro interno ao redefinir senha', 500);
         }
     }
@@ -314,13 +369,30 @@ class UsersController extends AppController
         return $this->jsonError('Rota não encontrada', 404);
     }
 
-    private function getRequestData(): array
+    /**
+     * Resposta de login: access token no JSON e refresh token só no cookie httpOnly.
+     */
+    private function authResponse(array $user, string $message)
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        if (!$data) {
-            $data = $this->request->getData();
-        }
-        return $data;
+        $tokens = $this->jwtService->generateTokens($user);
+        $refreshToken = $tokens['refresh_token'];
+        unset($tokens['refresh_token']);
+
+        return $this->jsonSuccess(['user' => $user, 'tokens' => $tokens], $message)
+            ->withCookie($this->refreshCookie(
+                $refreshToken,
+                new \DateTimeImmutable('+' . $this->jwtService->getRefreshExpires() . ' seconds')
+            ));
+    }
+
+    private function refreshCookie(string $value, ?\DateTimeInterface $expires = null): Cookie
+    {
+        return Cookie::create(self::REFRESH_COOKIE, $value, [
+            'expires' => $expires,
+            'path' => '/auth',
+            'httponly' => true,
+            'secure' => filter_var(env('REFRESH_COOKIE_SECURE'), FILTER_VALIDATE_BOOLEAN),
+            'samesite' => env('REFRESH_COOKIE_SAMESITE'),
+        ]);
     }
 }

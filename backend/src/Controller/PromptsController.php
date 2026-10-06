@@ -4,16 +4,30 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Cake\ORM\TableRegistry;
+use App\Controller\Traits\ResourceErrorTrait;
+use App\Repositories\PromptRepository;
+use App\Services\PromptService;
 
 class PromptsController extends AppController
 {
-    private $table;
+    use ResourceErrorTrait;
+
+    private PromptService $service;
 
     public function initialize(): void
     {
         parent::initialize();
-        $this->table = TableRegistry::getTableLocator()->get('Prompts');
+        $this->service = new PromptService(new PromptRepository());
+    }
+
+    // GET /prompts
+    public function index()
+    {
+        try {
+            return $this->jsonSuccess($this->service->getPromptsByUsuario($this->currentUserId()));
+        } catch (\Exception $e) {
+            return $this->errorResponse($e, 'Erro ao carregar prompts');
+        }
     }
 
     // GET /prompts/usuario/{usuarioId}
@@ -21,24 +35,18 @@ class PromptsController extends AppController
     {
         $userId = $usuarioId ?? $this->request->getParam('usuarioId') ?? $this->request->getQuery('usuarioId');
 
-        error_log("=== GET BY USUARIO ===");
-        error_log("usuarioId param: " . ($usuarioId ?? 'null'));
-        error_log("usuarioId from request: " . ($this->request->getParam('usuarioId') ?? 'null'));
-        error_log("Final userId: " . $userId);
-
         if (!$userId) {
             return $this->jsonError('ID do usuário não informado', 400);
         }
 
         try {
-            $prompts = $this->table->find()
-                ->where(['usuario_id' => $userId])
-                ->orderBy(['criado_em' => 'DESC'])
-                ->all();
+            if (!$this->canAccessUser((int)$userId)) {
+                return $this->jsonError('Acesso negado', 403);
+            }
 
-            return $this->jsonSuccess($prompts->toArray());
+            return $this->jsonSuccess($this->service->getPromptsByUsuario((int)$userId));
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar prompts');
         }
     }
 
@@ -52,37 +60,20 @@ class PromptsController extends AppController
         }
 
         try {
-            $prompt = $this->table->get($promptId);
-            return $this->jsonSuccess($prompt);
+            return $this->jsonSuccess($this->findOwnedPrompt((int)$promptId));
         } catch (\Exception $e) {
-            return $this->jsonError('Prompt não encontrado', 404);
+            return $this->errorResponse($e);
         }
     }
 
     // POST /prompts
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        if (empty($data['usuario_id'])) {
-            return $this->jsonError('ID do usuário é obrigatório', 400);
-        }
-
-        if (empty($data['texto_original'])) {
-            return $this->jsonError('Texto original é obrigatório', 400);
-        }
-
         try {
-            $prompt = $this->table->newEntity($data);
-
-            if ($this->table->save($prompt)) {
-                return $this->jsonSuccess($prompt, 'Prompt criado com sucesso', 201);
-            }
-
-            return $this->jsonError('Erro ao criar prompt', 422, $prompt->getErrors());
+            $prompt = $this->service->createPrompt($this->currentUserId(), $this->getRequestData());
+            return $this->jsonSuccess($prompt, 'Prompt criado com sucesso', 201);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao criar prompt');
         }
     }
 
@@ -95,20 +86,12 @@ class PromptsController extends AppController
             return $this->jsonError('ID do prompt não informado', 400);
         }
 
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
         try {
-            $prompt = $this->table->get($promptId);
-            $prompt = $this->table->patchEntity($prompt, $data);
-
-            if ($this->table->save($prompt)) {
-                return $this->jsonSuccess($prompt, 'Prompt atualizado com sucesso');
-            }
-
-            return $this->jsonError('Erro ao atualizar prompt', 422, $prompt->getErrors());
+            $this->findOwnedPrompt((int)$promptId);
+            $prompt = $this->service->updatePrompt((int)$promptId, $this->getRequestData());
+            return $this->jsonSuccess($prompt, 'Prompt atualizado com sucesso');
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao atualizar prompt');
         }
     }
 
@@ -122,15 +105,24 @@ class PromptsController extends AppController
         }
 
         try {
-            $prompt = $this->table->get($promptId);
-
-            if ($this->table->delete($prompt)) {
-                return $this->jsonSuccess(null, 'Prompt excluído com sucesso');
-            }
-
-            return $this->jsonError('Erro ao excluir prompt', 500);
+            $this->findOwnedPrompt((int)$promptId);
+            $this->service->deletePrompt((int)$promptId);
+            return $this->jsonSuccess(null, 'Prompt excluído com sucesso');
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao excluir prompt');
         }
+    }
+
+    /**
+     * Prompt de outro usuário responde 404 (admin acessa todos).
+     */
+    private function findOwnedPrompt(int $id): array
+    {
+        $prompt = $this->service->getPromptById($id);
+        if (!$this->canAccessUser((int)$prompt['usuario_id'])) {
+            throw new \RuntimeException('Prompt não encontrado', 404);
+        }
+
+        return $prompt;
     }
 }

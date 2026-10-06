@@ -15,9 +15,9 @@ class FlashcardService
         $this->flashcardRepository = $flashcardRepository;
     }
 
-    public function getAllFlashcards(): array
+    public function getFlashcardsByUsuario(int $usuarioId): array
     {
-        return $this->flashcardRepository->findAll();
+        return $this->flashcardRepository->findByUsuarioId($usuarioId);
     }
 
     public function getFlashcardById(int $id): array
@@ -29,7 +29,16 @@ class FlashcardService
         return $flashcard;
     }
 
-    public function createFlashcard(array $data): array
+    public function getFlashcardByUuid(string $uuid): array
+    {
+        $flashcard = $this->flashcardRepository->findByUuid($uuid);
+        if (!$flashcard) {
+            throw new \RuntimeException('Flashcard não encontrado', 404);
+        }
+        return $flashcard;
+    }
+
+    public function createFlashcard(int $usuarioId, array $data): array
     {
         if (empty($data['frente'])) {
             throw new \InvalidArgumentException('A pergunta (frente) é obrigatória');
@@ -39,21 +48,16 @@ class FlashcardService
             throw new \InvalidArgumentException('A resposta (verso) é obrigatória');
         }
 
-        if (empty($data['usuario_id'])) {
-            $data['usuario_id'] = 1;
-        }
+        $data['usuario_id'] = $usuarioId;
 
-        $flashcard = $this->flashcardRepository->create($data);
-        return $flashcard;
+        return $this->flashcardRepository->create($data);
     }
 
+    /**
+     * O chamador deve validar o dono antes (getFlashcardById).
+     */
     public function updateFlashcard(int $id, array $data): array
     {
-        $flashcard = $this->flashcardRepository->findById($id);
-        if (!$flashcard) {
-            throw new \RuntimeException('Flashcard não encontrado', 404);
-        }
-
         unset($data['usuario_id']);
 
         return $this->flashcardRepository->update($id, $data);
@@ -61,11 +65,6 @@ class FlashcardService
 
     public function deleteFlashcard(int $id): bool
     {
-        $flashcard = $this->flashcardRepository->findById($id);
-        if (!$flashcard) {
-            throw new \RuntimeException('Flashcard não encontrado', 404);
-        }
-
         return $this->flashcardRepository->delete($id);
     }
 }

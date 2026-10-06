@@ -25,7 +25,6 @@
     <exclude-pattern>src/Contracts/*</exclude-pattern>
     <exclude-pattern>src/Exceptions/*</exclude-pattern>
     <exclude-pattern>src/Controller/AdminController.php</exclude-pattern>
-    <exclude-pattern>src/Controller/ApiController.php</exclude-pattern>
     <exclude-pattern>src/Controller/UploadController.php</exclude-pattern>
     <exclude-pattern>src/Middleware/JwtAuthMiddleware.php</exclude-pattern>
     <exclude-pattern>src/Middleware/RateLimitMiddleware.php</exclude-pattern>

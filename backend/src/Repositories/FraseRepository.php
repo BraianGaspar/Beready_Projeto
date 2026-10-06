@@ -27,7 +27,7 @@ class FraseRepository implements FraseRepositoryInterface
 
     public function findById(int $id): ?array
     {
-        $frase = $this->table->get($id);
+        $frase = $this->table->find()->where(['id' => $id])->first();
         return $frase ? $frase->toArray() : null;
     }
 

@@ -7,9 +7,13 @@ namespace App\Services;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Cake\Core\Configure;
+use Psr\Http\Message\ServerRequestInterface;
 
 class JwtService
 {
+    public const TYPE_ACCESS = 'access';
+    public const TYPE_REFRESH = 'refresh';
+
     private string $secret;
     private string $algorithm;
     private int $expires;
@@ -23,7 +27,28 @@ class JwtService
         $this->refreshExpires = Configure::read('Jwt.refresh_expires');
     }
 
+    /**
+     * Gera o par access + refresh. O refresh token deve ir só para o cookie httpOnly.
+     */
     public function generateTokens(array $user): array
+    {
+        $issuedAt = time();
+
+        $refreshToken = JWT::encode(
+            [
+                'sub' => $user['id'],
+                'iat' => $issuedAt,
+                'exp' => $issuedAt + $this->refreshExpires,
+                'type' => self::TYPE_REFRESH,
+            ],
+            $this->secret,
+            $this->algorithm
+        );
+
+        return $this->generateAccessToken($user) + ['refresh_token' => $refreshToken];
+    }
+
+    public function generateAccessToken(array $user): array
     {
         $issuedAt = time();
 
@@ -35,18 +60,7 @@ class JwtService
                 'role' => $user['role'] ?? 'user',
                 'iat' => $issuedAt,
                 'exp' => $issuedAt + $this->expires,
-                'type' => 'access'
-             ],
-            $this->secret,
-            $this->algorithm
-        );
-
-        $refreshToken = JWT::encode(
-            [
-                'sub' => $user['id'],
-                'iat' => $issuedAt,
-                'exp' => $issuedAt + $this->refreshExpires,
-                'type' => 'refresh'
+                'type' => self::TYPE_ACCESS,
             ],
             $this->secret,
             $this->algorithm
@@ -54,78 +68,40 @@ class JwtService
 
         return [
             'access_token' => $accessToken,
-            'refresh_token' => $refreshToken,
             'expires_in' => $this->expires,
-            'token_type' => 'Bearer'
+            'token_type' => 'Bearer',
         ];
     }
 
-    public function validateToken(string $token): ?array
+    /**
+     * Retorna o payload se a assinatura, a validade e o tipo (access/refresh) conferirem.
+     */
+    public function validateToken(string $token, string $expectedType): ?array
     {
         try {
-            $decoded = JWT::decode($token, new Key($this->secret, $this->algorithm));
-            return (array) $decoded;
+            $payload = (array)JWT::decode($token, new Key($this->secret, $this->algorithm));
         } catch (\Exception $e) {
-            error_log("JWT Validation Error: " . $e->getMessage());
             return null;
         }
+
+        if (($payload['type'] ?? null) !== $expectedType || empty($payload['sub'])) {
+            return null;
+        }
+
+        return $payload;
     }
 
-    public function refreshAccessToken(string $refreshToken): ?array
+    public function getRefreshExpires(): int
     {
-        $payload = $this->validateToken($refreshToken);
-
-        if (!$payload || $payload['type'] !== 'refresh') {
-            return null;
-        }
-
-        $userService = new \App\Services\UserService(new \App\Repositories\UserRepository());
-        try {
-            $user = $userService->getUserById($payload['sub']);
-
-            $issuedAt = time();
-            $newAccessToken = JWT::encode(
-                [
-                    'sub' => $user['id'],
-                    'email' => $user['email'],
-                    'nome' => $user['nome'],
-                    'role' => $user['role'] ?? 'user',
-                    'iat' => $issuedAt,
-                    'exp' => $issuedAt + $this->expires,
-                    'type' => 'access'
-                ],
-                $this->secret,
-                $this->algorithm
-            );
-
-            return [
-                'access_token' => $newAccessToken,
-                'expires_in' => $this->expires,
-                'token_type' => 'Bearer'
-            ];
-        } catch (\Exception $e) {
-            error_log("Refresh token error: " . $e->getMessage());
-            return null;
-        }
+        return $this->refreshExpires;
     }
 
-    public function getTokenFromRequest($request): ?string
+    public function getTokenFromRequest(ServerRequestInterface $request): ?string
     {
-        $authHeader = $request->getHeaderLine('Authorization');
-        error_log("JWT Service: Authorization header: " . ($authHeader ?: 'VAZIO'));
-
-        if (preg_match('/Bearer\s+(.+)/', $authHeader, $matches)) {
-            error_log("JWT Service: Token encontrado via Bearer");
+        if (preg_match('/^Bearer\s+(\S+)$/', $request->getHeaderLine('Authorization'), $matches)) {
             return $matches[1];
         }
 
-        $token = $request->getQuery('token');
-        if ($token) {
-            error_log("JWT Service: Token encontrado via query param");
-            return $token;
-        }
-
-        error_log("JWT Service: Token NÃO encontrado");
         return null;
     }
 }

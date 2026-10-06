@@ -4,34 +4,41 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Cake\ORM\TableRegistry;
+use App\Controller\Traits\PromptOwnershipTrait;
+use App\Controller\Traits\ResourceErrorTrait;
+use App\Repositories\ImagemRepository;
+use App\Services\ImagemService;
 
 class ImagensGeradasController extends AppController
 {
-    private $table;
+    use PromptOwnershipTrait;
+    use ResourceErrorTrait;
+
+    private ImagemService $service;
 
     public function initialize(): void
     {
         parent::initialize();
-        $this->table = TableRegistry::getTableLocator()->get('ImagensGeradas');
+        $this->service = new ImagemService(new ImagemRepository());
     }
 
     // GET /imagens/prompt/{promptId}
     public function getByPrompt($promptId = null)
     {
+        $promptId = $promptId ?? $this->request->getParam('promptId');
+
         if (!$promptId) {
             return $this->jsonError('ID do prompt não informado', 400);
         }
 
         try {
-            $imagens = $this->table->find()
-                ->where(['prompt_id' => $promptId])
-                ->orderBy(['criado_em' => 'DESC'])
-                ->all();
+            if (!$this->canAccessPrompt((int)$promptId)) {
+                return $this->jsonError('Prompt não encontrado', 404);
+            }
 
-            return $this->jsonSuccess($imagens->toArray());
+            return $this->jsonSuccess($this->service->getImagensByPrompt((int)$promptId));
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar imagens');
         }
     }
 
@@ -45,37 +52,26 @@ class ImagensGeradasController extends AppController
         }
 
         try {
-            $imagem = $this->table->get($imagemId);
-            return $this->jsonSuccess($imagem);
+            return $this->jsonSuccess($this->findOwnedImagem((int)$imagemId));
         } catch (\Exception $e) {
-            return $this->jsonError('Imagem não encontrada', 404);
+            return $this->errorResponse($e);
         }
     }
 
     // POST /imagens
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        if (empty($data['prompt_id'])) {
-            return $this->jsonError('ID do prompt é obrigatório', 400);
-        }
-
-        if (empty($data['url_imagem'])) {
-            return $this->jsonError('URL da imagem é obrigatória', 400);
-        }
+        $data = $this->getRequestData();
 
         try {
-            $imagem = $this->table->newEntity($data);
-
-            if ($this->table->save($imagem)) {
-                return $this->jsonSuccess($imagem, 'Imagem criada com sucesso', 201);
+            if (!empty($data['prompt_id']) && !$this->canAccessPrompt((int)$data['prompt_id'])) {
+                return $this->jsonError('Prompt não encontrado', 404);
             }
 
-            return $this->jsonError('Erro ao criar imagem', 422, $imagem->getErrors());
+            $imagem = $this->service->createImagem($data);
+            return $this->jsonSuccess($imagem, 'Imagem criada com sucesso', 201);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao criar imagem');
         }
     }
 
@@ -88,20 +84,18 @@ class ImagensGeradasController extends AppController
             return $this->jsonError('ID da imagem não informado', 400);
         }
 
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
+        $data = $this->getRequestData();
 
         try {
-            $imagem = $this->table->get($imagemId);
-            $imagem = $this->table->patchEntity($imagem, $data);
-
-            if ($this->table->save($imagem)) {
-                return $this->jsonSuccess($imagem, 'Imagem atualizada com sucesso');
+            $atual = $this->findOwnedImagem((int)$imagemId);
+            if (!$this->canMoveToPrompt($atual, $data)) {
+                return $this->jsonError('Prompt não encontrado', 404);
             }
 
-            return $this->jsonError('Erro ao atualizar imagem', 422, $imagem->getErrors());
+            $imagem = $this->service->updateImagem((int)$imagemId, $data);
+            return $this->jsonSuccess($imagem, 'Imagem atualizada com sucesso');
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao atualizar imagem');
         }
     }
 
@@ -115,15 +109,21 @@ class ImagensGeradasController extends AppController
         }
 
         try {
-            $imagem = $this->table->get($imagemId);
-
-            if ($this->table->delete($imagem)) {
-                return $this->jsonSuccess(null, 'Imagem excluída com sucesso');
-            }
-
-            return $this->jsonError('Erro ao excluir imagem', 500);
+            $this->findOwnedImagem((int)$imagemId);
+            $this->service->deleteImagem((int)$imagemId);
+            return $this->jsonSuccess(null, 'Imagem excluída com sucesso');
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao excluir imagem');
         }
+    }
+
+    private function findOwnedImagem(int $id): array
+    {
+        $imagem = $this->service->getImagemById($id);
+        if (!$this->canAccessPrompt((int)$imagem['prompt_id'])) {
+            throw new \RuntimeException('Imagem não encontrada', 404);
+        }
+
+        return $imagem;
     }
 }

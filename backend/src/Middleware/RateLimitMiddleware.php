@@ -4,131 +4,80 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use Cake\Cache\Cache;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Cake\Http\Response;
 
+/**
+ * Limite por IP em janela fixa. Rotas de autenticação têm um limite próprio, bem mais baixo.
+ * Usa o REMOTE_ADDR (não confia em X-Forwarded-For) e o cache "rate_limit".
+ */
 class RateLimitMiddleware implements MiddlewareInterface
 {
-    private int $maxRequests = 100;
-    private int $timeWindow = 60;
-    private string $cachePath;
+    use JsonErrorResponseTrait;
 
-    public function __construct(int $maxRequests = 100, int $timeWindow = 60)
-    {
-        $this->maxRequests = $maxRequests;
-        $this->timeWindow = $timeWindow;
-        $this->cachePath = TMP . 'rate_limit' . DS;
+    private const CACHE_CONFIG = 'rate_limit';
 
-        if (!is_dir($this->cachePath)) {
-            mkdir($this->cachePath, 0755, true);
-        }
+    private const AUTH_PATHS = [
+        '/auth/login',
+        '/auth/register',
+        '/auth/forgot-password',
+        '/auth/refresh',
+        '/auth/social/exchange',
+    ];
+
+    private const EXCLUDED_PATHS = ['/', '/favicon.ico'];
+
+    public function __construct(
+        private int $maxRequests,
+        private int $maxAuthRequests,
+        private int $timeWindow
+    ) {
     }
 
-    // ServerRequestInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // Rotas que não devem ter rate limit
-        $excludedPaths = ['/health', '/', '/favicon.ico'];
-        $currentPath = $request->getUri()->getPath();
+        $path = $request->getUri()->getPath();
 
-        if (in_array($currentPath, $excludedPaths)) {
+        if ($request->getMethod() === 'OPTIONS' || in_array($path, self::EXCLUDED_PATHS, true)) {
             return $handler->handle($request);
         }
 
-        $clientId = $this->getClientIdentifier($request);
-        $rateLimitData = $this->getRateLimitData($clientId);
+        $isAuth = in_array($path, self::AUTH_PATHS, true);
+        $limit = $isAuth ? $this->maxAuthRequests : $this->maxRequests;
 
-        if ($rateLimitData['count'] >= $this->maxRequests) {
-            $retryAfter = $rateLimitData['reset_time'] - time();
-            return $this->createRateLimitResponse($retryAfter);
+        $window = intdiv(time(), $this->timeWindow);
+        $resetTime = ($window + 1) * $this->timeWindow;
+        $key = sprintf('%s_%s_%d', $isAuth ? 'auth' : 'api', md5($this->clientIp($request)), $window);
+
+        $count = (int)Cache::read($key, self::CACHE_CONFIG);
+
+        if ($count >= $limit) {
+            $retryAfter = max(1, $resetTime - time());
+
+            return $this->jsonErrorResponse(
+                429,
+                'Muitas requisições. Por favor, aguarde ' . $retryAfter . ' segundos.',
+                ['retry_after' => $retryAfter]
+            )
+                ->withHeader('Retry-After', (string)$retryAfter)
+                ->withHeader('X-RateLimit-Limit', (string)$limit)
+                ->withHeader('X-RateLimit-Remaining', '0');
         }
 
-        $this->incrementRateLimit($clientId, $rateLimitData);
-        $response = $handler->handle($request);
+        $count++;
+        Cache::write($key, $count, self::CACHE_CONFIG);
 
-        return $this->addRateLimitHeaders($response, $rateLimitData);
-    }
-
-    private function getClientIdentifier(ServerRequestInterface $request): string
-    {
-        $serverParams = $request->getServerParams();
-
-        $ip = $serverParams['HTTP_X_FORWARDED_FOR'] ??
-              $serverParams['HTTP_CLIENT_IP'] ??
-              $serverParams['REMOTE_ADDR'] ??
-              'unknown';
-
-        if (strpos($ip, ',') !== false) {
-            $ip = explode(',', $ip)[0];
-        }
-
-        $path = $request->getUri()->getPath();
-        $method = $request->getMethod();
-
-        $isSensitive = preg_match('/\/(login|register|forgot-password|reset-password)/', $path);
-
-        if ($isSensitive) {
-            return md5($ip . $path . $method . '_sensitive');
-        }
-
-        return md5($ip . $path . $method);
-    }
-
-    private function getRateLimitData(string $clientId): array
-    {
-        $cacheFile = $this->cachePath . $clientId . '.json';
-        $now = time();
-
-        if (file_exists($cacheFile)) {
-            $data = json_decode(file_get_contents($cacheFile), true);
-            if ($data['reset_time'] > $now) {
-                return $data;
-            }
-        }
-
-        return [
-            'count' => 0,
-            'reset_time' => $now + $this->timeWindow,
-            'limit' => $this->maxRequests
-        ];
-    }
-
-    private function incrementRateLimit(string $clientId, array &$data): void
-    {
-        $data['count']++;
-        $cacheFile = $this->cachePath . $clientId . '.json';
-        file_put_contents($cacheFile, json_encode($data));
-    }
-
-    private function addRateLimitHeaders(ResponseInterface $response, array $data): ResponseInterface
-    {
-        $remaining = max(0, $this->maxRequests - $data['count']);
-        $resetTime = $data['reset_time'];
-
-        return $response
-            ->withHeader('X-RateLimit-Limit', (string)$this->maxRequests)
-            ->withHeader('X-RateLimit-Remaining', (string)$remaining)
+        return $handler->handle($request)
+            ->withHeader('X-RateLimit-Limit', (string)$limit)
+            ->withHeader('X-RateLimit-Remaining', (string)max(0, $limit - $count))
             ->withHeader('X-RateLimit-Reset', (string)$resetTime);
     }
 
-    private function createRateLimitResponse(int $retryAfter): ResponseInterface
+    private function clientIp(ServerRequestInterface $request): string
     {
-        $response = new Response([
-            'status' => 429,
-            'type' => 'application/json',
-            'body' => json_encode([
-                'success' => false,
-                'message' => 'Muitas requisições. Por favor, aguarde ' . $retryAfter . ' segundos.',
-                'retry_after' => $retryAfter
-            ])
-        ]);
-
-        return $response
-            ->withHeader('Retry-After', (string)$retryAfter)
-            ->withHeader('X-RateLimit-Limit', (string)$this->maxRequests)
-            ->withHeader('X-RateLimit-Remaining', '0');
+        return (string)($request->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
     }
 }

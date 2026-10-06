@@ -36,6 +36,8 @@ class PreferenciaService
 
     public function save(int $usuarioId, array $data): array
     {
-        return $this->repository->createOrUpdate($usuarioId, $data);
+        $allowedFields = ['tema', 'modo_daltonico', 'notificacoes_ativas', 'som_ativo', 'traducao_automatica', 'preferencia_dificuldade', 'meta_diaria_minutos'];
+
+        return $this->repository->createOrUpdate($usuarioId, array_intersect_key($data, array_flip($allowedFields)));
     }
 }

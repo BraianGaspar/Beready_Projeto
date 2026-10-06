@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Contracts\FraseRepositoryInterface;
 
+/**
+ * O dono de uma frase é o dono do prompt: a verificação fica no controller.
+ */
 class FraseService
 {
     private FraseRepositoryInterface $repository;
@@ -39,30 +42,16 @@ class FraseService
             throw new \InvalidArgumentException('Frase semelhante é obrigatória');
         }
 
-        $data['tipo_frase'] = $data['tipo_frase'] ?? 'relacionada';
-        $data['nivel_dificuldade'] = $data['nivel_dificuldade'] ?? 'iniciante';
-        $data['pontuacao_semelhante'] = $data['pontuacao_semelhante'] ?? 0;
-
         return $this->repository->create($data);
     }
 
     public function updateFrase(int $id, array $data): array
     {
-        $frase = $this->repository->findById($id);
-        if (!$frase) {
-            throw new \RuntimeException('Frase não encontrada', 404);
-        }
-
         return $this->repository->update($id, $data);
     }
 
     public function deleteFrase(int $id): bool
     {
-        $frase = $this->repository->findById($id);
-        if (!$frase) {
-            throw new \RuntimeException('Frase não encontrada', 404);
-        }
-
         return $this->repository->delete($id);
     }
 }

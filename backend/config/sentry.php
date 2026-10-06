@@ -7,13 +7,11 @@ $dsn = env('SENTRY_DSN');
 if (!empty($dsn)) {
     \Sentry\init([
         'dsn' => $dsn,
-        'environment' => env('APP_ENV', 'development'),
+        'environment' => env('APP_ENV'),
         'traces_sample_rate' => 1.0,
         'send_default_pii' => false,
         'release' => '1.0.0',
-        'http_ssl_verify_peer' => false,
-        'before_send' => function ($event) {
-            return $event;
-        },
+        // Usa o repositório de certificados do sistema (TLS continua verificado)
+        'http_ssl_native_ca' => true,
     ]);
 }

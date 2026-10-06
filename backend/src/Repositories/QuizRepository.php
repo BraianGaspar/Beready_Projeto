@@ -16,23 +16,21 @@ class QuizRepository implements QuizRepositoryInterface
         $this->quizesTable = TableRegistry::getTableLocator()->get('Quizes');
     }
 
-    public function findAll(): array
+    public function findByUsuarioId(int $usuarioId): array
     {
         $quizes = $this->quizesTable->find()
             ->select(['id', 'usuario_id', 'titulo', 'descricao', 'tipo_criacao', 'nivel_dificuldade', 'total_questoes', 'tempo_limite', 'publico', 'criado_em', 'atualizado_em'])
+            ->where(['usuario_id' => $usuarioId])
             ->orderBy(['criado_em' => 'DESC'])
             ->all();
 
-        $result = [];
-        foreach ($quizes as $quiz) {
-            $result[] = $quiz->toArray();
-        }
-        return $result;
+        return array_map(fn($q) => $q->toArray(), $quizes->toArray());
     }
 
     public function findById(int $id): ?array
     {
-        $quiz = $this->quizesTable->get($id);
+        $quiz = $this->quizesTable->find()->where(['id' => $id])->first();
+
         return $quiz ? $quiz->toArray() : null;
     }
 

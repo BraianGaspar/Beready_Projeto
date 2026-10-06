@@ -4,34 +4,41 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Cake\ORM\TableRegistry;
+use App\Controller\Traits\PromptOwnershipTrait;
+use App\Controller\Traits\ResourceErrorTrait;
+use App\Repositories\FraseRepository;
+use App\Services\FraseService;
 
 class FrasesSemelhantesController extends AppController
 {
-    private $table;
+    use PromptOwnershipTrait;
+    use ResourceErrorTrait;
+
+    private FraseService $service;
 
     public function initialize(): void
     {
         parent::initialize();
-        $this->table = TableRegistry::getTableLocator()->get('FrasesSemelhantes');
+        $this->service = new FraseService(new FraseRepository());
     }
 
     // GET /frases/prompt/{promptId}
     public function getByPrompt($promptId = null)
     {
+        $promptId = $promptId ?? $this->request->getParam('promptId');
+
         if (!$promptId) {
             return $this->jsonError('ID do prompt não informado', 400);
         }
 
         try {
-            $frases = $this->table->find()
-                ->where(['prompt_id' => $promptId])
-                ->orderBy(['pontuacao_semelhante' => 'DESC'])
-                ->all();
+            if (!$this->canAccessPrompt((int)$promptId)) {
+                return $this->jsonError('Prompt não encontrado', 404);
+            }
 
-            return $this->jsonSuccess($frases->toArray());
+            return $this->jsonSuccess($this->service->getFrasesByPrompt((int)$promptId));
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar frases');
         }
     }
 
@@ -45,37 +52,26 @@ class FrasesSemelhantesController extends AppController
         }
 
         try {
-            $frase = $this->table->get($fraseId);
-            return $this->jsonSuccess($frase);
+            return $this->jsonSuccess($this->findOwnedFrase((int)$fraseId));
         } catch (\Exception $e) {
-            return $this->jsonError('Frase não encontrada', 404);
+            return $this->errorResponse($e);
         }
     }
 
     // POST /frases
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        if (empty($data['prompt_id'])) {
-            return $this->jsonError('ID do prompt é obrigatório', 400);
-        }
-
-        if (empty($data['frase_semelhante'])) {
-            return $this->jsonError('Frase semelhante é obrigatória', 400);
-        }
+        $data = $this->getRequestData();
 
         try {
-            $frase = $this->table->newEntity($data);
-
-            if ($this->table->save($frase)) {
-                return $this->jsonSuccess($frase, 'Frase criada com sucesso', 201);
+            if (!empty($data['prompt_id']) && !$this->canAccessPrompt((int)$data['prompt_id'])) {
+                return $this->jsonError('Prompt não encontrado', 404);
             }
 
-            return $this->jsonError('Erro ao criar frase', 422, $frase->getErrors());
+            $frase = $this->service->createFrase($data);
+            return $this->jsonSuccess($frase, 'Frase criada com sucesso', 201);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao criar frase');
         }
     }
 
@@ -88,20 +84,18 @@ class FrasesSemelhantesController extends AppController
             return $this->jsonError('ID da frase não informado', 400);
         }
 
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
+        $data = $this->getRequestData();
 
         try {
-            $frase = $this->table->get($fraseId);
-            $frase = $this->table->patchEntity($frase, $data);
-
-            if ($this->table->save($frase)) {
-                return $this->jsonSuccess($frase, 'Frase atualizada com sucesso');
+            $atual = $this->findOwnedFrase((int)$fraseId);
+            if (!$this->canMoveToPrompt($atual, $data)) {
+                return $this->jsonError('Prompt não encontrado', 404);
             }
 
-            return $this->jsonError('Erro ao atualizar frase', 422, $frase->getErrors());
+            $frase = $this->service->updateFrase((int)$fraseId, $data);
+            return $this->jsonSuccess($frase, 'Frase atualizada com sucesso');
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao atualizar frase');
         }
     }
 
@@ -115,15 +109,21 @@ class FrasesSemelhantesController extends AppController
         }
 
         try {
-            $frase = $this->table->get($fraseId);
-
-            if ($this->table->delete($frase)) {
-                return $this->jsonSuccess(null, 'Frase excluída com sucesso');
-            }
-
-            return $this->jsonError('Erro ao excluir frase', 500);
+            $this->findOwnedFrase((int)$fraseId);
+            $this->service->deleteFrase((int)$fraseId);
+            return $this->jsonSuccess(null, 'Frase excluída com sucesso');
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao excluir frase');
         }
+    }
+
+    private function findOwnedFrase(int $id): array
+    {
+        $frase = $this->service->getFraseById($id);
+        if (!$this->canAccessPrompt((int)$frase['prompt_id'])) {
+            throw new \RuntimeException('Frase não encontrada', 404);
+        }
+
+        return $frase;
     }
 }

@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Contracts\ImagemRepositoryInterface;
 
+/**
+ * O dono de uma imagem é o dono do prompt: a verificação fica no controller.
+ */
 class ImagemService
 {
     private ImagemRepositoryInterface $repository;
@@ -39,29 +42,16 @@ class ImagemService
             throw new \InvalidArgumentException('URL da imagem é obrigatória');
         }
 
-        $data['qualidade_imagem'] = $data['qualidade_imagem'] ?? 'media';
-        $data['servico_geracao'] = $data['servico_geracao'] ?? 'dalle';
-
         return $this->repository->create($data);
     }
 
     public function updateImagem(int $id, array $data): array
     {
-        $imagem = $this->repository->findById($id);
-        if (!$imagem) {
-            throw new \RuntimeException('Imagem não encontrada', 404);
-        }
-
         return $this->repository->update($id, $data);
     }
 
     public function deleteImagem(int $id): bool
     {
-        $imagem = $this->repository->findById($id);
-        if (!$imagem) {
-            throw new \RuntimeException('Imagem não encontrada', 404);
-        }
-
         return $this->repository->delete($id);
     }
 }

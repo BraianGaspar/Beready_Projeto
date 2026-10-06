@@ -16,15 +16,9 @@ class PromptRepository implements PromptRepositoryInterface
         $this->table = TableRegistry::getTableLocator()->get('Prompts');
     }
 
-    public function findAll(): array
-    {
-        $prompts = $this->table->find()->orderBy(['criado_em' => 'DESC'])->all();
-        return array_map(fn($p) => $p->toArray(), $prompts->toArray());
-    }
-
     public function findById(int $id): ?array
     {
-        $prompt = $this->table->get($id);
+        $prompt = $this->table->find()->where(['id' => $id])->first();
         return $prompt ? $prompt->toArray() : null;
     }
 

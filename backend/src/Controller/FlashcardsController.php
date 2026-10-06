@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\Traits\ResourceErrorTrait;
 use App\Services\FlashcardService;
 use App\Repositories\FlashcardRepository;
 
 class FlashcardsController extends AppController
 {
+    use ResourceErrorTrait;
+
     private FlashcardService $flashcardService;
 
     public function initialize(): void
@@ -21,10 +24,10 @@ class FlashcardsController extends AppController
     public function index()
     {
         try {
-            $flashcards = $this->flashcardService->getAllFlashcards();
+            $flashcards = $this->flashcardService->getFlashcardsByUsuario($this->currentUserId());
             return $this->jsonSuccess($flashcards);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro ao carregar flashcards: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao carregar flashcards');
         }
     }
 
@@ -33,38 +36,45 @@ class FlashcardsController extends AppController
     {
         $flashcardId = $id ?? $this->request->getParam('id') ?? $this->request->getQuery('id');
 
-        error_log("=== VIEW FLASHCARD ===");
-        error_log("ID recebido: " . $flashcardId);
-
         if (!$flashcardId) {
             return $this->jsonError('ID do flashcard não informado', 400);
         }
 
         try {
-            $flashcard = $this->flashcardService->getFlashcardById((int)$flashcardId);
-            return $this->jsonSuccess($flashcard);
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
+            return $this->jsonSuccess($this->findOwnedFlashcard((int)$flashcardId));
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e);
+        }
+    }
+
+    // GET /flashcards/{uuid}
+    public function viewByUuid($uuid = null)
+    {
+        $flashcardUuid = $uuid ?? $this->request->getParam('uuid');
+
+        if (!$flashcardUuid) {
+            return $this->jsonError('UUID do flashcard não informado', 400);
+        }
+
+        try {
+            $flashcard = $this->flashcardService->getFlashcardByUuid((string)$flashcardUuid);
+            if (!$this->canAccessUser((int)$flashcard['usuario_id'])) {
+                return $this->jsonError('Flashcard não encontrado', 404);
+            }
+            return $this->jsonSuccess($flashcard);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e);
         }
     }
 
     // POST /flashcards
     public function add()
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
         try {
-            $flashcard = $this->flashcardService->createFlashcard($data);
+            $flashcard = $this->flashcardService->createFlashcard($this->currentUserId(), $this->getRequestData());
             return $this->jsonSuccess($flashcard, 'Flashcard criado com sucesso', 201);
-        } catch (\InvalidArgumentException $e) {
-            return $this->jsonError($e->getMessage(), 400);
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao criar flashcard');
         }
     }
 
@@ -73,26 +83,16 @@ class FlashcardsController extends AppController
     {
         $flashcardId = $id ?? $this->request->getParam('id') ?? $this->request->getData('id');
 
-        error_log("=== EDIT FLASHCARD ===");
-        error_log("ID recebido: " . $flashcardId);
-
         if (!$flashcardId) {
             return $this->jsonError('ID do flashcard não informado', 400);
         }
 
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true) ?: $this->request->getData();
-
-        error_log("Dados recebidos: " . print_r($data, true));
-
         try {
-            $flashcard = $this->flashcardService->updateFlashcard((int)$flashcardId, $data);
+            $this->findOwnedFlashcard((int)$flashcardId);
+            $flashcard = $this->flashcardService->updateFlashcard((int)$flashcardId, $this->getRequestData());
             return $this->jsonSuccess($flashcard, 'Flashcard atualizado com sucesso');
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            error_log("ERRO: " . $e->getMessage());
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao atualizar flashcard');
         }
     }
 
@@ -101,21 +101,29 @@ class FlashcardsController extends AppController
     {
         $flashcardId = $id ?? $this->request->getParam('id') ?? $this->request->getData('id');
 
-        error_log("=== DELETE FLASHCARD ===");
-        error_log("ID recebido: " . $flashcardId);
-
         if (!$flashcardId) {
             return $this->jsonError('ID do flashcard não informado', 400);
         }
 
         try {
+            $this->findOwnedFlashcard((int)$flashcardId);
             $this->flashcardService->deleteFlashcard((int)$flashcardId);
             return $this->jsonSuccess(null, 'Flashcard excluído com sucesso');
-        } catch (\RuntimeException $e) {
-            return $this->jsonError($e->getMessage(), $e->getCode() ?: 404);
         } catch (\Exception $e) {
-            error_log("ERRO: " . $e->getMessage());
-            return $this->jsonError('Erro interno: ' . $e->getMessage(), 500);
+            return $this->errorResponse($e, 'Erro ao excluir flashcard');
         }
+    }
+
+    /**
+     * Flashcard de outro usuário responde 404, como se não existisse (admin acessa todos).
+     */
+    private function findOwnedFlashcard(int $id): array
+    {
+        $flashcard = $this->flashcardService->getFlashcardById($id);
+        if (!$this->canAccessUser((int)$flashcard['usuario_id'])) {
+            throw new \RuntimeException('Flashcard não encontrado', 404);
+        }
+
+        return $flashcard;
     }
 }
