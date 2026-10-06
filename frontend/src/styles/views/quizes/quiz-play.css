@@ -1,0 +1,80 @@
+/* QuizPlay — pergunta, resposta revelada e autoavaliação. Só tokens. */
+
+/* ---------- Progresso ---------- */
+.quiz-play__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+
+.quiz-play__progress-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Card ---------- */
+.quiz-play__question,
+.quiz-play__answer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.quiz-play__question-text {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.quiz-play__answer {
+  margin-block-start: var(--space-6);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border-inline-start: var(--space-1) solid var(--color-info);
+  background: var(--color-surface-muted);
+}
+
+.quiz-play__answer-text {
+  color: var(--color-text);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.quiz-play__answer-text--empty {
+  color: var(--color-text-muted);
+}
+
+.quiz-play__instructions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-6);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Autoavaliação ---------- */
+.quiz-play__answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* Variantes danger/success do BaseButton (ícone + texto, não só cor). Aqui só layout:
+   o seletor composto vence as regras base do BaseButton sem forçar prioridade. */
+.quiz-play__answers .quiz-play__choice {
+  padding-inline: var(--space-3);
+  white-space: normal;
+}
+
+@media (min-width: 768px) {
+  .quiz-play__question-text {
+    font-size: var(--font-size-2xl);
+  }
+}

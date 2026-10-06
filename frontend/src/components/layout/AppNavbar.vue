@@ -1,184 +1,132 @@
 <template>
-  <nav class="dashboard-nav">
-    <div class="nav-container">
-      <!-- Logo -->
-      <div class="nav-brand">
-        <img src="/logo.png" alt="Beready Logo" class="logo-icon-img" />
-      </div>
+  <header class="app-nav">
+    <div class="app-nav__bar">
+      <router-link to="/dashboard" class="app-nav__brand">
+        <img src="/logo.png" alt="BeReady" class="app-nav__logo" />
+      </router-link>
 
-      <!-- Desktop Menu com Scroll -->
-      <div class="nav-menu-wrapper" ref="menuWrapper">
-        <!-- Seta Esquerda -->
-        <button 
-          v-show="showLeftArrow" 
-          class="nav-scroll-indicator left" 
-          @click="scrollMenu('left')"
-          aria-label="Rolar menu para esquerda"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        <div class="nav-menu" ref="navMenu">
-          <router-link
-            v-for="item in menuItems"
-            :key="item.path"
-            :to="item.path"
-            class="nav-link"
-            active-class="active"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+      <!-- Menu inline (>= 1280px) -->
+      <nav class="app-nav__desktop" :aria-label="$t('ui.mainNavigation')">
+        <ul class="app-nav__list">
+          <li v-for="item in menuItems" :key="item.path">
+            <router-link
+              :to="item.path"
+              class="app-nav__link"
+              :class="{ 'app-nav__link--active': isActive(item.path) }"
+              :aria-current="isActive(item.path) ? 'page' : undefined"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                :d="item.iconPath"
-              />
-            </svg>
-            {{ $t(item.name) }}
-          </router-link>
-        </div>
+              <BaseIcon :name="item.icon" class="app-nav__link-icon" />
+              <span>{{ $t(item.name) }}</span>
+            </router-link>
+          </li>
+        </ul>
+      </nav>
 
-        <!-- Seta Direita -->
-        <button 
-          v-show="showRightArrow" 
-          class="nav-scroll-indicator right" 
-          @click="scrollMenu('right')"
-          aria-label="Rolar menu para direita"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
+      <div class="app-nav__user">
+        <span class="app-nav__avatar" aria-hidden="true">
+          <img v-if="user?.foto_perfil" :src="user.foto_perfil" alt="" class="app-nav__avatar-img" />
+          <span v-else>{{ userInitial }}</span>
+        </span>
+        <span class="app-nav__user-text">
+          <span class="app-nav__user-name u-truncate">{{ userName }}</span>
+          <span class="app-nav__user-email u-truncate">{{ userEmail }}</span>
+        </span>
 
-      <!-- User + Hamburger -->
-      <div class="nav-user">
-        <div class="user-info">
-          <div class="user-avatar">
-            <img
-              v-if="userData?.foto_perfil"
-              :src="userData.foto_perfil"
-              alt="Foto de perfil"
-              class="avatar-image"
-            />
-            <span v-else>{{ userInitial }}</span>
-          </div>
-          <div class="user-details">
-            <span class="user-name">{{ userName }}</span>
-            <span class="user-email">{{ userEmail }}</span>
-          </div>
-        </div>
-
-        <button class="logout-btn" @click="handleLogout">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
+        <button type="button" class="app-nav__logout" @click="handleLogout">
+          <BaseIcon name="logout" />
           <span>{{ $t('common.sair') }}</span>
         </button>
 
+        <!-- Abre o drawer (< 1280px) -->
         <button
-          class="hamburger-btn"
+          type="button"
+          class="app-nav__toggle"
+          :aria-expanded="isMenuOpen"
+          aria-controls="app-nav-drawer"
+          :aria-label="isMenuOpen ? $t('ui.closeMenu') : $t('ui.openMenu')"
           @click="toggleMenu"
-          :class="{ active: isMenuOpen }"
-          aria-label="Alternar menu"
         >
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
+          <BaseIcon :name="isMenuOpen ? 'x-mark' : 'menu'" />
         </button>
       </div>
     </div>
 
-    <!-- Mobile Menu - SEM o botão de logout duplicado -->
-    <div v-show="isMenuOpen" class="mobile-menu-overlay" @click.self="closeMenu">
-      <div class="mobile-menu-items">
-        <router-link
-          v-for="item in menuItems"
-          :key="item.path"
-          :to="item.path"
-          class="mobile-nav-link"
-          @click="closeMenu"
+    <!-- Drawer (menu mobile/tablet) -->
+    <Transition name="app-nav-drawer">
+      <div v-if="isMenuOpen" class="app-nav__overlay" @click.self="closeMenu">
+        <div
+          id="app-nav-drawer"
+          ref="drawerRef"
+          class="app-nav__drawer"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="$t('ui.mainNavigation')"
+          tabindex="-1"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              :d="item.iconPath"
-            />
-          </svg>
-          {{ $t(item.name) }}
-        </router-link>
+          <div class="app-nav__drawer-head">
+            <span class="app-nav__avatar" aria-hidden="true">
+              <img v-if="user?.foto_perfil" :src="user.foto_perfil" alt="" class="app-nav__avatar-img" />
+              <span v-else>{{ userInitial }}</span>
+            </span>
+            <span class="app-nav__drawer-user">
+              <span class="app-nav__user-name u-truncate">{{ userName }}</span>
+              <span class="app-nav__user-email u-truncate">{{ userEmail }}</span>
+            </span>
+            <button
+              type="button"
+              class="app-nav__toggle app-nav__drawer-close"
+              :aria-label="$t('ui.closeMenu')"
+              @click="closeMenu"
+            >
+              <BaseIcon name="x-mark" />
+            </button>
+          </div>
 
+          <nav :aria-label="$t('ui.mainNavigation')" class="app-nav__drawer-nav">
+            <ul class="app-nav__drawer-list">
+              <li v-for="item in menuItems" :key="item.path">
+                <router-link
+                  :to="item.path"
+                  class="app-nav__drawer-link"
+                  :class="{ 'app-nav__drawer-link--active': isActive(item.path) }"
+                  :aria-current="isActive(item.path) ? 'page' : undefined"
+                >
+                  <BaseIcon :name="item.icon" class="app-nav__drawer-icon" />
+                  <span>{{ $t(item.name) }}</span>
+                </router-link>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="app-nav__drawer-foot">
+            <BaseButton variant="secondary" icon="logout" block @click="handleLogout">
+              {{ $t('common.sair') }}
+            </BaseButton>
+          </div>
+        </div>
       </div>
-    </div>
-  </nav>
+    </Transition>
+  </header>
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { BaseButton, BaseIcon } from '@/shared/components/ui'
 import { useNavbarLogic } from './Navbar'
-import type { User } from '@/core/types/User'
 
-const props = defineProps<{
-  user: User | null
-  loading?: boolean
-}>()
-
-const emit = defineEmits<{
-  (e: 'logout'): void
-}>()
-
+// Usuário e logout vêm do store de auth (ver Navbar.ts)
 const {
-  user: userData,
+  user,
   userName,
   userEmail,
   userInitial,
   menuItems,
+  isActive,
   isMenuOpen,
-  navMenu,
-  menuWrapper,
-  showLeftArrow,
-  showRightArrow,
+  drawerRef,
   toggleMenu,
   closeMenu,
-  scrollMenu,
-  handleLogout: logoutHandler,
-  setUser
+  handleLogout,
 } = useNavbarLogic()
-
-// Sincronizar props com a lógica
-watch(() => props.user, (newUser) => {
-  setUser(newUser)
-}, { immediate: true })
-
-// Emitir evento de logout
-const handleLogout = () => {
-  logoutHandler()
-  emit('logout')
-}
 </script>
 
 <style scoped>

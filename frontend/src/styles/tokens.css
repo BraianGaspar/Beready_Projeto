@@ -1,0 +1,255 @@
+/* ==========================================================================
+   BeReady — Design tokens (fonte única de verdade)
+   --------------------------------------------------------------------------
+   Regras (ver frontend/docs/design-system.md):
+   - Telas e componentes usam APENAS estes tokens: nunca hex/rgb fixos e nunca
+     var(--x, #fallback).
+   - Temas: claro (:root), escuro (.dark-mode), daltônico (.daltonico-mode),
+     daltônico + escuro (.dark-mode.daltonico-mode). As classes são aplicadas
+     em <html> e <body> por src/shared/composables/useTheme.ts.
+   - A ordem dos blocos abaixo importa (mesma especificidade): não reordene.
+   - index.html (loader de boot) espelha --color-bg / --color-primary /
+     --color-primary-soft com valores literais: atualize-o junto.
+   - Contraste verificado (WCAG AA) com o script descrito no guia.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   TEMA CLARO (padrão)
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Superfícies e texto */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-hover: #e9eef5;
+  --color-border: #e2e8f0;
+  --color-border-strong: #7a8aa0;
+  --color-text: #1e293b;
+  --color-text-muted: #475569;
+  --color-text-subtle: #64748b;
+  --color-text-inverse: #ffffff;
+
+  /* Marca */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-active: #3730a3;
+  --color-primary-contrast: #ffffff;
+  --color-primary-soft: #eef2ff;
+  --color-primary-soft-text: #4338ca;
+
+  /* Status (texto sobre surface / fundo sólido com -contrast / fundo suave -soft) */
+  --color-success: #15803d;
+  --color-success-hover: #166534;
+  --color-success-contrast: #ffffff;
+  --color-success-soft: #dcfce7;
+  --color-warning: #b45309;
+  --color-warning-contrast: #ffffff;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #b91c1c;
+  --color-danger-hover: #991b1b;
+  --color-danger-contrast: #ffffff;
+  --color-danger-soft: #fee2e2;
+  --color-info: #1d4ed8;
+  --color-info-contrast: #ffffff;
+  --color-info-soft: #dbeafe;
+
+  /* Interação */
+  --color-focus-ring: #4f46e5;
+  --color-overlay: rgb(15 23 42 / 0.55);
+  --color-skeleton: #e2e8f0;
+
+  /* Cabeçalho "hero" (gradiente da marca; texto sempre --color-hero-text) */
+  --color-hero-from: #4f46e5;
+  --color-hero-to: #6d28d9;
+  --color-hero-text: #ffffff;
+  --color-hero-text-muted: rgb(255 255 255 / 0.88);
+  --gradient-brand: linear-gradient(135deg, var(--color-hero-from) 0%, var(--color-hero-to) 100%);
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.08);
+  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 12px 32px rgb(15 23 42 / 0.12);
+  --shadow-xl: 0 24px 56px rgb(15 23 42 / 0.18);
+
+  /* Tipografia */
+  --font-family-base:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', 'Noto Sans Arabic', 'Noto Sans JP', 'Noto Sans KR', sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-display: clamp(2rem, 4vw + 1rem, 3.5rem);
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.7;
+
+  /* Espaçamento (escala de 4px) */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Raios */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Controles (altura mínima; md respeita alvo de toque de 44px) */
+  --control-height-sm: 2.25rem;
+  --control-height-md: 2.75rem;
+  --control-height-lg: 3.25rem;
+  --border-width: 1px;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+
+  /* Layout */
+  --container-sm: 40rem; /* 640px */
+  --container-md: 60rem; /* 960px */
+  --container-lg: 75rem; /* 1200px */
+  --container-xl: 87.5rem; /* 1400px */
+  --page-gutter: var(--space-4); /* 16px no mobile; cresce nos breakpoints (main.css) */
+  --navbar-height: 4rem;
+
+  /* Breakpoints — referência (CSS não aceita var() em @media; use os valores literais):
+     sm 480px | md 768px | lg 1024px | xl 1280px. Sempre mobile-first com min-width. */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
+  /* Camadas */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-drawer: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  /* Movimento (zerado em prefers-reduced-motion, ver main.css) */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-emphasized: cubic-bezier(0.3, 0, 0, 1.2);
+  --transition-base: var(--duration-base) var(--easing-standard);
+}
+
+/* --------------------------------------------------------------------------
+   TEMA ESCURO
+   -------------------------------------------------------------------------- */
+.dark-mode {
+  color-scheme: dark;
+
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-muted: #273449;
+  --color-surface-hover: #314158;
+  --color-border: #334155;
+  --color-border-strong: #7587a0;
+  --color-text: #f1f5f9;
+  --color-text-muted: #cbd5e1;
+  --color-text-subtle: #a3b1c4;
+  --color-text-inverse: #0f172a;
+
+  --color-primary: #818cf8;
+  --color-primary-hover: #a5b4fc;
+  --color-primary-active: #c7d2fe;
+  --color-primary-contrast: #0f172a;
+  --color-primary-soft: #2b2f63;
+  --color-primary-soft-text: #c7d2fe;
+
+  --color-success: #4ade80;
+  --color-success-hover: #86efac;
+  --color-success-contrast: #052e16;
+  --color-success-soft: #123524;
+  --color-warning: #fbbf24;
+  --color-warning-contrast: #2d1a02;
+  --color-warning-soft: #3a2a0c;
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-contrast: #2b0707;
+  --color-danger-soft: #3f1a1d;
+  --color-info: #60a5fa;
+  --color-info-contrast: #0b1b38;
+  --color-info-soft: #16294a;
+
+  --color-focus-ring: #a5b4fc;
+  --color-overlay: rgb(2 6 23 / 0.7);
+  --color-skeleton: #334155;
+
+  --color-hero-from: #312e81;
+  --color-hero-to: #4c1d95;
+  --color-hero-text: #ffffff;
+  --color-hero-text-muted: rgb(255 255 255 / 0.85);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
+  --shadow-xl: 0 24px 56px rgb(0 0 0 / 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   MODO DALTÔNICO (sobre o claro) — paleta derivada de Okabe-Ito:
+   sucesso = azul, perigo = vermelhão/laranja, aviso = âmbar, info = púrpura.
+   Segura para deuteranopia, protanopia e tritanopia. Status NUNCA depende só
+   de cor: os componentes de status sempre exibem ícone e/ou texto.
+   -------------------------------------------------------------------------- */
+.daltonico-mode {
+  --color-success: #005a9c;
+  --color-success-hover: #00467a;
+  --color-success-contrast: #ffffff;
+  --color-success-soft: #e0eefa;
+  --color-warning: #855800;
+  --color-warning-contrast: #ffffff;
+  --color-warning-soft: #fdf0c8;
+  --color-danger: #a93f00;
+  --color-danger-hover: #8a3300;
+  --color-danger-contrast: #ffffff;
+  --color-danger-soft: #fbe6d9;
+  --color-info: #8e3b72;
+  --color-info-contrast: #ffffff;
+  --color-info-soft: #f6e4ef;
+}
+
+/* --------------------------------------------------------------------------
+   MODO DALTÔNICO + ESCURO
+   -------------------------------------------------------------------------- */
+.dark-mode.daltonico-mode {
+  --color-success: #56b4e9;
+  --color-success-hover: #8ccbf0;
+  --color-success-contrast: #04223a;
+  --color-success-soft: #0f2d44;
+  --color-warning: #f0e442;
+  --color-warning-contrast: #2a2600;
+  --color-warning-soft: #353208;
+  --color-danger: #ff9e5e;
+  --color-danger-hover: #ffb98a;
+  --color-danger-contrast: #2e1400;
+  --color-danger-soft: #3d2312;
+  --color-info: #e3a3cb;
+  --color-info-contrast: #33102a;
+  --color-info-soft: #3a2033;
+}

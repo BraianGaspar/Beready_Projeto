@@ -1,84 +1,110 @@
-import { onMounted, watch } from 'vue'
+import { onScopeDispose, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuth } from './useAuth' // Assumindo que você tem este composable
 import api from '@/core/services/api'
+import { useAuthStore } from '@/stores/auth'
 
-// Páginas públicas que NÃO devem ter tema escuro/daltônico
-const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password']
+// Páginas públicas: seguem o tema do sistema (prefers-color-scheme), sem daltônico
+const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/oauth-callback']
 
+const isPublicRoute = (path: string): boolean =>
+  publicRoutes.includes(path) || path.startsWith('/reset-password')
+
+export interface ThemeState {
+  /** Tema escuro (preferência tema === 'escuro' ou sistema escuro em rotas públicas) */
+  dark: boolean
+  /** Paleta segura para daltonismo (preferência modo_daltonico) */
+  daltonico: boolean
+}
+
+const setMode = (className: string, active: boolean): void => {
+  document.documentElement.classList.toggle(className, active)
+  document.body.classList.toggle(className, active)
+}
+
+/**
+ * Único ponto que escreve as classes de tema em <html> e <body>.
+ * Os tokens de src/styles/tokens.css reagem a .dark-mode e .daltonico-mode.
+ */
+export const applyTheme = ({ dark, daltonico }: ThemeState): void => {
+  setMode('dark-mode', dark)
+  setMode('daltonico-mode', daltonico)
+}
+
+/** Converte os campos salvos em /preferencias para o estado de tema. */
+export const themeFromPreferences = (prefs: {
+  tema?: string | null
+  modo_daltonico?: boolean | null
+}): ThemeState => ({
+  dark: prefs.tema === 'escuro',
+  daltonico: !!prefs.modo_daltonico,
+})
+
+/**
+ * Aplica o tema conforme a rota e o usuário:
+ * - rotas públicas ou sem sessão: segue o sistema (prefers-color-scheme), sem daltônico;
+ * - logado: preferências de /preferencias/usuario/{id}, buscadas no máximo uma vez
+ *   por usuário (e novamente apenas ao voltar de uma página pública);
+ * - logado sem preferências salvas (404): padrão claro, igual ao formulário de preferências.
+ */
 export function useTheme() {
   const route = useRoute()
-  const { isAuthenticated, user } = useAuth()
+  const authStore = useAuthStore()
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-  const loadUserPreferences = async () => {
-    const currentRoute = window.location.pathname
+  // Usuário cujas preferências já foram buscadas/aplicadas
+  let appliedForUserId: number | null = null
+  // true enquanto o tema segue o sistema (rota pública / sem sessão)
+  let followingSystem = false
 
-    // Verifica se é uma rota pública
-    const isPublicRoute = publicRoutes.some(
-      (route) => currentRoute === route || currentRoute.startsWith('/reset-password'),
-    )
+  const applySystemTheme = (): void => {
+    applyTheme({ dark: systemDark.matches, daltonico: false })
+  }
 
-    // Se for pública, remove os modos especiais e retorna
-    if (isPublicRoute) {
-      document.documentElement.classList.remove('dark-mode')
-      document.body.classList.remove('dark-mode')
-      document.documentElement.classList.remove('daltonico-mode')
-      document.body.classList.remove('daltonico-mode')
-      return
-    }
-
-    // Se não estiver autenticado, não carrega preferências
-    if (!isAuthenticated.value || !user.value?.id) {
-      return
-    }
-
+  const loadUserPreferences = async (userId: number): Promise<void> => {
+    appliedForUserId = userId
     try {
-      const response = await api.get(`/preferencias/usuario/${user.value.id}`)
+      const response = await api.get(`/preferencias/usuario/${userId}`)
+      // Usuário mudou (logout/troca) durante a requisição: descarta
+      if (appliedForUserId !== userId || followingSystem) return
       if (response.data.success && response.data.data) {
-        // Aplica Modo Escuro
-        if (response.data.data.tema === 'escuro') {
-          document.documentElement.classList.add('dark-mode')
-          document.body.classList.add('dark-mode')
-        } else {
-          document.documentElement.classList.remove('dark-mode')
-          document.body.classList.remove('dark-mode')
-        }
-
-        // Aplica Modo Daltonico
-        if (response.data.data.modo_daltonico) {
-          document.documentElement.classList.add('daltonico-mode')
-          document.body.classList.add('daltonico-mode')
-        } else {
-          document.documentElement.classList.remove('daltonico-mode')
-          document.body.classList.remove('daltonico-mode')
-        }
+        applyTheme(themeFromPreferences(response.data.data))
       }
     } catch (err) {
-      console.error('Erro ao carregar preferências:', err)
+      if (appliedForUserId !== userId || followingSystem) return
+      // 404 = usuário ainda sem preferências salvas
+      const status = (err as { response?: { status?: number } }).response?.status
+      if (status === 404) {
+        applyTheme({ dark: false, daltonico: false })
+      } else {
+        console.error('Erro ao carregar preferências:', err)
+      }
     }
   }
 
-  // Watchers e Hooks de ciclo de vida
-  watch(
-    () => route.path,
-    () => {
-      loadUserPreferences()
-    },
-    { immediate: true },
-  )
+  const sync = (): void => {
+    const userId = authStore.user?.id
 
-  watch(
-    () => user.value,
-    () => {
-      loadUserPreferences()
-    },
-    { immediate: true },
-  )
+    if (isPublicRoute(route.path) || !authStore.isAuthenticated || !userId) {
+      followingSystem = true
+      appliedForUserId = null
+      applySystemTheme()
+      return
+    }
 
-  onMounted(() => {
-    loadUserPreferences()
+    followingSystem = false
+    if (appliedForUserId === userId) return
+    loadUserPreferences(userId)
+  }
+
+  const onSystemChange = (): void => {
+    if (followingSystem) applySystemTheme()
+  }
+  systemDark.addEventListener('change', onSystemChange)
+  onScopeDispose(() => systemDark.removeEventListener('change', onSystemChange))
+
+  watch([() => route.path, () => authStore.user?.id, () => authStore.isAuthenticated], sync, {
+    immediate: true,
   })
 
-  // Se precisar expor algo para o template no futuro, retorne aqui
   return {}
 }

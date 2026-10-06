@@ -1,463 +1,117 @@
-/* ============================================
-   DASHBOARD PRINCIPAL
-   ============================================ */
-.dashboard-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-  overflow-x: hidden;
-}
+/* Tela: DashboardPage.vue — bloco .dashboard */
 
-.dashboard-main {
-  max-width: 87.5rem; /* 1400px → 87.5rem */
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-/* ============================================
-   SEÇÃO DE BOAS-VINDAS
-   ============================================ */
-.welcome-section {
-  margin-bottom: 2rem;
-}
-
-.welcome-content {
+/* Painel admin */
+.dashboard__admin-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
 }
 
-.welcome-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
+.dashboard__admin-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.welcome-subtitle {
-  color: #6b7280;
-  font-size: 1rem;
+/* Estatísticas */
+.dashboard__stats {
+  --u-min: 14rem;
+  --u-gap: var(--space-4);
 }
 
-/* ============================================
-   CARDS DE ESTATÍSTICAS
-   ============================================ */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+/* Progresso geral (barra: BaseProgress) */
+.dashboard__progress-text {
+  margin-block-start: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
-.stat-card {
-  background: white;
-  border-radius: 1rem; /* 16px → 1rem */
-  padding: 1.5rem;
+/* Funcionalidades */
+.dashboard__features {
+  --u-min: 18rem;
+  --u-gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard__feature {
+  position: relative;
+  block-size: 100%;
+}
+
+.dashboard__feature-body {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  gap: var(--space-4);
 }
 
-.stat-card:hover {
-  transform: translateY(-0.125rem);
-  box-shadow: 0 0.5rem 1.5625rem rgba(0, 0, 0, 0.1);
-}
-
-.stat-icon {
-  width: 3rem; /* 48px → 3rem */
-  height: 3rem;
-  border-radius: 0.75rem;
-  display: flex;
+.dashboard__feature-icon {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-soft-text);
+  font-size: var(--font-size-2xl);
 }
 
-.stat-icon svg {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #fff;
-}
-
-.stat-info {
-  flex: 1;
+.dashboard__feature-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   min-width: 0;
 }
 
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
+.dashboard__feature-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
 }
 
-.stat-label {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
-  word-break: break-word;
+.dashboard__feature-link {
+  color: var(--color-text);
+  text-decoration: none;
 }
 
-/* ============================================
-   BARRA DE PROGRESSO
-   ============================================ */
-.progress-section {
-  margin-bottom: 2rem;
+/* Link "esticado": o card inteiro é clicável, mas só há um alvo de foco */
+.dashboard__feature-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 
-.progress-card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
+.dashboard__feature-link:focus-visible {
+  outline: none;
 }
 
-.progress-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 1rem;
+.dashboard__feature-link:focus-visible::after {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: calc(var(--focus-ring-width) * -1);
+  border-radius: var(--radius-xl);
 }
 
-.progress-bar-container {
-  height: 0.625rem; /* 10px → 0.625rem */
-  background: #e5e7eb;
-  border-radius: 0.3125rem;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
+.dashboard__feature-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #d81b60 0%, #c2185b 100%);
-  border-radius: 0.3125rem;
-  transition: width 0.5s ease;
-}
-
-.progress-text {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-/* ============================================
-   FEATURES GRID
-   ============================================ */
-.dashboard-features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr)); /* 300px → 18.75rem */
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.dashboard-feature-card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  display: flex;
-  gap: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
-}
-
-.dashboard-feature-card:hover {
-  transform: translateY(-0.25rem);
-  box-shadow: 0 0.75rem 1.875rem rgba(0, 0, 0, 0.15);
-}
-
-.feature-icon-large {
-  width: 3.5rem; /* 56px → 3.5rem */
-  height: 3.5rem;
-  border-radius: 0.875rem;
-  display: flex;
+.dashboard__feature-cta {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
 }
 
-.feature-icon-large svg {
-  width: 1.75rem;
-  height: 1.75rem;
-  color: #fff;
-}
-
-.feature-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.feature-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
-}
-
-.feature-description {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-.feature-link {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #d81b60;
-  transition: all 0.3s ease;
-  display: inline-block;
-}
-
-.dashboard-feature-card:hover .feature-link {
-  transform: translateX(0.25rem);
-}
-
-/* ============================================
-   PAINEL ADMIN
-   ============================================ */
-.admin-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 1rem;
-  padding: 1rem 1.5rem;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  box-shadow: 0 0.25rem 0.75rem rgba(102, 126, 234, 0.25);
-}
-
-.admin-banner-icon {
-  width: 3rem;
-  height: 3rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.admin-banner-icon svg {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: white;
-}
-
-.admin-banner-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.admin-badge {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.25rem 0.75rem;
-  border-radius: 1.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
-}
-
-.admin-links {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.admin-link-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.admin-link-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-0.0625rem);
-}
-
-/* ============================================
-   CORES DOS ÍCONES
-   ============================================ */
-.bg-blue-100 {
-  background: #dbeafe;
-}
-.bg-green-100 {
-  background: #d1fae5;
-}
-.bg-purple-100 {
-  background: #ede9fe;
-}
-.bg-yellow-100 {
-  background: #fef3c7;
-}
-.bg-blue-500 {
-  background: #3b82f6;
-}
-.bg-green-500 {
-  background: #10b981;
-}
-.bg-purple-500 {
-  background: #8b5cf6;
-}
-.bg-orange-500 {
-  background: #f97316;
-}
-.bg-indigo-500 {
-  background: #6366f1;
-}
-.bg-gray-500 {
-  background: #6b7280;
-}
-
-/* ============================================
-   RESPONSIVIDADE
-   ============================================ */
-
-/* Tablets */
-@media (max-width: 1024px) {
-  .dashboard-main {
-    padding: 1.5rem;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .dashboard-features-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Tablets menores e celulares grandes */
-@media (max-width: 768px) {
-  .dashboard-main {
-    padding: 1rem;
-  }
-
-  .welcome-title {
-    font-size: 1.5rem;
-  }
-
-  .welcome-subtitle {
-    font-size: 0.875rem;
-  }
-
-  .welcome-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .dashboard-features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-banner {
-    padding: 0.75rem 1rem;
-  }
-
-  .admin-banner-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .admin-links {
-    width: 100%;
-  }
-
-  .admin-link-btn {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-/* Celulares */
-@media (max-width: 640px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-card {
-    padding: 1rem;
-  }
-
-  .stat-value {
-    font-size: 1.25rem;
-  }
-
-  .stat-label {
-    font-size: 0.75rem;
-  }
-
-  .feature-title {
-    font-size: 1rem;
-  }
-
-  .feature-description {
-    font-size: 0.8rem;
-  }
-
-  .dashboard-feature-card {
-    padding: 1rem;
-  }
-
-  .admin-banner {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .admin-banner-content {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  .admin-links {
-    flex-direction: column;
-    width: 100%;
-  }
-}
-
-/* Celulares muito pequenos */
-@media (max-width: 480px) {
-  .dashboard-main {
-    padding: 0.75rem;
-  }
-
-  .progress-card {
-    padding: 1rem;
-  }
-
-  .stat-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
-
-  .stat-icon svg {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
-  .feature-icon-large {
-    width: 2.75rem;
-    height: 2.75rem;
-  }
-
-  .feature-icon-large svg {
-    width: 1.375rem;
-    height: 1.375rem;
-  }
+.dashboard__feature-cta-icon {
+  inline-size: 1em;
+  block-size: 1em;
 }

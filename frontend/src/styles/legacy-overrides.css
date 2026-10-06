@@ -1,0 +1,266 @@
+/* ==========================================================================
+   OVERRIDES LEGADOS (temporário — fase 2)
+   --------------------------------------------------------------------------
+   Regras globais com !important que davam tema às telas antigas a partir de
+   nomes de classe genéricos (.stat-card, .hero-title, .form-input...).
+   Foram convertidas para tokens (reagem a claro/escuro/daltônico), mas
+   continuam sendo um remendo.
+
+   - Telas migradas NÃO devem usar os nomes de classe listados aqui (use os
+     componentes de src/shared/components/ui e classes BEM próprias).
+   - Os agentes da fase 2 NÃO editam este arquivo; ele será apagado na limpeza
+     final, quando nenhuma tela usar mais estes seletores.
+   ========================================================================== */
+
+/* Loading antigo */
+.loading-state {
+  text-align: center;
+  padding: var(--space-16) var(--space-4);
+  color: var(--color-text) !important;
+}
+
+.loading-state p {
+  color: var(--color-text) !important;
+}
+
+.loading-state .spinner {
+  border: 3px solid var(--color-border) !important;
+  border-top: 3px solid var(--color-primary) !important;
+}
+
+/* Fundos de página */
+.dashboard-container,
+.flashcards-page,
+.quizes-page,
+.prompts-page,
+.tags-page,
+.progresso-page,
+.preferencias-page,
+.profile-container,
+.profile-edit-page,
+.login-page,
+.register-page {
+  background: var(--color-bg) !important;
+}
+
+/* Cards */
+.stat-card,
+.progress-card,
+.dashboard-feature-card,
+.flashcard-card,
+.quiz-card,
+.prompt-card,
+.tag-card,
+.preferencias-form,
+.profile-card,
+.register-card,
+.login-card,
+.profile-edit-form {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Textos */
+.welcome-title,
+.stat-value,
+.feature-title,
+.quiz-card-title,
+.prompt-text,
+.tag-name,
+.question-text,
+.answer-text,
+.login-title,
+.card-title,
+.empty-title,
+.profile-info-value {
+  color: var(--color-text) !important;
+}
+
+.welcome-subtitle,
+.stat-label,
+.feature-description,
+.quiz-card-description,
+.prompt-meta,
+.tag-description,
+.answer-label,
+.question-label,
+.login-subtitle,
+.form-label,
+.form-hint,
+.empty-description,
+.profile-info-label {
+  color: var(--color-text-muted) !important;
+}
+
+/* Textos sobre o gradiente do cabeçalho */
+.profile-name,
+.profile-email,
+.register-subtitle,
+.register-title {
+  color: var(--color-hero-text) !important;
+}
+
+/* Heroes */
+.flashcards-hero,
+.quizes-hero,
+.prompts-hero,
+.tags-hero,
+.progresso-hero,
+.preferencias-hero,
+.profile-edit-hero {
+  background: var(--gradient-brand) !important;
+}
+
+.hero-title {
+  color: var(--color-hero-text) !important;
+}
+
+.hero-subtitle {
+  color: var(--color-hero-text-muted) !important;
+}
+
+.hero-back-btn {
+  background: var(--color-surface) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Rodapés de card */
+.flashcard-footer,
+.quiz-card-footer,
+.prompt-footer {
+  background: var(--color-surface-muted) !important;
+  border-top: 1px solid var(--color-border) !important;
+}
+
+.quiz-card-badge {
+  background: var(--color-primary) !important;
+  color: var(--color-primary-contrast) !important;
+}
+
+/* Estado vazio antigo */
+.empty-state .empty-icon {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Somente no escuro (no claro estas telas já usam suas cores próprias)
+   -------------------------------------------------------------------------- */
+.dark-mode .prompt-header,
+.dark-mode .card-header,
+.dark-mode .register-header {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border) !important;
+}
+
+.dark-mode .form-input,
+.dark-mode .form-textarea,
+.dark-mode .form-select {
+  background: var(--color-bg) !important;
+  border-color: var(--color-border-strong) !important;
+  color: var(--color-text) !important;
+}
+
+.dark-mode .form-input:focus,
+.dark-mode .form-textarea:focus,
+.dark-mode .form-select:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-primary-soft) !important;
+}
+
+.dark-mode .btn-cancel {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+}
+
+.dark-mode .btn-cancel:hover {
+  background: var(--color-surface-hover) !important;
+}
+
+.dark-mode .register-section,
+.dark-mode .login-section,
+.dark-mode .form-card {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border) !important;
+}
+
+.dark-mode .profile-header {
+  background: var(--gradient-brand) !important;
+}
+
+.dark-mode .profile-header-background {
+  opacity: 0.3;
+}
+
+.dark-mode .profile-status-active {
+  background: var(--color-success-soft) !important;
+  color: var(--color-success) !important;
+}
+
+.dark-mode .profile-status-inactive {
+  background: var(--color-danger-soft) !important;
+  color: var(--color-danger) !important;
+}
+
+.dark-mode .modal-container {
+  background: var(--color-surface) !important;
+}
+
+.dark-mode .modal-header {
+  background: var(--color-surface-muted) !important;
+}
+
+.dark-mode .modal-body p {
+  color: var(--color-text) !important;
+}
+
+.dark-mode .modal-warning {
+  color: var(--color-danger) !important;
+}
+
+.dark-mode .confirm-input {
+  background: var(--color-bg) !important;
+  border-color: var(--color-border-strong) !important;
+  color: var(--color-text) !important;
+}
+
+.dark-mode .confirm-input:focus {
+  border-color: var(--color-primary) !important;
+}
+
+.dark-mode .modal-btn-cancel {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+}
+
+.dark-mode .modal-btn-cancel:hover {
+  background: var(--color-surface-hover) !important;
+}
+
+.dark-mode .modal-btn-delete {
+  background: var(--color-danger) !important;
+  color: var(--color-danger-contrast) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Daltônico: status antigos passam a usar a paleta segura dos tokens
+   (a versão anterior apenas acinzentava botões e badges).
+   -------------------------------------------------------------------------- */
+.daltonico-mode .trend-up {
+  background: var(--color-success-soft) !important;
+  color: var(--color-success) !important;
+}
+
+.daltonico-mode .trend-down {
+  background: var(--color-danger-soft) !important;
+  color: var(--color-danger) !important;
+}
+
+.daltonico-mode .text-green {
+  color: var(--color-success) !important;
+}
+
+.daltonico-mode .text-red {
+  color: var(--color-danger) !important;
+}

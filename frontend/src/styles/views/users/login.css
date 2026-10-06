@@ -1,168 +1,51 @@
-/* styles/views/users/login.css */
+/* Tela: UserLogin.vue — bloco .user-login (moldura em auth/auth-card.css) */
 
-.login-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
-
-.login-card {
-  max-width: 450px;
-  width: 100%;
-}
-
-.login-header {
-  text-align: center;
-}
-
-.login-header .header-icon {
-  width: 80px;
-  height: 80px;
-  background: rgba(124, 58, 237, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-
-.login-header .header-icon svg {
-  color: #7c3aed;
-}
-
-.login-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.login-subtitle {
-  color: #6b7280;
-  margin-bottom: 24px;
-}
-
-.login-forgot-link {
-  text-align: right;
-  margin-bottom: 20px;
-}
-
-.login-forgot-link a {
-  color: #7c3aed;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.login-forgot-link a:hover {
-  text-decoration: underline;
-}
-
-.login-register-link {
-  text-align: center;
-  color: #6b7280;
-}
-
-.login-register-link a {
-  color: #7c3aed;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.login-register-link a:hover {
-  text-decoration: underline;
-}
-
-/* Divider */
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 24px 0 20px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.divider span {
-  padding: 0 16px;
-  color: #9ca3af;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Social Buttons */
-.social-buttons {
+.user-login__form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 16px 0;
+  gap: var(--space-4);
 }
 
-.btn-social {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  background: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
+.user-login__forgot {
+  margin-block-start: calc(var(--space-2) * -1);
+  text-align: end;
+  font-size: var(--font-size-sm);
+}
+
+.user-login__forgot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-md);
+  color: var(--color-primary);
+}
+
+.user-login__divider {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  transition: all 0.2s ease;
+  gap: var(--space-4);
+  margin-block: var(--space-6) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-subtle);
 }
 
-.btn-social:hover {
-  background: #f8f9fa;
-  border-color: #c0c0c0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+.user-login__divider::before,
+.user-login__divider::after {
+  content: '';
+  flex: 1;
+  border-block-end: var(--border-width) solid var(--color-border);
 }
 
-.btn-social:active {
-  transform: scale(0.98);
+.user-login__social {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.btn-social:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-social .social-icon {
-  width: 20px;
-  height: 20px;
+.user-login__social-icon {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
   flex-shrink: 0;
-}
-
-.btn-google:hover {
-  background: #f8f9fa;
-  border-color: #c0c0c0;
-}
-
-.btn-facebook {
-  border-color: #1877f2;
-  color: #1877f2;
-}
-
-.btn-facebook:hover {
-  background: #e7f3ff;
-  border-color: #0d65d9;
-}
-
-.btn-linkedin {
-  border-color: #0a66c2;
-  color: #0a66c2;
-}
-
-.btn-linkedin:hover {
-  background: #e8f0fe;
-  border-color: #004182;
+  margin-inline-end: var(--space-2);
+  vertical-align: middle;
 }

@@ -1,0 +1,64 @@
+/* Componente: modules/auth/components/AuthCard.vue — bloco .auth-card */
+
+.auth-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-6) var(--page-gutter);
+  background: var(--color-bg);
+}
+
+.auth-card__card {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.auth-card__card--lg {
+  max-width: 60rem;
+}
+
+.auth-card__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.auth-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-soft-text);
+  font-size: var(--font-size-3xl);
+}
+
+.auth-card__title {
+  font-size: clamp(var(--font-size-2xl), 1.25rem + 1.5vw, var(--font-size-3xl));
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+.auth-card__subtitle {
+  color: var(--color-text-muted);
+}
+
+.auth-card__footer {
+  width: 100%;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.auth-card__footer a {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
