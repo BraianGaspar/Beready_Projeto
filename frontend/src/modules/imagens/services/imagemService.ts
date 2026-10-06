@@ -1,19 +1,22 @@
 import api from '@/core/services/api'
 import type { Imagem, ApiResponse } from '@/core/types'
 
+type ImagemInput = Omit<Imagem, 'id' | 'criado_em'>
+
+// Todos os métodos devolvem o corpo da resposta ({ success, message, data })
 export const imagemService = {
-  getByPrompt: (promptId: number): Promise<ApiResponse<Imagem[]>> =>
-    api.get(`/imagens/prompt/${promptId}`),
+  getByPrompt: async (promptId: number): Promise<ApiResponse<Imagem[]>> =>
+    (await api.get<ApiResponse<Imagem[]>>(`/imagens/prompt/${promptId}`)).data,
 
-  getById: (id: number): Promise<ApiResponse<Imagem>> => api.get(`/imagens/view/${id}`),
+  getById: async (id: number): Promise<ApiResponse<Imagem>> =>
+    (await api.get<ApiResponse<Imagem>>(`/imagens/view/${id}`)).data,
 
-  create: (data: Omit<Imagem, 'id' | 'criado_em'>): Promise<ApiResponse<Imagem>> =>
-    api.post('/imagens', data),
+  create: async (data: ImagemInput): Promise<ApiResponse<Imagem>> =>
+    (await api.post<ApiResponse<Imagem>>('/imagens', data)).data,
 
-  update: (
-    id: number,
-    data: Partial<Omit<Imagem, 'id' | 'criado_em'>>,
-  ): Promise<ApiResponse<Imagem>> => api.put(`/imagens/edit/${id}`, data),
+  update: async (id: number, data: Partial<ImagemInput>): Promise<ApiResponse<Imagem>> =>
+    (await api.put<ApiResponse<Imagem>>(`/imagens/edit/${id}`, data)).data,
 
-  delete: (id: number): Promise<ApiResponse<null>> => api.delete(`/imagens/delete/${id}`),
+  delete: async (id: number): Promise<ApiResponse<null>> =>
+    (await api.delete<ApiResponse<null>>(`/imagens/delete/${id}`)).data,
 }

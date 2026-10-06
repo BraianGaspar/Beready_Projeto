@@ -1,202 +1,142 @@
 <template>
-  <div class="register-page">
-    <div class="register-container">
-      <div class="register-card">
-        <div class="register-header">
-          <div class="header-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              />
-            </svg>
+  <AuthCard :title="$t('register.title')" :subtitle="$t('register.subtitle')" icon="users" size="lg">
+    <form class="user-register__form" @submit.prevent="handleSubmit">
+      <div class="user-register__grid">
+        <!-- Seção 1: Informações Pessoais -->
+        <fieldset class="user-register__section">
+          <legend class="user-register__section-title">
+            <BaseIcon name="user" />
+            {{ $t('register.personalInfo') }}
+          </legend>
+
+          <BaseInput
+            v-model="form.nome"
+            :label="$t('register.nome')"
+            autocomplete="name"
+            :placeholder="$t('register.nomePlaceholder')"
+            :error="errors.nome"
+            required
+          />
+          <BaseInput
+            v-model="form.email"
+            type="email"
+            :label="$t('login.email')"
+            autocomplete="email"
+            :placeholder="$t('register.emailPlaceholder')"
+            :error="errors.email"
+            required
+          />
+          <BaseInput
+            v-model="form.telefone"
+            type="tel"
+            :label="$t('profile.telefone')"
+            autocomplete="tel"
+            inputmode="numeric"
+            :placeholder="$t('register.telefonePlaceholder')"
+            :error="phoneError"
+            @input="handlePhoneInput"
+            @keydown="handlePhoneKeydown"
+          />
+        </fieldset>
+
+        <!-- Seção 2: Segurança -->
+        <fieldset class="user-register__section">
+          <legend class="user-register__section-title">
+            <BaseIcon name="lock-closed" />
+            {{ $t('register.security') }}
+          </legend>
+
+          <div class="user-register__field">
+            <BaseInput
+              v-model="form.senha"
+              type="password"
+              :label="$t('register.senha')"
+              autocomplete="new-password"
+              :placeholder="$t('register.senhaPlaceholder')"
+              :error="errors.senha"
+              required
+            />
+            <PasswordStrength
+              v-if="form.senha"
+              :level="strengthClass"
+              :text="strengthText"
+              :width="strengthWidth"
+            />
           </div>
-          <h1 class="register-title">{{ $t('register.title') }}</h1>
-          <p class="register-subtitle">{{ $t('register.subtitle') }}</p>
-        </div>
 
-        <div class="register-body">
-          <form @submit.prevent="handleSubmit">
-            <div class="register-form-grid">
-              <!-- Seção 1: Informações Pessoais -->
-              <div class="register-section">
-                <h2 class="register-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {{ $t('register.personalInfo') }}
-                </h2>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('register.nome') }}</label>
-                  <input
-                    v-model="form.nome"
-                    type="text"
-                    class="form-input"
-                    :placeholder="$t('register.nomePlaceholder')"
-                    required
-                  />
-                  <span v-if="errors.nome" class="input-error">{{ errors.nome }}</span>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('login.email') }}</label>
-                  <input
-                    v-model="form.email"
-                    type="email"
-                    class="form-input"
-                    :placeholder="$t('register.emailPlaceholder')"
-                    required
-                  />
-                  <span v-if="errors.email" class="input-error">{{ errors.email }}</span>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('profile.telefone') }}</label>
-                  <input
-                    v-model="form.telefone"
-                    type="tel"
-                    class="form-input"
-                    :placeholder="$t('register.telefonePlaceholder')"
-                    @input="handlePhoneInput"
-                    @keydown="handlePhoneKeydown"
-                  />
-                  <span v-if="phoneError" class="input-error">{{ phoneError }}</span>
-                </div>
-              </div>
-
-              <!-- Seção 2: Segurança -->
-              <div class="register-section">
-                <h2 class="register-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  {{ $t('register.security') }}
-                </h2>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('register.senha') }}</label>
-                  <div class="password-wrapper">
-                    <input
-                      v-model="form.senha"
-                      type="password"
-                      class="form-input password-input"
-                      :placeholder="$t('register.senhaPlaceholder')"
-                      required
-                    />
-                  </div>
-                  <span v-if="errors.senha" class="input-error">{{ errors.senha }}</span>
-                  <div v-if="form.senha" class="register-password-strength">
-                    <div class="register-strength-bar">
-                      <div
-                        class="register-strength-fill"
-                        :class="strengthClass"
-                        :style="{ width: strengthWidth }"
-                      ></div>
-                    </div>
-                    <span class="register-strength-text">{{ strengthText }}</span>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('register.confirmarSenha') }}</label>
-                  <div class="password-wrapper">
-                    <input
-                      v-model="form.confirmar_senha"
-                      type="password"
-                      class="form-input password-input"
-                      :placeholder="$t('register.confirmarSenhaPlaceholder')"
-                      required
-                    />
-                  </div>
-                  <span v-if="errors.confirmar_senha" class="input-error">{{ errors.confirmar_senha }}</span>
-                  <div
-                    v-if="form.confirmar_senha"
-                    class="register-password-match"
-                    :class="{ matching: passwordsMatch, 'not-matching': !passwordsMatch }"
-                  >
-                    <span>{{
-                      passwordsMatch
-                        ? $t('register.passwordsMatch')
-                        : $t('register.passwordsDoNotMatch')
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Seção 3: Preferências -->
-              <div class="register-section">
-                <h2 class="register-section-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  {{ $t('register.learningPreferences') }}
-                </h2>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('profile.nivelIngles') }}</label>
-                  <select v-model="form.nivel_ingles" class="form-input">
-                    <option v-for="opt in nivelOptions" :key="opt.value" :value="opt.value">
-                      {{ opt.label }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('profile.idiomaPreferido') }}</label>
-                  <select v-model="form.idioma_preferido" class="form-input">
-                    <option v-for="opt in idiomaOptions" :key="opt.value" :value="opt.value">
-                      {{ opt.label }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('profile.objetivos') }}</label>
-                  <textarea
-                    v-model="form.objetivos_aprendizado"
-                    class="form-input"
-                    rows="3"
-                    :placeholder="$t('register.objetivosPlaceholder')"
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="register-form-actions">
-              <button type="button" class="btn-cancel" @click="$router.push('/login')">
-                {{ $t('common.cancelar') }}
-              </button>
-              <button type="submit" class="btn-submit" :disabled="loading">
-                {{ loading ? $t('common.salvando') : $t('register.createAccount') }}
-              </button>
-            </div>
-          </form>
-
-          <div class="register-login-redirect">
-            <p>
-              {{ $t('register.jaTemConta') }}
-              <router-link to="/login">{{ $t('register.loginLink') }}</router-link>
+          <div class="user-register__field">
+            <BaseInput
+              v-model="form.confirmar_senha"
+              type="password"
+              :label="$t('register.confirmarSenha')"
+              autocomplete="new-password"
+              :placeholder="$t('register.confirmarSenhaPlaceholder')"
+              :error="errors.confirmar_senha"
+              required
+            />
+            <p
+              v-if="form.confirmar_senha"
+              class="user-register__match"
+              :class="passwordsMatch ? 'user-register__match--ok' : 'user-register__match--error'"
+              aria-live="polite"
+            >
+              <BaseIcon :name="passwordsMatch ? 'check-circle' : 'x-circle'" />
+              <span>{{
+                passwordsMatch ? $t('register.passwordsMatch') : $t('register.passwordsDoNotMatch')
+              }}</span>
             </p>
           </div>
-        </div>
+        </fieldset>
+
+        <!-- Seção 3: Preferências -->
+        <fieldset class="user-register__section">
+          <legend class="user-register__section-title">
+            <BaseIcon name="book-open" />
+            {{ $t('register.learningPreferences') }}
+          </legend>
+
+          <BaseSelect
+            v-model="form.nivel_ingles"
+            :label="$t('profile.nivelIngles')"
+            :options="nivelOptions"
+          />
+          <BaseSelect
+            v-model="form.idioma_preferido"
+            :label="$t('profile.idiomaPreferido')"
+            :options="idiomaOptions"
+          />
+          <BaseTextarea
+            v-model="form.objetivos_aprendizado"
+            :label="$t('profile.objetivos')"
+            :rows="3"
+            :placeholder="$t('register.objetivosPlaceholder')"
+          />
+        </fieldset>
       </div>
-    </div>
-  </div>
+
+      <div class="user-register__actions">
+        <BaseButton variant="secondary" to="/login">{{ $t('common.cancelar') }}</BaseButton>
+        <BaseButton type="submit" :loading="loading">
+          {{ loading ? $t('common.salvando') : $t('register.createAccount') }}
+        </BaseButton>
+      </div>
+    </form>
+
+    <template #footer>
+      {{ $t('register.jaTemConta') }}
+      <router-link to="/login">{{ $t('register.loginLink') }}</router-link>
+    </template>
+  </AuthCard>
 </template>
 
 <script setup lang="ts">
 defineOptions({
-  name: 'UserRegister'
+  name: 'UserRegister',
 })
 
+import { BaseButton, BaseIcon, BaseInput, BaseSelect, BaseTextarea } from '@/shared/components/ui'
+import AuthCard from '../components/AuthCard.vue'
+import PasswordStrength from '../components/PasswordStrength.vue'
 import { useRegister } from './Register'
 
 const {
@@ -212,7 +152,7 @@ const {
   idiomaOptions,
   handlePhoneInput,
   handlePhoneKeydown,
-  handleSubmit
+  handleSubmit,
 } = useRegister()
 </script>
 

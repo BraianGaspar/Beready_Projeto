@@ -1,26 +1,42 @@
+import type { NivelDificuldade } from '@/shared/utils/nivelDificuldade'
+
+export type { NivelDificuldade }
+
+export type UserRole = 'user' | 'admin'
+
+// Usuário como devolvido pelo backend (nunca contém dados sensíveis como hash de senha)
 export interface User {
   id: number
   nome: string
   email: string
-  role?: 'user' | 'admin'
-  senha_hash?: string
-  telefone?: string
-  nivel_ingles: string
-  idioma_preferido: string
-  objetivos_aprendizado?: string
-  status: string
-  foto_perfil?: string
+  role: UserRole
+  telefone?: string | null
+  nivel_ingles?: string
+  idioma_preferido?: string
+  objetivos_aprendizado?: string | null
+  status?: string
+  foto_perfil?: string | null
   uuid?: string
   criado_em?: string
   atualizado_em?: string
-  ultimo_login?: string
-  assinatura?: {
-    plano: {
-      nome: string
-      recursos?: string[]
-      limites?: Record<string, number>
-    }
-  }
+  ultimo_login?: string | null
+}
+
+export interface AuthTokens {
+  access_token: string
+  expires_in: number
+  token_type: string
+}
+
+// POST /auth/login e POST /auth/social/exchange
+export interface LoginResponseData {
+  user: User
+  tokens: AuthTokens
+}
+
+// POST /auth/refresh
+export interface RefreshResponseData extends AuthTokens {
+  user?: User
 }
 
 export interface Tag {
@@ -29,9 +45,11 @@ export interface Tag {
   nome: string
   cor: string
   descricao?: string
-  tag_sistema: boolean
-  criado_em: string
+  tag_sistema?: boolean
+  criado_em?: string
 }
+
+export type TagInput = Omit<Tag, 'id' | 'criado_em'>
 
 export interface Prompt {
   id: number
@@ -43,6 +61,8 @@ export interface Prompt {
   sessao_id?: string
   criado_em: string
 }
+
+export type PromptInput = Omit<Prompt, 'id' | 'criado_em'>
 
 export interface Traducao {
   id: number
@@ -81,12 +101,21 @@ export interface Frase {
 export interface Flashcard {
   id: number
   usuario_id: number
+  prompt_id?: number
+  frase_id?: number
   frente: string
   verso: string
-  nivel_dificuldade: 'facil' | 'medio' | 'dificil'
-  criado_em: string
-  atualizado_em: string
+  nivel_dificuldade: NivelDificuldade
+  ultima_revisao?: string
+  proxima_revisao?: string
+  intervalo_dias?: number
+  fator_ease?: number
+  repeticoes?: number
+  criado_em?: string
+  atualizado_em?: string
 }
+
+export type FlashcardInput = Omit<Flashcard, 'id' | 'criado_em' | 'atualizado_em'>
 
 export interface FlashcardData {
   frente: string
@@ -99,28 +128,31 @@ export interface Quiz {
   id: number
   usuario_id: number
   titulo: string
-  descricao?: string
+  descricao?: string | null
   tipo_criacao: string
-  nivel_dificuldade: string
+  nivel_dificuldade: NivelDificuldade
   total_questoes: number
-  tempo_limite?: number
+  tempo_limite?: number | null
   publico: boolean
   criado_em: string
   atualizado_em: string
 }
 
 export interface Progresso {
-  id: number
+  id?: number
   usuario_id: number
-  vocabulario_aprendido: number
-  flashcards_concluidos: number
-  quizes_concluidos: number
-  tempo_total_estudo: number
-  sequencia_atual: number
-  maior_sequencia: number
+  vocabulario_aprendido?: number
+  flashcards_concluidos?: number
+  quizes_concluidos?: number
+  tempo_total_estudo?: number
+  sequencia_atual?: number
+  maior_sequencia?: number
   ultima_atividade?: string
   progresso_nivel?: Record<string, unknown>
-  atualizado_em: string
+  // Ainda não implementados no backend; reconhecidos automaticamente quando vierem
+  taxa_acerto?: number
+  progresso_geral?: number
+  atualizado_em?: string
 }
 
 export interface Preferencia {
@@ -131,7 +163,7 @@ export interface Preferencia {
   notificacoes_ativas: boolean
   som_ativo: boolean
   traducao_automatica: boolean
-  preferencia_dificuldade: 'iniciante' | 'intermediario' | 'avancado' | 'adaptativo'
+  preferencia_dificuldade: NivelDificuldade | 'adaptativo'
   meta_diaria_minutos: number
   criado_em?: string
   atualizado_em?: string

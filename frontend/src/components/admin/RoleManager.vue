@@ -1,117 +1,124 @@
 <template>
   <div class="role-manager">
-    <div class="role-manager-header">
-      <h2>{{ $t('admin.roles.title') }}</h2>
-      <button class="btn-primary" @click="openCreateModal">
-        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        {{ $t('admin.roles.new') }}
-      </button>
+    <div class="role-manager__header">
+      <h2 class="role-manager__title">{{ $t('admin.roles.title') }}</h2>
+      <BaseButton icon="plus" @click="openCreateModal">{{ $t('admin.roles.new') }}</BaseButton>
     </div>
 
-    <div class="role-cards">
-      <div v-for="role in rolesData" :key="role.id" class="role-card">
-        <div class="role-card-header">
-          <div class="role-info">
-            <h3>{{ role.nome }}</h3>
-            <span class="role-badge" :class="{ sistema: role.is_sistema }">
-              {{ role.is_sistema ? $t('admin.roles.system') : $t('admin.roles.custom') }}
-            </span>
-            <span class="role-level">{{ $t('admin.roles.level') }} {{ role.nivel }}</span>
-          </div>
-          <div class="role-actions">
-            <button @click="handleEditRole(role)" class="btn-icon" :title="$t('common.editar')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-            <button
+    <ul class="role-manager__grid u-grid-auto" role="list">
+      <li v-for="role in rolesData" :key="role.id" class="role-manager__item">
+        <BaseCard as="article" padding="sm" :title="role.nome" title-tag="h3" class="role-manager__card">
+          <template #actions>
+            <BaseButton
+              variant="ghost"
+              icon="pencil"
+              :aria-label="`${$t('common.editar')}: ${role.nome}`"
+              @click="handleEditRole(role)"
+            />
+            <BaseButton
               v-if="!role.is_sistema"
-              @click="handleConfirmDelete(role.id)"
-              class="btn-icon danger"
-              :title="$t('common.excluir')"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-              </svg>
-            </button>
+              variant="ghost-danger"
+              icon="trash"
+              :aria-label="`${$t('common.excluir')}: ${role.nome}`"
+              @click="handleConfirmDelete(role)"
+            />
+          </template>
+
+          <div class="role-manager__badges">
+            <BaseBadge v-if="role.is_sistema" variant="info" icon="lock-closed">{{ $t('admin.roles.system') }}</BaseBadge>
+            <BaseBadge v-else icon="pencil">{{ $t('admin.roles.custom') }}</BaseBadge>
+            <BaseBadge variant="primary" icon="chart-bar">{{ $t('admin.roles.level') }} {{ role.nivel }}</BaseBadge>
           </div>
+
+          <ul v-if="role.permissoes?.length" class="role-manager__permissions" role="list" :aria-label="$t('admin.roles.permissions')">
+            <li v-for="perm in role.permissoes" :key="perm.id">
+              <BaseBadge size="sm">{{ perm.descricao }}</BaseBadge>
+            </li>
+          </ul>
+          <p v-else class="role-manager__empty">{{ $t('admin.roles.noPermissions') }}</p>
+        </BaseCard>
+      </li>
+    </ul>
+
+    <!-- Criar / editar (permissões agrupadas por recurso) -->
+    <BaseModal
+      v-model="isModalOpen"
+      size="lg"
+      :title="editingRole ? $t('admin.roles.edit') : $t('admin.roles.new')"
+      @close="handleCloseModal"
+    >
+      <form id="role-manager-form" class="u-stack" @submit.prevent="handleSaveRole">
+        <div class="role-manager__form-row">
+          <BaseInput v-model="formData.nome" :label="$t('admin.roles.name')" :placeholder="$t('admin.roles.namePlaceholder')" required />
+          <BaseInput
+            v-model.number="formData.nivel"
+            type="number"
+            inputmode="numeric"
+            :label="$t('admin.roles.level')"
+            :hint="$t('admin.roles.levelHelper')"
+            placeholder="0"
+          />
         </div>
-        <div class="role-permissions">
-          <span v-for="perm in role.permissoes" :key="perm.id" class="permission-tag">
-            {{ perm.descricao }}
-          </span>
-          <span v-if="!role.permissoes?.length" class="no-permissions">
-            {{ $t('admin.roles.noPermissions') }}
-          </span>
-        </div>
-      </div>
-    </div>
+        <BaseInput
+          v-model="formData.descricao"
+          :label="$t('admin.roles.description')"
+          :placeholder="$t('admin.roles.descriptionPlaceholder')"
+        />
 
-    <!-- MODAL COM AGRUPAMENTO DINÂMICO DE PERMISSÕES -->
-    <div v-if="isModalOpen" class="modal-overlay" @click.self="handleCloseModal">
-      <div class="modal-container">
-        <div class="modal-header">
-          <h3>{{ editingRole ? $t('admin.roles.edit') : $t('admin.roles.new') }}</h3>
-          <button class="modal-close" @click="handleCloseModal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        <fieldset class="role-manager__fieldset">
+          <legend class="role-manager__legend">{{ $t('admin.roles.permissions') }}</legend>
 
-        <form @submit.prevent="handleSaveRole" class="modal-form">
-          <div class="form-group">
-            <label>{{ $t('admin.roles.name') }}</label>
-            <input v-model="formData.nome" :placeholder="$t('admin.roles.namePlaceholder')" required />
-          </div>
-
-          <div class="form-group">
-            <label>{{ $t('admin.roles.description') }}</label>
-            <input v-model="formData.descricao" :placeholder="$t('admin.roles.descriptionPlaceholder')" />
-          </div>
-
-          <div class="form-group">
-            <label>{{ $t('admin.roles.level') }}</label>
-            <input v-model.number="formData.nivel" type="number" placeholder="0" />
-            <small>{{ $t('admin.roles.levelHelper') }}</small>
-          </div>
-
-          <!-- PERMISSÕES AGRUPADAS DINAMICAMENTE -->
-          <div class="form-group">
-            <label>{{ $t('admin.roles.permissions') }}</label>
-            
-            <div v-for="(perms, recurso) in groupedPermissions" :key="recurso" class="permission-group">
-              <h4 class="permission-group-title">{{ formatRecurso(recurso) }}</h4>
-              <div class="permissions-grid">
-                <label v-for="perm in perms" :key="perm.id" class="permission-check">
-                  <input type="checkbox" :value="perm.id" v-model="formData.permission_ids" />
-                  {{ perm.descricao }}
-                </label>
-              </div>
-            </div>
-
-            <div v-if="Object.keys(groupedPermissions).length === 0" class="no-permissions-message">
-              {{ $t('admin.roles.noPermissionsAvailable') }}
+          <div v-for="(perms, recurso) in groupedPermissions" :key="recurso" class="role-manager__group">
+            <h3 class="role-manager__group-title">{{ formatRecurso(recurso) }}</h3>
+            <div class="role-manager__checks">
+              <BaseCheckbox
+                v-for="perm in perms"
+                :key="perm.id"
+                :model-value="formData.permission_ids.includes(perm.id)"
+                :label="perm.descricao"
+                @update:model-value="togglePermission(perm.id, $event)"
+              />
             </div>
           </div>
 
-          <div class="form-actions">
-            <button type="button" @click="handleCloseModal" class="btn-secondary">{{ $t('common.cancelar') }}</button>
-            <button type="submit" class="btn-primary" :disabled="isSaving">
-              {{ isSaving ? $t('common.salvando') : $t('common.salvar') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <p v-if="Object.keys(groupedPermissions).length === 0" class="role-manager__empty">
+            {{ $t('admin.roles.noPermissionsAvailable') }}
+          </p>
+        </fieldset>
+      </form>
+      <template #footer>
+        <BaseButton variant="secondary" @click="handleCloseModal">{{ $t('common.cancelar') }}</BaseButton>
+        <BaseButton type="submit" form="role-manager-form" :loading="isSaving">
+          {{ isSaving ? $t('common.salvando') : $t('common.salvar') }}
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <ConfirmModal
+      v-model="confirmModalVisible"
+      :title="$t('admin.roles.confirmDelete')"
+      :message="$t('admin.roles.deleteMessage')"
+      :warning="$t('confirmModal.irreversible')"
+      :item-name="roleToDelete?.nome"
+      :confirm-text="$t('common.excluir')"
+      type="danger"
+      :loading="deleting"
+      @confirm="handleDeleteRole"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoleManager } from './RoleManager'
+import {
+  BaseBadge,
+  BaseButton,
+  BaseCard,
+  BaseCheckbox,
+  BaseInput,
+  BaseModal,
+  ConfirmModal,
+} from '@/shared/components/ui'
 
 const {
   rolesData,
@@ -125,8 +132,19 @@ const {
   handleEditRole,
   handleSaveRole,
   handleConfirmDelete,
-  handleCloseModal
+  handleDeleteRole,
+  confirmModalVisible,
+  roleToDelete,
+  deleting,
+  handleCloseModal,
 } = useRoleManager()
+
+// BaseCheckbox é booleano: adapta para a lista de ids (mesmo efeito do v-model de array anterior)
+const togglePermission = (id: number, checked: boolean) => {
+  const ids = formData.value.permission_ids
+  if (checked && !ids.includes(id)) ids.push(id)
+  if (!checked) formData.value.permission_ids = ids.filter((pid) => pid !== id)
+}
 </script>
 
 <style scoped>

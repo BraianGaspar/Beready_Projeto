@@ -2,7 +2,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTraducoes } from '@/modules/traducoes/composables/useTraducoes'
 import { promptService } from '@/modules/prompts/services/promptService'
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
 import type { Traducao } from '@/core/types'
 
 interface TraducaoForm {
@@ -14,7 +16,8 @@ interface TraducaoForm {
 
 export function useTraducoesPrompt() {
   const route = useRoute()
-  const { success, error } = useAlert()
+  const { error } = useAlert()
+  const { t } = useI18n()
   const { traducoes, loading, fetchTraducoes, createTraducao, updateTraducao, deleteTraducao } =
     useTraducoes()
 
@@ -45,14 +48,16 @@ export function useTraducoesPrompt() {
         }
       } catch (err: unknown) {
         const axiosError = err as { response?: { data?: { message?: string } } }
-        error(axiosError.response?.data?.message || 'Erro ao carregar prompt')
+        error(axiosError.response?.data?.message || t('prompts.errorLoadOne'))
       }
     }
   }
 
   const loadData = async (): Promise<void> => {
     if (promptId.value) {
-      await fetchTraducoes(promptId.value)
+      await fetchTraducoes(promptId.value).catch(() => {
+        // Alerta de erro já exibido por useTraducoes
+      })
     }
   }
 
@@ -84,7 +89,7 @@ export function useTraducoesPrompt() {
 
   const save = async (): Promise<void> => {
     if (!form.value.texto_traduzido) {
-      error('Texto traduzido é obrigatório')
+      error(t('traducoes.textRequired'))
       return
     }
 
@@ -97,7 +102,6 @@ export function useTraducoesPrompt() {
           pontuacao_confianca: form.value.pontuacao_confianca,
           servico_traducao: form.value.servico_traducao,
         })
-        success('Tradução atualizada com sucesso!')
       } else {
         await createTraducao({
           prompt_id: promptId.value,
@@ -106,13 +110,10 @@ export function useTraducoesPrompt() {
           pontuacao_confianca: form.value.pontuacao_confianca,
           servico_traducao: form.value.servico_traducao,
         })
-        success('Tradução criada com sucesso!')
       }
-      await loadData()
       closeModal()
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } }
-      error(axiosError.response?.data?.message || 'Erro ao salvar tradução')
+    } catch {
+      // Alerta de erro já exibido por useTraducoes
     } finally {
       saving.value = false
     }
@@ -129,8 +130,8 @@ export function useTraducoesPrompt() {
     deleting.value = true
     try {
       await deleteTraducao(itemToDelete.value)
-      success('Tradução excluída com sucesso!')
-      await loadData()
+    } catch {
+      // Alerta de erro já exibido por useTraducoes
     } finally {
       deleting.value = false
       confirmModalVisible.value = false
@@ -138,10 +139,7 @@ export function useTraducoesPrompt() {
     }
   }
 
-  const formatDate = (date?: string): string => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('pt-BR')
-  }
+  const formatDate = (date?: string): string => formatLocaleDate(date)
 
   onMounted(async () => {
     await loadPrompt()

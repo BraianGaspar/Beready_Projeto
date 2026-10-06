@@ -1,100 +1,145 @@
 <!-- frontend/src/views/PlanosPage.vue -->
 
 <template>
-  <div class="planos-page">
-    <div class="planos-header">
-      <button class="back-btn" @click="$router.push('/dashboard')">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+  <PageContainer as="main" class="planos">
+    <PageHeader
+      :title="$t('planos.title')"
+      :subtitle="$t('planos.subtitle')"
+      icon="star"
+      back-to="/dashboard"
+    />
+
+    <BaseSpinner v-if="isLoadingPlanos" center size="lg" />
+    <EmptyState v-else-if="planosData.length === 0" :title="$t('planos.noPlans')" icon="star" />
+
+    <ul v-else class="planos__grid">
+      <li v-for="plano in planosData" :key="plano.id" class="planos__item">
+        <BaseCard
+          as="article"
+          class="planos__card"
+          :highlight="isPlanoAtual(plano) ? 'success' : plano.preco_mensal > 0 ? 'primary' : undefined"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        {{ $t('common.voltar') }}
-      </button>
-      <h1>{{ $t('planos.title') }}</h1>
-      <p>{{ $t('planos.subtitle') }}</p>
-    </div>
+          <div class="planos__card-body">
+            <div class="planos__badges">
+              <BaseBadge v-if="isPlanoAtual(plano)" variant="success" solid icon>
+                {{ $t('planos.currentPlan') }}
+              </BaseBadge>
+              <BaseBadge v-else-if="plano.preco_mensal > 0" variant="primary" solid icon="star">
+                {{ $t('planos.mostPopular') }}
+              </BaseBadge>
+            </div>
 
-    <div class="planos-container">
-      <div
-        v-for="plano in planosData"
-        :key="plano.id"
-        class="plano-card"
-        :class="{ 
-          premium: plano.preco_mensal > 0,
-          'plano-gratuito': plano.preco_mensal === 0
-        }"
-      >
-        <div v-if="plano.preco_mensal > 0" class="plano-badge">
-          {{ $t('planos.mostPopular') }}
-        </div>
+            <header class="planos__card-header">
+              <h2 class="planos__name">{{ plano.nome }}</h2>
+              <p class="planos__description">{{ plano.descricao }}</p>
+            </header>
 
-        <div class="plano-card-header">
-          <h3>{{ plano.nome }}</h3>
-          <p class="plano-descricao">{{ plano.descricao }}</p>
-        </div>
+            <p class="planos__price">
+              <span class="planos__price-value">{{ formatCurrency(plano.preco_mensal) }}</span>
+              <span class="planos__price-period">{{ $t('planos.perMonth') }}</span>
+            </p>
 
-        <div class="plano-preco">
-          <span class="preco">R$ {{ plano.preco_mensal.toFixed(2) }}</span>
-          <span class="periodo">{{ $t('planos.perMonth') }}</span>
-        </div>
+            <p v-if="plano.preco_anual > 0" class="planos__yearly">
+              <span>{{ $t('planos.orYearly', { price: formatCurrency(plano.preco_anual) }) }}</span>
+              <BaseBadge variant="success" size="sm" icon="trending-down">
+                {{ $t('planos.save', { percent: calcularEconomia(plano) }) }}
+              </BaseBadge>
+            </p>
 
-        <div v-if="plano.preco_anual > 0" class="plano-preco-anual">
-          <span>{{ $t('planos.orYearly', { price: plano.preco_anual.toFixed(2) }) }}</span>
-          <span class="economia">({{ $t('planos.save', { percent: calcularEconomia(plano) }) }})</span>
-        </div>
+            <ul class="planos__features">
+              <li v-for="recurso in plano.recursos" :key="recurso" class="planos__feature">
+                <BaseIcon name="check" class="planos__feature-icon" />
+                <span>{{ formatRecurso(recurso) }}</span>
+              </li>
+            </ul>
 
-        <div class="plano-recursos">
-          <div v-for="recurso in plano.recursos" :key="recurso" class="recurso-item">
-            <svg class="check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-            <span>{{ formatRecurso(recurso) }}</span>
+            <dl class="planos__limits">
+              <div v-for="(limite, key) in plano.limites" :key="key" class="planos__limit">
+                <dt class="planos__limit-label">{{ formatLimiteKey(key) }}</dt>
+                <dd class="planos__limit-value">{{ limite === 999999 ? '∞' : limite }}</dd>
+              </div>
+            </dl>
+
+            <BaseBadge v-if="plano.dias_trial > 0" variant="warning" icon="clock" class="planos__trial">
+              {{ $t('planos.trialDays', { days: plano.dias_trial }) }}
+            </BaseBadge>
+
+            <div class="planos__actions">
+              <BaseButton v-if="isPlanoAtual(plano)" variant="secondary" icon="check" block disabled>
+                {{ $t('planos.currentPlan') }}
+              </BaseButton>
+              <BaseButton
+                v-else
+                :variant="plano.preco_mensal > 0 ? 'primary' : 'secondary'"
+                block
+                :loading="isLoading"
+                @click="handleAssinarPlano(plano)"
+              >
+                {{
+                  isLoading
+                    ? $t('common.salvando')
+                    : plano.preco_mensal === 0
+                      ? $t('planos.startFree')
+                      : $t('planos.subscribeNow')
+                }}
+              </BaseButton>
+
+              <BaseButton
+                v-if="isPlanoAtual(plano) && podeCancelar"
+                variant="ghost-danger"
+                size="sm"
+                icon="x-circle"
+                block
+                :disabled="isLoading"
+                @click="showCancelModal = true"
+              >
+                {{ $t('planos.cancelSubscription') }}
+              </BaseButton>
+            </div>
           </div>
-        </div>
+        </BaseCard>
+      </li>
+    </ul>
 
-        <div class="plano-limites">
-          <div v-for="(limite, key) in plano.limites" :key="key" class="limite-item">
-            <span class="limite-label">{{ formatLimiteKey(key) }}</span>
-            <span class="limite-valor">{{ limite === 999999 ? '∞' : limite }}</span>
-          </div>
-        </div>
-
-        <div v-if="plano.dias_trial > 0" class="plano-trial">
-          {{ $t('planos.trialDays', { days: plano.dias_trial }) }}
-        </div>
-
-        <button
-          class="btn-assinar"
-          :class="{ premium: plano.preco_mensal > 0 }"
-          @click="handleAssinarPlano(plano)"
-          :disabled="isLoading"
-        >
-          {{ isLoading ? $t('common.salvando') : plano.preco_mensal === 0 ? $t('planos.startFree') : $t('planos.subscribeNow') }}
-        </button>
-      </div>
-    </div>
-  </div>
+    <ConfirmModal
+      v-model="showCancelModal"
+      type="warning"
+      :title="$t('planos.cancelSubscription')"
+      :message="$t('planos.cancelConfirmMessage')"
+      :confirm-text="$t('planos.cancelSubscription')"
+      :loading="isLoading"
+      @confirm="handleCancelarAssinatura"
+    />
+  </PageContainer>
 </template>
 
 <script setup lang="ts">
+import {
+  BaseBadge,
+  BaseButton,
+  BaseCard,
+  BaseIcon,
+  BaseSpinner,
+  ConfirmModal,
+  EmptyState,
+  PageContainer,
+  PageHeader,
+} from '@/shared/components/ui'
 import { usePlanosPage } from './PlanosPage'
 
 const {
   planosData,
   isLoading,
+  isLoadingPlanos,
+  showCancelModal,
+  podeCancelar,
+  isPlanoAtual,
   calcularEconomia,
   formatRecurso,
   formatLimiteKey,
-  handleAssinarPlano
+  formatCurrency,
+  handleAssinarPlano,
+  handleCancelarAssinatura,
 } = usePlanosPage()
 </script>
 

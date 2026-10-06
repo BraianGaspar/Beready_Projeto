@@ -1,19 +1,12 @@
 import { ref, computed, onMounted } from 'vue'
-import { useAuth } from '@/shared/composables/useAuth'
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
 import api from '@/core/services/api'
 import type { AxiosError } from 'axios'
+import { useAuthStore } from '@/stores/auth'
+import type { User, UserRole } from '@/core/types'
 
 // TIPOS
-interface User {
-  id: number
-  nome: string
-  email: string
-  role: 'admin' | 'user'
-  status: 'ativo' | 'inativo'
-  foto_perfil?: string
-}
-
 interface Stats {
   total_users: number
   admin_count: number
@@ -34,8 +27,10 @@ interface ApiResponse<T> {
 }
 
 export function useAdminPanel() {
-  const { user, logout } = useAuth()
+  const authStore = useAuthStore()
+  const user = computed(() => authStore.user)
   const { success, error } = useAlert()
+  const { t } = useI18n()
   const activeTab = ref<string>('users')
   const users = ref<User[]>([])
   const loadingUsers = ref<boolean>(false)
@@ -64,25 +59,26 @@ export function useAdminPanel() {
     )
   })
 
-  // Função para verificar se o erro é de autenticação
-  const isAuthError = (err: unknown): boolean => {
-    const axiosError = err as AxiosError
-    return axiosError.response?.status === 401 || 
-           axiosError.response?.status === 403 ||
-           axiosError.message?.includes('Expired token') ||
-           axiosError.message?.includes('Unauthorized')
-  }
+  // 401 (sessão expirada) é tratado pelo interceptor do api (refresh/logout centralizado).
+  // 403 significa apenas falta de permissão: mostra o erro, sem deslogar.
+  const handleRequestError = (err: unknown, fallbackMessage: string): void => {
+    const axiosError = err as AxiosError<{ message?: string }>
+    const status = axiosError.response?.status
 
-  // Função para tratar erros de autenticação
-  const handleAuthError = async (err: unknown): Promise<void> => {
-    if (isAuthError(err)) {
-      error('Sua sessão expirou. Faça login novamente.')
-      await logout()
-      // Redirecionar para login após 2 segundos
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 2000)
+    if (status === 401) return
+
+    if (status === 403) {
+      error(axiosError.response?.data?.message || t('admin.noPermissionAction'))
+      return
     }
+
+    if (status === 500) {
+      error(t('admin.serverError'))
+      console.error('Detalhes do erro 500:', axiosError.response?.data)
+      return
+    }
+
+    error(axiosError.response?.data?.message || axiosError.message || fallbackMessage)
   }
 
   const loadUsers = async (): Promise<void> => {
@@ -95,30 +91,11 @@ export function useAdminPanel() {
       } else {
         console.error('Erro na resposta:', response.data?.message || 'Resposta inválida')
         users.value = []
-        error(response.data?.message || 'Erro ao carregar usuários')
+        error(response.data?.message || t('admin.errorLoadUsers'))
       }
     } catch (err: unknown) {
       console.error('Erro ao carregar usuários:', err)
-      
-      // Verificar se é erro de autenticação
-      if (isAuthError(err)) {
-        await handleAuthError(err)
-        return
-      }
-
-      const axiosError = err as AxiosError<{ message?: string }>
-      
-      // Tratamento específico para erro 500
-      if (axiosError.response?.status === 500) {
-        error('Erro no servidor. Verifique se as rotas de admin estão configuradas corretamente.')
-        console.error('Detalhes do erro 500:', axiosError.response?.data)
-      } else {
-        const errorMessage = axiosError.response?.data?.message || 
-                            axiosError.message || 
-                            'Erro ao carregar usuários'
-        error(errorMessage)
-      }
-      
+      handleRequestError(err, t('admin.errorLoadUsers'))
       users.value = []
     } finally {
       loadingUsers.value = false
@@ -132,46 +109,28 @@ export function useAdminPanel() {
         stats.value = response.data.data || stats.value
       } else {
         console.error('Erro na resposta:', response.data?.message)
-        error(response.data?.message || 'Erro ao carregar estatísticas')
+        error(response.data?.message || t('admin.errorLoadStats'))
       }
     } catch (err: unknown) {
       console.error('Erro ao carregar estatísticas:', err)
-      
-      // Verificar se é erro de autenticação
-      if (isAuthError(err)) {
-        await handleAuthError(err)
-        return
-      }
-
-      const axiosError = err as AxiosError<{ message?: string }>
-      
-      // Tratamento específico para erro 500
-      if (axiosError.response?.status === 500) {
-        error('Erro no servidor. Verifique se as rotas de admin estão configuradas corretamente.')
-        console.error('Detalhes do erro 500:', axiosError.response?.data)
-      } else {
-        const errorMessage = axiosError.response?.data?.message || 
-                            axiosError.message || 
-                            'Erro ao carregar estatísticas'
-        error(errorMessage)
-      }
+      handleRequestError(err, t('admin.errorLoadStats'))
     }
   }
 
   const toggleRole = async (targetUser: User): Promise<void> => {
     // Verificar se o usuário atual é admin
-    if (user.value?.role !== 'admin') {
-      error('Você não tem permissão para alterar funções')
+    if (!isAdmin.value) {
+      error(t('admin.noPermissionChangeRole'))
       return
     }
 
     // Não permitir alterar a própria role
     if (targetUser.id === user.value?.id) {
-      error('Você não pode alterar sua própria função')
+      error(t('admin.cannotChangeOwnRole'))
       return
     }
 
-    const newRole: 'admin' | 'user' = targetUser.role === 'admin' ? 'user' : 'admin'
+    const newRole: UserRole = targetUser.role === 'admin' ? 'user' : 'admin'
 
     updatingRole.value = targetUser.id
 
@@ -185,33 +144,21 @@ export function useAdminPanel() {
         await loadUsers()
         await loadStats() // Atualiza estatísticas após mudar role
         success(
-          `${targetUser.nome} ${newRole === 'admin' ? 'agora é Administrador' : 'agora é Usuário'}`,
+          t(newRole === 'admin' ? 'admin.nowAdmin' : 'admin.nowUser', { name: targetUser.nome }),
         )
       } else {
-        error(response.data?.message || 'Erro ao alterar permissão')
+        error(response.data?.message || t('admin.errorChangeRole'))
       }
     } catch (err: unknown) {
       console.error('Erro ao alterar role:', err)
-      
-      // Verificar se é erro de autenticação
-      if (isAuthError(err)) {
-        await handleAuthError(err)
-        return
-      }
-
-      const axiosError = err as AxiosError<{ message?: string }>
-      const errorMessage = axiosError.response?.data?.message || 
-                          axiosError.message || 
-                          'Erro ao alterar permissão'
-      
-      error(errorMessage)
+      handleRequestError(err, t('admin.errorChangeRole'))
     } finally {
       updatingRole.value = null
     }
   }
 
-  // Função adicional para verificar se o usuário atual é admin
-  const isAdmin = computed<boolean>(() => user.value?.role === 'admin')
+  // Admin = role 'admin' vinda do servidor (store de auth)
+  const isAdmin = computed<boolean>(() => authStore.isAdmin)
 
   // Função para recarregar todos os dados
   const reloadAll = async (): Promise<void> => {
@@ -221,34 +168,14 @@ export function useAdminPanel() {
     ])
   }
 
-  // Função para renovar o token (se necessário)
-  const refreshToken = async (): Promise<boolean> => {
-    try {
-      const refreshToken = localStorage.getItem('refresh_token')
-      if (!refreshToken) return false
-
-      const response = await api.post('/auth/refresh', { refresh_token: refreshToken })
-      if (response.data.success) {
-        const { access_token, refresh_token } = response.data.data
-        localStorage.setItem('access_token', access_token)
-        localStorage.setItem('refresh_token', refresh_token)
-        return true
-      }
-      return false
-    } catch (err) {
-      console.error('Erro ao renovar token:', err)
-      return false
-    }
-  }
-
   onMounted(async () => {
     // Verificar se o usuário tem permissão de admin antes de carregar
-    if (user.value?.role === 'admin') {
+    if (isAdmin.value) {
       // Tentar carregar os dados
       await loadUsers()
       await loadStats()
     } else {
-      error('Acesso negado. Você não tem permissões de administrador.')
+      error(t('admin.accessDeniedAdmin'))
     }
   })
 
@@ -270,6 +197,5 @@ export function useAdminPanel() {
     loadUsers,
     loadStats,
     reloadAll,
-    refreshToken,
   }
 }

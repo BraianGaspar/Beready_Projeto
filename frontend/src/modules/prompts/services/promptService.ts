@@ -1,14 +1,7 @@
 import api from '@/core/services/api'
+import type { Prompt, PromptInput } from '@/core/types'
 
-export interface Prompt {
-  id?: number
-  usuario_id: number
-  texto_original: string
-  idioma_original?: string
-  contexto?: string
-  sessao_id?: string
-  criado_em?: string
-}
+export type { Prompt }
 
 export const promptService = {
   // Listar prompts por usuário
@@ -21,12 +14,12 @@ export const promptService = {
     api.get(`/prompts/view/${id}`),
 
   // Criar prompt
-  create: (data: Prompt) => {
+  create: (data: PromptInput) => {
     return api.post('/prompts', data)
   },
 
   // Atualizar prompt
-  update: (id: number, data: Partial<Prompt>) =>
+  update: (id: number, data: Partial<PromptInput>) =>
     api.put(`/prompts/edit/${id}`, data),
 
   // Deletar prompt

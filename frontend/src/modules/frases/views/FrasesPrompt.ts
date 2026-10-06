@@ -2,8 +2,10 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFrases } from '@/modules/frases/composables/useFrases'
 import { promptService } from '@/modules/prompts/services/promptService'
-import { fraseService } from '@/modules/frases/services/fraseService'
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
+import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
 import type { Frase } from '@/core/types'
 
 interface FraseForm {
@@ -25,9 +27,10 @@ interface ApiError {
 
 export function useFrasesPrompt() {
   const route = useRoute()
-  const { success, error } = useAlert()
+  const { error } = useAlert()
+  const { t, te } = useI18n()
   const promptId = ref<number>(0)
-  const { frases, loading, fetchFrases, createFrase, deleteFrase } = useFrases(promptId.value)
+  const { frases, loading, fetchFrases, createFrase, updateFrase, deleteFrase } = useFrases()
 
   const promptTexto = ref<string>('')
   const modalOpen = ref(false)
@@ -55,14 +58,16 @@ export function useFrasesPrompt() {
         }
       } catch (err: unknown) {
         const apiError = err as ApiError
-        error(apiError.response?.data?.message || 'Erro ao carregar prompt')
+        error(apiError.response?.data?.message || t('prompts.errorLoadOne'))
       }
     }
   }
 
   const loadData = async () => {
     if (promptId.value) {
-      await fetchFrases()
+      await fetchFrases(promptId.value).catch(() => {
+        // Alerta de erro já exibido por useFrases
+      })
     }
   }
 
@@ -94,19 +99,18 @@ export function useFrasesPrompt() {
 
   const save = async () => {
     if (!form.value.frase_semelhante) {
-      error('Frase semelhante é obrigatória')
+      error(t('frases.fraseRequired'))
       return
     }
     saving.value = true
     try {
       if (editingId.value) {
-        await fraseService.update(editingId.value, {
+        await updateFrase(editingId.value, {
           frase_semelhante: form.value.frase_semelhante,
           pontuacao_semelhante: form.value.pontuacao_semelhante,
           tipo_frase: form.value.tipo_frase,
           nivel_dificuldade: form.value.nivel_dificuldade,
         })
-        success('Frase atualizada com sucesso!')
       } else {
         await createFrase({
           prompt_id: promptId.value,
@@ -116,11 +120,9 @@ export function useFrasesPrompt() {
           nivel_dificuldade: form.value.nivel_dificuldade,
         })
       }
-      await loadData()
       closeModal()
-    } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.response?.data?.message || 'Erro ao salvar frase')
+    } catch {
+      // Alerta de erro já exibido por useFrases
     } finally {
       saving.value = false
     }
@@ -136,10 +138,8 @@ export function useFrasesPrompt() {
     deleting.value = true
     try {
       await deleteFrase(itemToDelete.value)
-      await loadData()
-    } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.response?.data?.message || 'Erro ao excluir frase')
+    } catch {
+      // Alerta de erro já exibido por useFrases
     } finally {
       deleting.value = false
       confirmModalVisible.value = false
@@ -147,9 +147,12 @@ export function useFrasesPrompt() {
     }
   }
 
-  const formatDate = (date?: string): string => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('pt-BR')
+  const formatDate = (date?: string): string => formatLocaleDate(date)
+
+  // Rótulo traduzido do tipo da frase (o valor gravado no backend não muda)
+  const getTipoLabel = (tipo?: string): string => {
+    const key = `frases.tipos.${tipo || 'relacionada'}`
+    return te(key) ? t(key) : tipo || ''
   }
 
   onMounted(async () => {
@@ -169,6 +172,8 @@ export function useFrasesPrompt() {
     deleting,
     confirmModalVisible,
     formatDate,
+    getTipoLabel,
+    getNivelLabelKey,
     openModal,
     closeModal,
     editFrase,

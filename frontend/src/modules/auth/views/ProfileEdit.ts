@@ -4,16 +4,17 @@ import { useForm } from '@/shared/composables/useForm'
 import { usePasswordStrength } from '@/shared/composables/usePasswordStrength'
 import { usePhoneMask } from '@/shared/composables/usePhoneMask'
 import { useAlert } from '@/shared/composables/useAlert'
-import { API_BASE_URL } from '@/shared/config/env'
+import api, { getApiErrorMessage } from '@/core/services/api'
+import { useAuthStore } from '@/stores/auth'
+import type { ApiResponse, User } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 
 export function useProfileEdit() {
   const router = useRouter()
+  const authStore = useAuthStore()
   const { success, error } = useAlert()
   const { t } = useI18n()
   const loading = ref(false)
-  const showPassword = ref(false)
-  const showConfirmPassword = ref(false)
   const userId = ref<number | null>(null)
   const selectedImage = ref<File | undefined>(undefined)
 
@@ -79,61 +80,35 @@ export function useProfileEdit() {
     selectedImage.value = file
   }
 
+  const fillForm = (user: Partial<User>) => {
+    form.nome = user.nome || ''
+    form.email = user.email || ''
+    form.telefone = formatPhone(user.telefone || '')
+    form.foto_perfil = user.foto_perfil || ''
+    form.nivel_ingles = user.nivel_ingles || 'iniciante'
+    form.idioma_preferido = user.idioma_preferido || 'pt-BR'
+    form.status = user.status || 'ativo'
+    form.objetivos_aprendizado = user.objetivos_aprendizado || ''
+  }
+
   const loadUserData = async () => {
-    const userData = localStorage.getItem('user')
-    if (!userData) {
+    const currentUser = authStore.user
+    if (!currentUser) {
       router.push('/login')
       return
     }
 
+    userId.value = currentUser.id
+    // Preenche imediatamente com o store e depois atualiza com o servidor
+    fillForm(currentUser)
+
     try {
-      const user = JSON.parse(userData)
-      userId.value = user.id
-
-      const response = await fetch(`${API_BASE_URL}/users/view/${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          const userData = data.data?.user || data.user || data.data
-
-          form.nome = userData.nome || ''
-          form.email = userData.email || ''
-          form.telefone = formatPhone(userData.telefone || '')
-          form.foto_perfil = userData.foto_perfil || ''
-          form.nivel_ingles = userData.nivel_ingles || 'iniciante'
-          form.idioma_preferido = userData.idioma_preferido || 'pt-BR'
-          form.status = userData.status || 'ativo'
-          form.objetivos_aprendizado = userData.objetivos_aprendizado || ''
-        }
-      } else {
-        const user = JSON.parse(userData)
-        form.nome = user.nome || ''
-        form.email = user.email || ''
-        form.telefone = formatPhone(user.telefone || '')
-        form.foto_perfil = user.foto_perfil || ''
-        form.nivel_ingles = user.nivel_ingles || 'iniciante'
-        form.idioma_preferido = user.idioma_preferido || 'pt-BR'
-        form.status = user.status || 'ativo'
-        form.objetivos_aprendizado = user.objetivos_aprendizado || ''
+      const freshUser = await authStore.fetchMe()
+      if (freshUser) {
+        fillForm(freshUser)
       }
     } catch (e) {
-      const user = JSON.parse(userData)
-      userId.value = user.id
-      form.nome = user.nome || ''
-      form.email = user.email || ''
-      form.telefone = formatPhone(user.telefone || '')
-      form.foto_perfil = user.foto_perfil || ''
-      form.nivel_ingles = user.nivel_ingles || 'iniciante'
-      form.idioma_preferido = user.idioma_preferido || 'pt-BR'
-      form.status = user.status || 'ativo'
-      form.objetivos_aprendizado = user.objetivos_aprendizado || ''
+      console.error('Erro ao carregar usuário:', e)
     }
   }
 
@@ -142,25 +117,15 @@ export function useProfileEdit() {
       const formData = new FormData()
       formData.append('photo', file)
 
-      const token = localStorage.getItem('access_token')
-
-      const response = await fetch(`${API_BASE_URL}/upload/profile-photo`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+      const { data } = await api.post('/upload/profile-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        return data.url
-      } else {
-        console.error('Erro no upload:', data.message)
-        return null
+      if (data.success) {
+        return data.url ?? null
       }
+      console.error('Erro no upload:', data.message)
+      return null
     } catch (error) {
       console.error('Erro no upload:', error)
       return null
@@ -168,16 +133,8 @@ export function useProfileEdit() {
   }
 
   const handleSubmit = async () => {
-    let currentUserId = userId.value
-
-    if (!currentUserId) {
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        const user = JSON.parse(userData)
-        currentUserId = user.id
-        userId.value = currentUserId
-      }
-    }
+    const currentUserId = userId.value ?? authStore.user?.id ?? null
+    userId.value = currentUserId
 
     if (!currentUserId) {
       error(t('errors.unauthorized'))
@@ -188,7 +145,7 @@ export function useProfileEdit() {
     if (form.telefone) {
       const digits = form.telefone.replace(/\D/g, '')
       if (digits.length > 0 && digits.length < 11) {
-        error(t('profile.telefoneInvalido') || 'Telefone deve ter 11 dígitos')
+        error(t('profile.telefoneInvalido'))
         return
       }
     }
@@ -216,7 +173,7 @@ export function useProfileEdit() {
           selectedImage.value = undefined
           imagePreview.value = null
         } else {
-          error(t('profile.erroUploadImagem') || 'Erro ao fazer upload da imagem. Tente novamente.')
+          error(t('profile.erroUploadImagem'))
           loading.value = false
           return
         }
@@ -249,21 +206,15 @@ export function useProfileEdit() {
         submitData.senha = form.nova_senha
       }
 
-      const response = await fetch(`${API_BASE_URL}/users/update/${currentUserId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      })
+      const { data } = await api.put<ApiResponse<{ user: User }>>(`/users/update/${currentUserId}`, submitData)
 
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        const updatedUser = data.data?.user ||
-          data.user || {
-            id: currentUserId,
+      if (data.success) {
+        const returnedUser = data.data?.user
+        if (returnedUser?.id) {
+          authStore.setUser(returnedUser)
+        } else if (authStore.user) {
+          authStore.setUser({
+            ...authStore.user,
             nome: form.nome,
             email: form.email,
             telefone: form.telefone,
@@ -272,10 +223,8 @@ export function useProfileEdit() {
             idioma_preferido: form.idioma_preferido,
             status: form.status,
             objetivos_aprendizado: form.objetivos_aprendizado,
-          }
-
-        localStorage.setItem('user', JSON.stringify(updatedUser))
-        window.dispatchEvent(new CustomEvent('user-updated', { detail: updatedUser }))
+          })
+        }
 
         success(t('success.updated'))
 
@@ -285,8 +234,8 @@ export function useProfileEdit() {
       } else {
         error(data.message || t('errors.serverError'))
       }
-    } catch {
-      error(t('errors.networkError'))
+    } catch (err: unknown) {
+      error(getApiErrorMessage(err) || t('errors.networkError'))
     } finally {
       loading.value = false
     }
@@ -300,8 +249,6 @@ export function useProfileEdit() {
     form,
     errors,
     loading,
-    showPassword,
-    showConfirmPassword,
     strengthClass,
     strengthText,
     strengthWidth,

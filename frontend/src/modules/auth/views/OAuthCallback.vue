@@ -1,23 +1,19 @@
 <template>
-  <div class="oauth-callback-page">
-    <div class="oauth-callback-container">
-      <div v-if="loading" class="loading-spinner">
-        <div class="spinner"></div>
-        <p class="loading-text">{{ $t('oauth.loading') }}</p>
-      </div>
+  <AuthCard :title="error ? $t('oauth.processError') : $t('oauth.loading')" icon="login">
+    <div class="oauth-callback__body">
+      <BaseSpinner v-if="loading" size="lg" center :label="$t('oauth.loading')" />
 
-      <div v-if="error" class="error-message">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <p>{{ error }}</p>
-        <button @click="goToLogin" class="btn-retry">{{ $t('common.voltar') }}</button>
-      </div>
+      <template v-if="error">
+        <BaseAlert variant="danger" :message="error" />
+        <BaseButton icon="arrow-left" block @click="goToLogin">{{ $t('common.voltar') }}</BaseButton>
+      </template>
     </div>
-  </div>
+  </AuthCard>
 </template>
 
 <script setup lang="ts">
+import { BaseAlert, BaseButton, BaseSpinner } from '@/shared/components/ui'
+import AuthCard from '../components/AuthCard.vue'
 import { useOAuthCallback } from './OAuthCallback'
 
 const { error, loading, goToLogin } = useOAuthCallback()

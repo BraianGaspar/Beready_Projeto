@@ -6,9 +6,12 @@ import type { Prompt } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
 import { usePlan } from '@/shared/composables/usePlan'
+import { useAuthStore } from '@/stores/auth'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
 
 export function usePrompts() {
   const router = useRouter()
+  const authStore = useAuthStore()
   const { success, error } = useAlert()
   const { t } = useI18n()
   const permissionStore = usePermissionStore()
@@ -44,16 +47,7 @@ export function usePrompts() {
     return plan.canCreateMore('prompts', prompts.value.length)
   }
 
-  const getCurrentUserId = (): number | null => {
-    const userData = localStorage.getItem('user')
-    if (!userData) return null
-    try {
-      const user = JSON.parse(userData)
-      return user.id
-    } catch {
-      return null
-    }
-  }
+  const getCurrentUserId = (): number | null => authStore.user?.id ?? null
 
   const fetchPrompts = async (): Promise<void> => {
     const userId = getCurrentUserId()
@@ -89,11 +83,11 @@ export function usePrompts() {
 
   const openModal = (): void => {
     if (!canCreate.value) {
-      console.warn('Sem permissão para criar prompts')
+      error(t('permissions.createDenied', { recurso: t('common.prompts') }))
       return
     }
     if (!canCreateMore()) {
-      console.warn('Limite de prompts atingido')
+      error(t('prompts.limitReached'))
       return
     }
     editingPrompt.value = null
@@ -103,7 +97,7 @@ export function usePrompts() {
 
   const editPrompt = (prompt: Prompt): void => {
     if (!canEdit.value) {
-      console.warn('Sem permissão para editar prompts')
+      error(t('permissions.editDenied', { recurso: t('common.prompts') }))
       return
     }
     editingPrompt.value = prompt
@@ -131,7 +125,7 @@ export function usePrompts() {
 
     try {
       if (editingPrompt.value) {
-        const response = await promptService.update(editingPrompt.value.id!, form.value)
+        const response = await promptService.update(editingPrompt.value.id, form.value)
         if (response.data.success) success(t('prompts.successUpdate'))
         else throw new Error(response.data.message)
       } else {
@@ -151,7 +145,7 @@ export function usePrompts() {
 
   const confirmDelete = (prompt: Prompt): void => {
     if (!canDelete.value) {
-      console.warn('Sem permissão para excluir prompts')
+      error(t('permissions.deleteDenied', { recurso: t('common.prompts') }))
       return
     }
     promptToDelete.value = prompt
@@ -163,7 +157,7 @@ export function usePrompts() {
 
     deleting.value = true
     try {
-      const response = await promptService.delete(promptToDelete.value.id!)
+      const response = await promptService.delete(promptToDelete.value.id)
       if (response.data.success) {
         success(t('prompts.successDelete'))
         await fetchPrompts()
@@ -180,14 +174,11 @@ export function usePrompts() {
     }
   }
 
-  const formatDate = (date?: string): string => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('pt-BR')
-  }
+  const formatDate = (date?: string): string => formatLocaleDate(date)
 
   const viewTranslations = (promptId: number): void => {
     if (!canView.value) {
-      console.warn('Sem permissão para visualizar prompt')
+      error(t('permissions.viewDenied', { recurso: t('common.prompts') }))
       return
     }
     router.push(`/prompts/${promptId}`)

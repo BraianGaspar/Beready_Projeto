@@ -1,33 +1,34 @@
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useForm } from '@/shared/composables/useForm'
 import { useAlert } from '@/shared/composables/useAlert'
-import { auth } from '@/core/services/api'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY
-const RECAPTCHA_JS_URL = import.meta.env.VITE_RECAPTCHA_JS_URL
+import { useAuthStore } from '@/stores/auth'
+import { API_BASE_URL, RECAPTCHA_SITE_KEY, RECAPTCHA_JS_URL } from '@/shared/config/env'
 
 export function useLogin() {
   const router = useRouter()
+  const route = useRoute()
+  const authStore = useAuthStore()
   const { success, error, clearAllAlerts } = useAlert()
+  const { t } = useI18n()
   const loading = ref(false)
 
   const { form, errors, validate } = useForm({ email: '', password: '' })
 
   const rules = {
-    email: (value: string) => (!value ? 'E-mail é obrigatório' : null),
+    email: (value: string) => (!value ? t('register.emailRequired') : null),
     password: (value: string) => {
-      if (!value) return 'Senha é obrigatória'
-      if (value.length < 6) return 'A senha deve ter pelo menos 6 caracteres'
+      if (!value) return t('register.passwordRequired')
+      if (value.length < 6) return t('passwordValidation.minLength')
       return null
     },
   }
 
   // Carrega o script do reCAPTCHA
   const loadRecaptcha = () => {
-    if (!RECAPTCHA_SITE_KEY) {
-      console.warn('VITE_RECAPTCHA_SITE_KEY não configurado no .env')
+    if (!RECAPTCHA_SITE_KEY || !RECAPTCHA_JS_URL) {
+      console.warn('VITE_RECAPTCHA_SITE_KEY/VITE_RECAPTCHA_JS_URL não configurados no .env')
       return
     }
 
@@ -46,12 +47,12 @@ export function useLogin() {
   const getRecaptchaToken = (): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (!RECAPTCHA_SITE_KEY) {
-        reject(new Error('reCAPTCHA não configurado'))
+        reject(new Error(t('login.recaptchaNotConfigured')))
         return
       }
 
       if (typeof window === 'undefined' || !window.grecaptcha) {
-        reject(new Error('reCAPTCHA não carregado. Recarregue a página.'))
+        reject(new Error(t('login.recaptchaNotLoaded')))
         return
       }
 
@@ -69,71 +70,49 @@ export function useLogin() {
       try {
         recaptchaToken = await getRecaptchaToken()
       } catch (err) {
-        error((err as Error).message || 'Erro ao carregar verificação de segurança')
+        error((err as Error).message || t('login.recaptchaError'))
         loading.value = false
         return
       }
 
-      const response = await auth.login({
+      const response = await authStore.login({
         email: form.email,
         password: form.password,
         recaptcha_token: recaptchaToken,
       })
 
       if (response.success) {
-        success('Login realizado com sucesso!')
+        success(t('success.login'))
         setTimeout(() => {
           clearAllAlerts()
           router.push('/dashboard')
         }, 500)
       } else {
-        error(response.message || 'E-mail ou senha inválidos')
+        error(response.message || t('login.error'))
       }
     } catch (err) {
       console.error('Erro:', err)
-      error('Erro de conexão com o servidor. Verifique se o backend está rodando.')
+      error(t('errors.networkError'))
     } finally {
       loading.value = false
     }
   }
 
+  // Login social: redireciona a página inteira para o backend, que volta para
+  // /oauth-callback?code=... (código de uso único trocado em OAuthCallback.ts)
   const loginWithProvider = (provider: string) => {
     loading.value = true
-
-    const width = 500
-    const height = 600
-    const left = window.screen.width / 2 - width / 2
-    const top = window.screen.height / 2 - height / 2
-
-    const popup = window.open(
-      `${API_BASE_URL}/auth/login/${provider}`,
-      `Login ${provider}`,
-      `width=${width},height=${height},left=${left},top=${top}`,
-    )
-
-    if (!popup) {
-      loading.value = false
-      error('Popup bloqueado! Permita popups para este site.')
-      return
-    }
-
-    const interval = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(interval)
-        loading.value = false
-
-        const userData = localStorage.getItem('user')
-        const token = localStorage.getItem('access_token')
-
-        if (userData && token) {
-          window.location.href = '/dashboard'
-        }
-      }
-    }, 500)
+    window.location.assign(`${API_BASE_URL}/auth/login/${provider}`)
   }
 
   onMounted(() => {
     loadRecaptcha()
+
+    // Erro devolvido pelo backend no fluxo social (/login?error=social_auth_failed)
+    if (route.query.error === 'social_auth_failed') {
+      error(t('login.socialAuthFailed'))
+      router.replace({ query: {} })
+    }
   })
 
   return {

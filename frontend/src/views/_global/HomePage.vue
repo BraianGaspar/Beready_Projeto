@@ -1,105 +1,64 @@
 <template>
-  <div class="home-container">
-    <section class="hero-section">
-      <div class="hero-content">
-        <h1 class="hero-title">Beready</h1>
-        <p class="hero-subtitle">{{ $t('home.subtitle') }}</p>
-        <div class="hero-buttons">
-          <Button variant="primary" @click="$router.push('/register')">
+  <main class="home">
+    <section class="home__hero">
+      <div class="home__container home__hero-content">
+        <h1 class="home__title">Beready</h1>
+        <p class="home__subtitle">{{ $t('home.subtitle') }}</p>
+        <div class="home__actions">
+          <BaseButton variant="primary" size="lg" to="/register">
             {{ $t('home.comecar') }}
-          </Button>
-          <Button variant="outline" @click="$router.push('/login')">
+          </BaseButton>
+          <BaseButton variant="secondary" size="lg" icon="login" to="/login">
             {{ $t('common.entrar') }}
-          </Button>
+          </BaseButton>
         </div>
       </div>
     </section>
 
-    <section class="features-section">
-      <div class="container">
-        <h2 class="section-title">{{ $t('home.comoFunciona') }}</h2>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-10 w-10"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
-            </div>
-            <h3>{{ $t('home.flashcardsInteligentes') }}</h3>
-            <p>{{ $t('home.flashcardsDesc') }}</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-10 w-10"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <h3>{{ $t('home.quizzesPersonalizados') }}</h3>
-            <p>{{ $t('home.quizzesDesc') }}</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-10 w-10"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                />
-              </svg>
-            </div>
-            <h3>{{ $t('prompts.title') }}</h3>
-            <p>{{ $t('home.promptsDesc') }}</p>
-          </div>
-        </div>
+    <section class="home__features" aria-labelledby="home-features-title">
+      <div class="home__container">
+        <h2 id="home-features-title" class="home__section-title">{{ $t('home.comoFunciona') }}</h2>
+        <ul class="home__grid">
+          <li v-for="feature in features" :key="feature.title">
+            <BaseCard as="article" muted padding="lg" class="home__feature">
+              <span class="home__feature-icon" aria-hidden="true">
+                <BaseIcon :name="feature.icon" />
+              </span>
+              <h3 class="home__feature-title">{{ feature.title }}</h3>
+              <p class="home__feature-text">{{ feature.description }}</p>
+            </BaseCard>
+          </li>
+        </ul>
       </div>
     </section>
 
-    <section class="cta-section">
-      <div class="container">
-        <h2>{{ $t('home.ctaTitle') }}</h2>
-        <p>{{ $t('home.ctaDesc') }}</p>
-        <Button variant="primary" @click="$router.push('/register')">
+    <section class="home__cta">
+      <div class="home__container home__cta-content">
+        <h2 class="home__cta-title">{{ $t('home.ctaTitle') }}</h2>
+        <p class="home__cta-text">{{ $t('home.ctaDesc') }}</p>
+        <BaseButton variant="secondary" size="lg" to="/register">
           {{ $t('home.criarContaGratuita') }}
-        </Button>
+        </BaseButton>
       </div>
     </section>
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useHome } from './Home'
-import Button from '@/shared/components/common/AppButton.vue'
+import { BaseButton, BaseCard, BaseIcon, type IconName } from '@/shared/components/ui'
 
 useHome()
+
+const { t } = useI18n()
+
+const features = computed<{ icon: IconName; title: string; description: string }[]>(() => [
+  { icon: 'light-bulb', title: t('home.flashcardsInteligentes'), description: t('home.flashcardsDesc') },
+  { icon: 'document', title: t('home.quizzesPersonalizados'), description: t('home.quizzesDesc') },
+  { icon: 'chat', title: t('prompts.title'), description: t('home.promptsDesc') },
+])
 </script>
 
 <style scoped>

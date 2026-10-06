@@ -3,6 +3,7 @@ import { preferenciaService } from '../services/preferenciaService'
 import type { Preferencia } from '@/core/types'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
+import { applyTheme, themeFromPreferences } from '@/shared/composables/useTheme'
 
 // Tipo para erro da API
 interface ApiError {
@@ -36,29 +37,9 @@ export function usePreferencias() {
     meta_diaria_minutos: 45,
   })
 
-  const aplicarTema = (tema: string) => {
-    if (tema === 'escuro') {
-      document.documentElement.classList.add('dark-mode')
-      document.body.classList.add('dark-mode')
-    } else {
-      document.documentElement.classList.remove('dark-mode')
-      document.body.classList.remove('dark-mode')
-    }
-  }
-
-  const aplicarModoDaltonico = (ativo: boolean) => {
-    if (ativo) {
-      document.documentElement.classList.add('daltonico-mode')
-      document.body.classList.add('daltonico-mode')
-    } else {
-      document.documentElement.classList.remove('daltonico-mode')
-      document.body.classList.remove('daltonico-mode')
-    }
-  }
-
+  // Classes de tema são escritas só por useTheme.applyTheme (fonte única)
   const aplicarPreferenciasGlobais = () => {
-    aplicarTema(form.tema)
-    aplicarModoDaltonico(form.modo_daltonico)
+    applyTheme(themeFromPreferences(form))
   }
 
   const fetchPreferencias = async (usuarioId: number) => {

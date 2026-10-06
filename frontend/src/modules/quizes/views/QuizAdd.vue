@@ -1,126 +1,93 @@
 <template>
-  <div class="quiz-form-page">
-    <div class="quiz-form-hero">
-      <button class="hero-back-btn" @click="$router.push('/quizes')">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+  <PageContainer size="md" class="quiz-form">
+    <PageHeader
+      :title="$t('quizes.newQuiz')"
+      :subtitle="$t('quizes.createSubtitle')"
+      icon="document"
+      back-to="/quizes"
+    />
+
+    <BaseCard>
+      <!-- novalidate: a validação do título é feita em useQuizAdd (mensagem traduzida no campo) -->
+      <form class="quiz-form__form" novalidate @submit.prevent="handleSubmit">
+        <div class="quiz-form__grid">
+          <BaseInput
+            v-model="form.titulo"
+            :label="$t('quizes.titulo')"
+            :placeholder="$t('quizes.tituloPlaceholder')"
+            :error="errors.titulo"
+            required
           />
-        </svg>
-        {{ $t('common.voltar') }}
-      </button>
-      <div class="hero-content">
-        <div class="hero-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
+          <BaseSelect
+            :model-value="form.nivel_dificuldade"
+            :label="$t('quizes.nivel')"
+            :options="nivelOptions"
+            @update:model-value="form.nivel_dificuldade = normalizeNivel(String($event))"
+          />
+          <BaseTextarea
+            v-model="form.descricao"
+            class="quiz-form__full"
+            :label="$t('quizes.descricao')"
+            :placeholder="$t('quizes.descricaoPlaceholder')"
+            :rows="4"
+          />
+          <BaseInput
+            :model-value="form.total_questoes"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            :label="$t('quizes.totalQuestoes')"
+            :placeholder="$t('quizes.totalQuestoesPlaceholder')"
+            @update:model-value="form.total_questoes = Number($event) || 0"
+          />
+          <BaseInput
+            :model-value="form.tempo_limite ?? ''"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            :label="$t('quizes.tempoLimite')"
+            :placeholder="$t('quizes.tempoPlaceholder')"
+            @update:model-value="form.tempo_limite = $event === '' || $event == null ? null : Number($event)"
+          />
+          <BaseCheckbox v-model="form.publico" class="quiz-form__full" :label="$t('quizes.publico')" />
         </div>
-        <h1 class="hero-title">{{ $t('quizes.newQuiz') }}</h1>
-        <p class="hero-subtitle">{{ $t('quizes.createSubtitle') }}</p>
-      </div>
-    </div>
 
-    <div class="quiz-form-container">
-      <div class="quiz-form-card">
-        <form @submit.prevent="handleSubmit">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">{{ $t('quizes.titulo') }} *</label>
-              <input
-                v-model="form.titulo"
-                type="text"
-                class="form-input"
-                :placeholder="$t('quizes.tituloPlaceholder')"
-              />
-              <span v-if="errors.titulo" class="form-error">{{ errors.titulo }}</span>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">{{ $t('quizes.nivel') }}</label>
-              <select v-model="form.nivel_dificuldade" class="form-select">
-                <option value="iniciante">{{ $t('common.iniciante') }}</option>
-                <option value="intermediario">{{ $t('common.intermediario') }}</option>
-                <option value="avancado">{{ $t('common.avancado') }}</option>
-              </select>
-            </div>
-
-            <div class="form-group full-width">
-              <label class="form-label">{{ $t('quizes.descricao') }}</label>
-              <textarea
-                v-model="form.descricao"
-                class="form-textarea"
-                rows="4"
-                :placeholder="$t('quizes.descricaoPlaceholder')"
-              ></textarea>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">{{ $t('quizes.totalQuestoes') }}</label>
-                <input
-                  v-model.number="form.total_questoes"
-                  type="number"
-                  class="form-input"
-                  :placeholder="$t('quizes.totalQuestoesPlaceholder')"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">{{ $t('quizes.tempoLimite') }}</label>
-                <input
-                  v-model.number="form.tempo_limite"
-                  type="number"
-                  class="form-input"
-                  :placeholder="$t('quizes.tempoPlaceholder')"
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-checkbox">
-                <input v-model="form.publico" type="checkbox" />
-                <span>{{ $t('quizes.publico') }}</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="button" class="btn-cancel" @click="$router.push('/quizes')">
-              {{ $t('common.cancelar') }}
-            </button>
-            <button type="submit" class="btn-submit" :disabled="loading">
-              {{ loading ? $t('common.salvando') : $t('quizes.createButton') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+        <div class="quiz-form__actions">
+          <BaseButton variant="secondary" to="/quizes">{{ $t('common.cancelar') }}</BaseButton>
+          <BaseButton type="submit" icon="check" :loading="loading">
+            {{ loading ? $t('common.salvando') : $t('quizes.createButton') }}
+          </BaseButton>
+        </div>
+      </form>
+    </BaseCard>
+  </PageContainer>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import {
+  BaseButton,
+  BaseCard,
+  BaseCheckbox,
+  BaseInput,
+  BaseSelect,
+  BaseTextarea,
+  PageContainer,
+  PageHeader,
+  type SelectOption,
+} from '@/shared/components/ui'
+import { normalizeNivel } from '@/shared/utils/nivelDificuldade'
 import { useQuizAdd } from './QuizAdd'
 
+const { t } = useI18n()
 const { form, errors, loading, handleSubmit } = useQuizAdd()
+
+const nivelOptions = computed<SelectOption[]>(() => [
+  { value: 'iniciante', label: t('common.iniciante') },
+  { value: 'intermediario', label: t('common.intermediario') },
+  { value: 'avancado', label: t('common.avancado') },
+])
 </script>
 
 <style scoped>

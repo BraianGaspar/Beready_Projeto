@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlert } from '@/shared/composables/useAlert'
-import { API_BASE_URL } from '@/shared/config/env'
+import api, { getApiErrorMessage } from '@/core/services/api'
 import { useI18n } from 'vue-i18n'
 
 export function useResetPassword() {
@@ -10,8 +10,6 @@ export function useResetPassword() {
   const { success, error } = useAlert()
   const { t } = useI18n()
   const loading = ref(false)
-  const showPassword = ref(false)
-  const showConfirmPassword = ref(false)
 
   const form = ref({
     senha: '',
@@ -36,12 +34,9 @@ export function useResetPassword() {
     loading.value = true
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/reset-password/${form.value.token}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senha: form.value.senha }),
+      const { data } = await api.post(`/auth/reset-password/${form.value.token}`, {
+        senha: form.value.senha,
       })
-      const data = await response.json()
 
       if (data.success) {
         success(t('resetPassword.successMessage'))
@@ -50,7 +45,7 @@ export function useResetPassword() {
         error(data.message || t('resetPassword.errorMessage'))
       }
     } catch (err) {
-      error(t('errors.networkError'))
+      error(getApiErrorMessage(err) || t('errors.networkError'))
     } finally {
       loading.value = false
     }
@@ -66,8 +61,6 @@ export function useResetPassword() {
   return {
     form,
     loading,
-    showPassword,
-    showConfirmPassword,
     handleSubmit,
   }
 }

@@ -3,10 +3,11 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import i18n from './locales'
-import { usePermissionStore } from './stores/permissionStore'
+import { useAuthStore } from './stores/auth'
 
-// Importar CSS de temas
+// Design system: tokens + temas (claro/escuro/daltônico) e depois a base global
 import './styles/themes.css'
+import './styles/main.css'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -15,16 +16,10 @@ app.use(pinia)
 app.use(router)
 app.use(i18n)
 
-// INICIALIZAR PERMISSÕES ANTES DE MONTAR
+// Reidrata a sessão (POST /auth/refresh com o cookie httpOnly) antes de montar.
+// init() é idempotente: o guard do router aguarda a mesma promise.
 const initApp = async () => {
-  try {
-    const permissionStore = usePermissionStore()
-    await permissionStore.loadPermissions()
-    console.log('Permissões carregadas com sucesso!')
-  } catch (error) {
-    console.error('Erro ao carregar permissões:', error)
-  }
-  
+  await useAuthStore().init()
   app.mount('#app')
 }
 

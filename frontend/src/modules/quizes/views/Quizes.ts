@@ -1,14 +1,17 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizes } from '../composables/useQuizes'
-import type { Quiz, User } from '@/core/types'
+import type { Quiz } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
+import { useAuthStore } from '@/stores/auth'
+import { useAlert } from '@/shared/composables/useAlert'
+import { getNivelLabelKey, normalizeNivel, type NivelDificuldade } from '@/shared/utils/nivelDificuldade'
 
 interface FormData {
   titulo: string
   descricao: string
-  nivel_dificuldade: string
+  nivel_dificuldade: NivelDificuldade
   tempo_limite: number | undefined
   total_questoes: number
   publico: boolean
@@ -19,6 +22,8 @@ export function useQuizesView() {
   const router = useRouter()
   const { t } = useI18n()
   const permissionStore = usePermissionStore()
+  const authStore = useAuthStore()
+  const { error } = useAlert()
   const { quizes, loading, loadQuizes, createQuiz, updateQuiz, deleteQuiz, canCreateMore } = useQuizes()
 
   const showModal = ref(false)
@@ -32,7 +37,7 @@ export function useQuizesView() {
   const form = reactive<FormData>({
     titulo: '',
     descricao: '',
-    nivel_dificuldade: 'intermediario',
+    nivel_dificuldade: 'iniciante',
     tempo_limite: undefined,
     total_questoes: 0,
     publico: false,
@@ -48,28 +53,12 @@ export function useQuizesView() {
   const canCreateQuiz = computed(() => canCreate.value && canCreateMore())
   const canCreateMoreQuizes = computed(() => canCreateMore())
 
-  const getDifficultyText = (level: string) => {
-    const texts: Record<string, string> = {
-      iniciante: t('common.iniciante'),
-      intermediario: t('common.intermediario'),
-      avancado: t('common.avancado'),
-    }
-    return texts[level] || level
-  }
-
-  const getLevelClass = (level: string) => {
-    const classes: Record<string, string> = {
-      iniciante: 'level-beginner',
-      intermediario: 'level-intermediate',
-      avancado: 'level-advanced',
-    }
-    return classes[level] || 'level-intermediate'
-  }
+  const getDifficultyText = (level: string) => t(getNivelLabelKey(level))
 
   const resetForm = () => {
     form.titulo = ''
     form.descricao = ''
-    form.nivel_dificuldade = 'intermediario'
+    form.nivel_dificuldade = 'iniciante'
     form.tempo_limite = undefined
     form.publico = false
     editingId.value = null
@@ -78,11 +67,11 @@ export function useQuizesView() {
 
   const openCreateModal = () => {
     if (!canCreate.value) {
-      console.warn('Sem permissão para criar quizzes')
+      error(t('permissions.createDenied', { recurso: t('common.quizes') }))
       return
     }
     if (!canCreateMore()) {
-      console.warn('Limite de quizzes atingido')
+      error(t('quizes.limitReached'))
       return
     }
     resetForm()
@@ -92,12 +81,12 @@ export function useQuizesView() {
 
   const openEditModal = (quiz: Quiz) => {
     if (!canEdit.value) {
-      console.warn('Sem permissão para editar quizzes')
+      error(t('permissions.editDenied', { recurso: t('common.quizes') }))
       return
     }
     form.titulo = quiz.titulo
     form.descricao = quiz.descricao || ''
-    form.nivel_dificuldade = quiz.nivel_dificuldade
+    form.nivel_dificuldade = normalizeNivel(quiz.nivel_dificuldade)
     form.tempo_limite = quiz.tempo_limite ?? undefined
     form.publico = quiz.publico || false
     editingId.value = quiz.id
@@ -107,7 +96,7 @@ export function useQuizesView() {
 
   const viewQuiz = (id: number) => {
     if (!canView.value) {
-      console.warn('Sem permissão para visualizar quizzes')
+      error(t('permissions.viewDenied', { recurso: t('common.quizes') }))
       return
     }
     router.push(`/quizes/${id}`)
@@ -115,7 +104,7 @@ export function useQuizesView() {
 
   const playQuiz = (id: number) => {
     if (!canView.value) {
-      console.warn('Sem permissão para visualizar quizzes')
+      error(t('permissions.viewDenied', { recurso: t('common.quizes') }))
       return
     }
     router.push(`/quizes/${id}/play`)
@@ -123,7 +112,7 @@ export function useQuizesView() {
 
   const confirmDelete = (quiz: Quiz) => {
     if (!canDelete.value) {
-      console.warn('Sem permissão para excluir quizzes')
+      error(t('permissions.deleteDenied', { recurso: t('common.quizes') }))
       return
     }
     deletingQuiz.value = quiz
@@ -136,11 +125,9 @@ export function useQuizesView() {
     try {
       await deleteQuiz(deletingQuiz.value.id)
       showDeleteModal.value = false
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        const user = JSON.parse(userData) as User
-        await loadQuizes(user.id)
-      }
+      await loadQuizes()
+    } catch {
+      // Alerta de erro já exibido por useQuizes
     } finally {
       deleting.value = false
       deletingQuiz.value = null
@@ -148,16 +135,8 @@ export function useQuizesView() {
   }
 
   const submitForm = async () => {
-    const userData = localStorage.getItem('user')
-    if (!userData) return
-
-    let user: User
-    try {
-      user = JSON.parse(userData) as User
-    } catch (e) {
-      console.error('Erro ao fazer parse do userData:', e)
-      return
-    }
+    const user = authStore.user
+    if (!user) return
 
     submitting.value = true
 
@@ -180,7 +159,9 @@ export function useQuizesView() {
       }
 
       closeModal()
-      await loadQuizes(user.id)
+      await loadQuizes()
+    } catch {
+      // Alerta de erro já exibido por useQuizes
     } finally {
       submitting.value = false
     }
@@ -191,22 +172,9 @@ export function useQuizesView() {
     resetForm()
   }
 
-  const getUserFromLocalStorage = (): User | null => {
-    const userData = localStorage.getItem('user')
-    if (!userData) return null
-    try {
-      return JSON.parse(userData) as User
-    } catch {
-      return null
-    }
-  }
-
   onMounted(async () => {
     await permissionStore.loadPermissions()
-    const user = getUserFromLocalStorage()
-    if (user?.id) {
-      await loadQuizes(user.id)
-    }
+    await loadQuizes()
   })
 
   return {
@@ -228,7 +196,6 @@ export function useQuizesView() {
     submitForm,
     closeModal,
     getDifficultyText,
-    getLevelClass,
     canView,
     canEdit,
     canDelete,

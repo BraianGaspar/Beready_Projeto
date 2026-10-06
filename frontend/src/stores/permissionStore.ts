@@ -3,6 +3,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/core/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 // ============================================
 // TYPES
@@ -54,12 +55,11 @@ export interface Assinatura {
 
 export interface AssinarPlanoResponse {
     success: boolean
-    requires_payment?: boolean
-    checkout_url?: string
+    message?: string
     data?: {
-        assinatura: Assinatura
         requires_payment: boolean
-        preco: number
+        checkout_url: string | null
+        assinatura?: Assinatura
     }
 }
 
@@ -76,39 +76,17 @@ export const usePermissionStore = defineStore('permissions', () => {
     const loading = ref(false)
 
     // ============================================
-    // GETTERS - COM FALLBACK PARA ADMIN
+    // GETTERS
     // ============================================
+    // Admin = permissão admin.access OU role 'admin' vinda do servidor (store de auth)
     const isAdmin = computed((): boolean => {
-        // Primeiro verifica se tem a permissão admin.access
         if (userPermissions.value.includes('admin.access')) return true
-        
-        // Fallback: verifica se o usuário tem role 'admin' no localStorage
-        try {
-            const userData = localStorage.getItem('user')
-            if (userData) {
-                const user = JSON.parse(userData)
-                if (user.role === 'admin') return true
-            }
-        } catch (e) {
-            // Ignora erro
-        }
-        
-        return false
+        return useAuthStore().isAdmin
     })
 
     const hasPermission = (permission: string): boolean => {
         if (isAdmin.value) return true
         return userPermissions.value.includes(permission)
-    }
-
-    const hasAnyPermission = (perms: string[]): boolean => {
-        if (isAdmin.value) return true
-        return perms.some((p: string) => hasPermission(p))
-    }
-
-    const hasAllPermissions = (perms: string[]): boolean => {
-        if (isAdmin.value) return true
-        return perms.every((p: string) => hasPermission(p))
     }
 
     const canView = (recurso: string): boolean => {
@@ -131,24 +109,9 @@ export const usePermissionStore = defineStore('permissions', () => {
         return hasPermission(`${recurso}.delete`)
     }
 
-    const canManage = (recurso: string): boolean => {
-        if (isAdmin.value) return true
-        return hasPermission(`${recurso}.manage_all`)
-    }
-
     const getPlanoAtual = computed((): Plano | null => {
         if (!assinaturaAtiva.value) return null
         return planos.value.find((p: Plano) => p.id === assinaturaAtiva.value?.plano_id) || null
-    })
-
-    const getLimites = computed((): Record<string, number> => {
-        // Admin tem limites ilimitados
-        if (isAdmin.value) {
-            return { flashcards: 999999, quizes: 999999, prompts: 999999 }
-        }
-        const plano = getPlanoAtual.value
-        if (!plano) return { flashcards: 0, quizes: 0, prompts: 0 }
-        return plano.limites
     })
 
     // ============================================
@@ -157,22 +120,17 @@ export const usePermissionStore = defineStore('permissions', () => {
     const loadPermissions = async (): Promise<void> => {
         if (loading.value) return
 
+        if (!useAuthStore().accessToken) {
+            userPermissions.value = []
+            return
+        }
+
         loading.value = true
         try {
-            const token = localStorage.getItem('access_token')
-            if (!token) {
-                console.warn('Token não encontrado, permissões não carregadas')
-                userPermissions.value = []
-                loading.value = false
-                return
-            }
-
             const response = await api.get('/user/permissions')
             if (response.data.success) {
                 userPermissions.value = response.data.data || []
-                console.log('Permissões carregadas:', userPermissions.value)
             } else {
-                console.warn('Resposta sem sucesso:', response.data)
                 userPermissions.value = []
             }
         } catch (error: unknown) {
@@ -205,12 +163,32 @@ export const usePermissionStore = defineStore('permissions', () => {
         }
     }
 
+    // O Postgres devolve colunas numeric como string ("29.90")
+    const normalizePlano = (plano: Plano): Plano => ({
+        ...plano,
+        preco_mensal: Number(plano.preco_mensal),
+        preco_anual: Number(plano.preco_anual),
+        dias_trial: Number(plano.dias_trial)
+    })
+
+    // Admin: todos os planos (ativos e inativos)
     const loadPlanos = async (): Promise<void> => {
         try {
-            // Usar /admin/planos para ver todos (ativos e inativos)
             const response = await api.get('/admin/planos')
             if (response.data.success) {
-                planos.value = response.data.data
+                planos.value = response.data.data.map(normalizePlano)
+            }
+        } catch (error: unknown) {
+            console.error('Erro ao carregar planos:', error)
+        }
+    }
+
+    // Público: apenas planos ativos, para a página de assinatura
+    const loadPlanosAtivos = async (): Promise<void> => {
+        try {
+            const response = await api.get('/planos')
+            if (response.data.success) {
+                planos.value = response.data.data.map(normalizePlano)
             }
         } catch (error: unknown) {
             console.error('Erro ao carregar planos:', error)
@@ -232,29 +210,6 @@ export const usePermissionStore = defineStore('permissions', () => {
             } else {
                 console.error('Erro ao carregar assinatura:', error)
             }
-        }
-    }
-
-    const loadAll = async (): Promise<void> => {
-        await Promise.all([
-            loadPermissions(),
-            loadRoles(),
-            loadPermissionsList(),
-            loadPlanos(),
-            loadAssinatura()
-        ])
-    }
-
-    const assignRole = async (usuarioId: number, roleId: number): Promise<unknown> => {
-        try {
-            const response = await api.post('/admin/users/role', {
-                user_id: usuarioId,
-                role_id: roleId
-            })
-            return response.data
-        } catch (error: unknown) {
-            console.error('Erro ao atribuir role:', error)
-            throw error
         }
     }
 
@@ -280,21 +235,6 @@ export const usePermissionStore = defineStore('permissions', () => {
             return response.data
         } catch (error: unknown) {
             console.error('Erro ao atualizar role:', error)
-            throw error
-        }
-    }
-
-    const updateRolePermissions = async (roleId: number, permissionIds: number[]): Promise<unknown> => {
-        try {
-            const response = await api.put(`/admin/roles/${roleId}/permissions`, {
-                permissions: permissionIds
-            })
-            if (response.data.success) {
-                await loadRoles()
-            }
-            return response.data
-        } catch (error: unknown) {
-            console.error('Erro ao atualizar permissões:', error)
             throw error
         }
     }
@@ -382,6 +322,16 @@ export const usePermissionStore = defineStore('permissions', () => {
         }
     }
 
+    // Limpa todos os dados do usuário (chamado no logout centralizado)
+    const reset = (): void => {
+        roles.value = []
+        permissions.value = []
+        planos.value = []
+        assinaturaAtiva.value = null
+        userPermissions.value = []
+        loading.value = false
+    }
+
     // ============================================
     // RETURN
     // ============================================
@@ -397,15 +347,11 @@ export const usePermissionStore = defineStore('permissions', () => {
         // Getters
         isAdmin,
         hasPermission,
-        hasAnyPermission,
-        hasAllPermissions,
         canView,
         canCreate,
         canEdit,
         canDelete,
-        canManage,
         getPlanoAtual,
-        getLimites,
 
         // Actions
         loadPermissions,
@@ -413,16 +359,15 @@ export const usePermissionStore = defineStore('permissions', () => {
         loadPermissionsList,
         loadPlanos,
         loadAssinatura,
-        loadAll,
-        assignRole,
+        loadPlanosAtivos,
         createRole,
         updateRole,
-        updateRolePermissions,
         deleteRole,
         createPlano,
         updatePlano,
         deletePlano,
         assinarPlano,
-        cancelarAssinatura
+        cancelarAssinatura,
+        reset
     }
 })

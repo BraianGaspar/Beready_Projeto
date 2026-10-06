@@ -1,55 +1,80 @@
 import { ref } from 'vue'
-import { quizService } from '../services/quizService'
+import { quizService, type QuizInput } from '../services/quizService'
 import type { Quiz } from '@/core/types'
+import { getApiErrorMessage } from '@/core/services/api'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
 import { usePlan } from '@/shared/composables/usePlan'
+import { usePermissionStore } from '@/stores/permissionStore'
 
-// Tipo para o erro da API
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string
-    }
-  }
-  message?: string
-}
-
+/**
+ * CRUD de quizes do usuário logado. Exibe os alertas de sucesso/erro;
+ * as views não devem repeti-los.
+ */
 export function useQuizes() {
   const quizes = ref<Quiz[]>([])
+  const loaded = ref(false)
   const loading = ref(false)
   const { success, error } = useAlert()
   const { t } = useI18n()
   const plan = usePlan()
+  const permissionStore = usePermissionStore()
 
   const canCreateMore = (): boolean => {
     return plan.canCreateMore('quizes', quizes.value.length)
   }
 
-  const loadQuizes = async (usuarioId: number) => {
+  const errorMessage = (err: unknown, fallback: string): string =>
+    getApiErrorMessage(err) || (err instanceof Error && err.message) || fallback
+
+  const loadQuizes = async () => {
     loading.value = true
     try {
-      const response = await quizService.getByUsuario(usuarioId)
+      const response = await quizService.getAll()
 
       if (response.data.success) {
         quizes.value = response.data.data || []
+        loaded.value = true
       } else {
         error(response.data.message || t('quizes.errorLoad'))
       }
     } catch (err: unknown) {
-      console.error('Erro ao carregar quizes:', err)
-      const apiError = err as ApiError
-      error(apiError.response?.data?.message || apiError.message || t('quizes.errorLoad'))
+      error(errorMessage(err, t('quizes.errorLoad')))
       quizes.value = []
     } finally {
       loading.value = false
     }
   }
 
-  const createQuiz = async (data: Omit<Quiz, 'id' | 'criado_em' | 'atualizado_em'>) => {
+  const getQuiz = async (id: number): Promise<Quiz | null> => {
+    try {
+      const response = await quizService.getById(id)
+      if (response.data.success && response.data.data) {
+        return response.data.data
+      }
+      error(response.data.message || t('quizes.errorLoad'))
+    } catch (err: unknown) {
+      error(errorMessage(err, t('quizes.errorLoad')))
+    }
+    return null
+  }
+
+  const createQuiz = async (data: QuizInput) => {
+    if (!permissionStore.canCreate('quizes')) {
+      const msg = t('permissions.createDenied', { recurso: t('common.quizes') })
+      error(msg)
+      throw new Error(msg)
+    }
+
+    // O limite do plano depende da quantidade atual de quizes
+    if (!loaded.value) {
+      await loadQuizes()
+    }
+
     if (!canCreateMore()) {
-      error(t('plan.limitReached', { recurso: 'quizes' }))
-      throw new Error('Limite do plano atingido')
+      const msg = t('plan.limitReached', { recurso: t('common.quizes') })
+      error(msg)
+      throw new Error(msg)
     }
 
     loading.value = true
@@ -57,15 +82,13 @@ export function useQuizes() {
       const response = await quizService.create(data)
 
       if (response.data.success) {
+        quizes.value.push(response.data.data)
         success(t('quizes.successCreate'))
         return response.data.data
-      } else {
-        throw new Error(response.data.message || t('quizes.errorCreate'))
       }
+      throw new Error(response.data.message || t('quizes.errorCreate'))
     } catch (err: unknown) {
-      console.error('Erro ao criar quiz:', err)
-      const apiError = err as ApiError
-      const errorMsg = apiError.response?.data?.message || apiError.message || t('quizes.errorCreate')
+      const errorMsg = errorMessage(err, t('quizes.errorCreate'))
       error(errorMsg)
       throw new Error(errorMsg)
     } finally {
@@ -73,10 +96,7 @@ export function useQuizes() {
     }
   }
 
-  const updateQuiz = async (
-    id: number,
-    data: Partial<Omit<Quiz, 'id' | 'criado_em' | 'atualizado_em'>>,
-  ) => {
+  const updateQuiz = async (id: number, data: Partial<QuizInput>) => {
     loading.value = true
     try {
       const response = await quizService.update(id, data)
@@ -84,13 +104,10 @@ export function useQuizes() {
       if (response.data.success) {
         success(t('quizes.successUpdate'))
         return response.data.data
-      } else {
-        throw new Error(response.data.message || t('quizes.errorUpdate'))
       }
+      throw new Error(response.data.message || t('quizes.errorUpdate'))
     } catch (err: unknown) {
-      console.error('Erro ao atualizar quiz:', err)
-      const apiError = err as ApiError
-      const errorMsg = apiError.response?.data?.message || apiError.message || t('quizes.errorUpdate')
+      const errorMsg = errorMessage(err, t('quizes.errorUpdate'))
       error(errorMsg)
       throw new Error(errorMsg)
     } finally {
@@ -104,15 +121,13 @@ export function useQuizes() {
       const response = await quizService.delete(id)
 
       if (response.data.success) {
+        quizes.value = quizes.value.filter((q) => q.id !== id)
         success(t('quizes.successDelete'))
         return true
-      } else {
-        throw new Error(response.data.message || t('quizes.errorDelete'))
       }
+      throw new Error(response.data.message || t('quizes.errorDelete'))
     } catch (err: unknown) {
-      console.error('Erro ao excluir quiz:', err)
-      const apiError = err as ApiError
-      const errorMsg = apiError.response?.data?.message || apiError.message || t('quizes.errorDelete')
+      const errorMsg = errorMessage(err, t('quizes.errorDelete'))
       error(errorMsg)
       throw new Error(errorMsg)
     } finally {
@@ -120,13 +135,14 @@ export function useQuizes() {
     }
   }
 
-  return { 
-    quizes, 
-    loading, 
-    loadQuizes, 
-    createQuiz, 
-    updateQuiz, 
+  return {
+    quizes,
+    loading,
+    loadQuizes,
+    getQuiz,
+    createQuiz,
+    updateQuiz,
     deleteQuiz,
-    canCreateMore 
+    canCreateMore,
   }
 }

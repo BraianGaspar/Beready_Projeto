@@ -2,7 +2,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useImagens } from '@/modules/imagens/composables/useImagens'
 import { promptService } from '@/modules/prompts/services/promptService'
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
 import type { Imagem } from '@/core/types'
 
 interface ImagemForm {
@@ -15,7 +17,8 @@ interface ImagemForm {
 
 export function useImagensPrompt() {
   const route = useRoute()
-  const { success, error } = useAlert()
+  const { error } = useAlert()
+  const { t, te } = useI18n()
   const { imagens, loading, fetchImagens, createImagem, updateImagem, deleteImagem } = useImagens()
 
   const promptId = ref<number>(0)
@@ -46,14 +49,16 @@ export function useImagensPrompt() {
         }
       } catch (err: unknown) {
         const axiosError = err as { response?: { data?: { message?: string } } }
-        error(axiosError.response?.data?.message || 'Erro ao carregar prompt')
+        error(axiosError.response?.data?.message || t('prompts.errorLoadOne'))
       }
     }
   }
 
   const loadData = async (): Promise<void> => {
     if (promptId.value) {
-      await fetchImagens(promptId.value)
+      await fetchImagens(promptId.value).catch(() => {
+        // Alerta de erro já exibido por useImagens
+      })
     }
   }
 
@@ -87,7 +92,7 @@ export function useImagensPrompt() {
 
   const save = async (): Promise<void> => {
     if (!form.value.url_imagem) {
-      error('URL da imagem é obrigatória')
+      error(t('imagens.urlRequired'))
       return
     }
 
@@ -101,7 +106,6 @@ export function useImagensPrompt() {
           qualidade_imagem: form.value.qualidade_imagem,
           dimensoes: form.value.dimensoes,
         })
-        success('Imagem atualizada com sucesso!')
       } else {
         await createImagem({
           prompt_id: promptId.value,
@@ -111,13 +115,10 @@ export function useImagensPrompt() {
           qualidade_imagem: form.value.qualidade_imagem,
           dimensoes: form.value.dimensoes,
         })
-        success('Imagem criada com sucesso!')
       }
-      await loadData()
       closeModal()
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } }
-      error(axiosError.response?.data?.message || 'Erro ao salvar imagem')
+    } catch {
+      // Alerta de erro já exibido por useImagens
     } finally {
       saving.value = false
     }
@@ -134,8 +135,8 @@ export function useImagensPrompt() {
     deleting.value = true
     try {
       await deleteImagem(itemToDelete.value)
-      success('Imagem excluída com sucesso!')
-      await loadData()
+    } catch {
+      // Alerta de erro já exibido por useImagens
     } finally {
       deleting.value = false
       confirmModalVisible.value = false
@@ -143,9 +144,12 @@ export function useImagensPrompt() {
     }
   }
 
-  const formatDate = (date?: string): string => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('pt-BR')
+  const formatDate = (date?: string): string => formatLocaleDate(date)
+
+  // Rótulo traduzido da qualidade (o valor gravado no backend não muda)
+  const getQualidadeLabel = (qualidade?: string): string => {
+    const key = `imagens.qualidades.${qualidade || 'media'}`
+    return te(key) ? t(key) : qualidade || ''
   }
 
   onMounted(async () => {
@@ -165,6 +169,7 @@ export function useImagensPrompt() {
     deleting,
     confirmModalVisible,
     formatDate,
+    getQualidadeLabel,
     openModal,
     closeModal,
     editImagem,

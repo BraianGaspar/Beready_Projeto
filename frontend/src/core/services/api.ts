@@ -1,113 +1,102 @@
-import axios from 'axios'
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import { API_BASE_URL } from '@/shared/config/env'
+import { useAuthStore } from '@/stores/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
-
+/**
+ * Instância única do axios para falar com o backend.
+ *
+ * - O access token fica apenas em memória (store de auth) e é injetado aqui.
+ * - O refresh token é um cookie httpOnly (Path=/auth) controlado pelo backend,
+ *   por isso `withCredentials: true`.
+ * - 401 => tenta UM refresh compartilhado e repete a request; se falhar, logout.
+ * - 403 => apenas propaga o erro (sem permissão não é sessão inválida).
+ */
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
 })
 
-// Interceptor para adicionar token em todas as requisições
+// Endpoints de autenticação nunca disparam refresh automático (evita loops)
+const AUTH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/social/exchange',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+]
+
+const isAuthEndpoint = (url?: string): boolean =>
+  !!url && AUTH_ENDPOINTS.some((endpoint) => url.startsWith(endpoint))
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    // Não tentar refresh automático em caso de 401
+    skipAuthRefresh?: boolean
+  }
+}
+
+interface RetriableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  const authStore = useAuthStore()
+  if (authStore.accessToken) {
+    config.headers.Authorization = `Bearer ${authStore.accessToken}`
   }
   return config
 })
 
-// Interceptor para refresh automático
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableRequestConfig | undefined
 
-    if (originalRequest.url?.includes('/auth/login')) {
-      // Repassa o erro para o frontend exibir
+    if (
+      !originalRequest ||
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
+      originalRequest.skipAuthRefresh ||
+      isAuthEndpoint(originalRequest.url)
+    ) {
       return Promise.reject(error)
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
+    const authStore = useAuthStore()
 
-      const refreshToken = localStorage.getItem('refresh_token')
-
-      if (refreshToken) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refresh_token: refreshToken,
-          })
-
-          if (response.data.success) {
-            const { access_token } = response.data.data
-            localStorage.setItem('access_token', access_token)
-
-            originalRequest.headers.Authorization = `Bearer ${access_token}`
-            return api(originalRequest)
-          }
-        } catch (refreshError) {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          localStorage.removeItem('user')
-          window.location.href = '/login'
-        }
-      } else {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user')
-        window.location.href = '/login'
-      }
+    // Request feita sem sessão (ex.: página pública): nada para renovar
+    if (!originalRequest.headers.Authorization) {
+      return Promise.reject(error)
     }
 
-    return Promise.reject(error)
+    originalRequest._retry = true
+
+    // Várias requests com 401 simultâneas aguardam a mesma promise de refresh
+    const refreshed = await authStore.refresh()
+
+    if (!refreshed) {
+      await authStore.logout({ callServer: false })
+      return Promise.reject(error)
+    }
+
+    originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`
+    return api(originalRequest)
   },
 )
 
-export const auth = {
-  register: (data: { nome: string; email: string; senha: string }) =>
-    api.post('/auth/register', data),
-
-  login: async (data: { email: string; password: string; recaptcha_token?: string }) => {
-    try {
-      const response = await api.post('/auth/login', data)
-      if (response.data.success) {
-        const { user, tokens } = response.data.data
-        localStorage.setItem('user', JSON.stringify(user))
-        localStorage.setItem('access_token', tokens.access_token)
-        localStorage.setItem('refresh_token', tokens.refresh_token)
-        return { success: true, user }
-      }
-      return response.data
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        return {
-          success: false,
-          message: error.response?.data?.message ?? 'Erro ao fazer login. Tente novamente.',
-        }
-      }
-
-      return {
-        success: false,
-        message: 'Erro ao fazer login. Tente novamente.',
-      }
-    }
-  },
-
-  logout: () => {
-    localStorage.removeItem('user')
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    return api.post('/auth/logout')
-  },
-
-  refresh: () =>
-    api.post('/auth/refresh', {
-      refresh_token: localStorage.getItem('refresh_token'),
-    }),
-
-  me: () => api.get('/users/me'),
+/**
+ * Extrai a mensagem de erro enviada pelo backend (`{ success: false, message }`).
+ */
+export const getApiErrorMessage = (err: unknown): string | undefined => {
+  if (axios.isAxiosError<{ message?: string }>(err)) {
+    return err.response?.data?.message
+  }
+  return undefined
 }
 
 export default api

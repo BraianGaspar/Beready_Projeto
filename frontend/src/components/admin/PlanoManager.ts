@@ -4,6 +4,8 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { usePermissionStore, type Plano, type Role } from '@/stores/permissionStore'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
+import { formatRecursoPlano, formatLimitePlano } from '@/shared/utils/planoLabels'
+import { formatCurrency } from '@/shared/utils/intl'
 
 export function usePlanoManager() {
     const permissionStore = usePermissionStore()
@@ -182,27 +184,8 @@ export function usePlanoManager() {
         resetForm()
     }
 
-    const formatRecurso = (recurso: string): string => {
-        const map: Record<string, string> = {
-            flashcards_ilimitados: 'Flashcards Ilimitados',
-            quizes_ilimitados: 'Quizes Ilimitados',
-            ia_prompts: 'Prompts com IA',
-            exportacao: 'Exportação',
-            api_acesso: 'API',
-            flashcards_basico: 'Flashcards Básico',
-            quizes_basico: 'Quizes Básico'
-        }
-        return map[recurso] || recurso
-    }
-
-    const formatLimiteKey = (key: string): string => {
-        const map: Record<string, string> = {
-            flashcards: 'Flashcards',
-            quizes: 'Quizes',
-            prompts: 'Prompts IA'
-        }
-        return map[key] || key
-    }
+    const formatRecurso = formatRecursoPlano
+    const formatLimiteKey = formatLimitePlano
 
     // Carregar planos e roles ao inicializar
     onMounted(() => {
@@ -233,6 +216,7 @@ export function usePlanoManager() {
         handleConfirmDelete,
         handleCloseModal,
         formatRecurso,
-        formatLimiteKey
+        formatLimiteKey,
+        formatCurrency
     }
 }

@@ -49,13 +49,13 @@
             />
           </svg>
         </div>
-        <h3 class="confirm-title">{{ title }}</h3>
-        <p class="confirm-message">{{ message }}</p>
+        <h3 class="confirm-title">{{ title || $t('confirmModal.title') }}</h3>
+        <p class="confirm-message">{{ message || $t('confirmModal.message') }}</p>
         <p v-if="itemName" class="confirm-item-name">"{{ itemName }}"</p>
         <div class="confirm-actions">
           <button class="confirm-btn-cancel" @click="close">{{ $t('common.cancelar') }}</button>
           <button class="confirm-btn-confirm" :class="type" @click="confirm" :disabled="loading">
-            {{ loading ? 'Processando...' : confirmText }}
+            {{ loading ? $t('confirmModal.processing') : confirmText || $t('confirmModal.confirm') }}
           </button>
         </div>
       </div>
@@ -64,22 +64,23 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+// Textos vazios usam os padrões traduzidos (confirmModal.*)
+defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
   title: {
     type: String,
-    default: 'Confirmar ação',
+    default: '',
   },
   message: {
     type: String,
-    default: 'Tem certeza que deseja realizar esta ação?',
+    default: '',
   },
   confirmText: {
     type: String,
-    default: 'Confirmar',
+    default: '',
   },
   type: {
     type: String,

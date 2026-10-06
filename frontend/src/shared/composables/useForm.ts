@@ -1,21 +1,23 @@
 // src/shared/composables/useForm.ts
-import { reactive, ref } from 'vue'
+import { reactive, ref, type Ref } from 'vue'
 
-export function useForm<T extends Record<string, any>>(initialData: T) {
-  const form = reactive<T>({ ...initialData })
-  const errors = ref<Partial<Record<keyof T, string>>>({})
+// Uma regra por campo: recebe o valor atual e devolve a mensagem de erro (ou null)
+export type FormRules<T> = { [K in keyof T]?: (value: T[K]) => string | null }
+
+export function useForm<T extends object>(initialData: T) {
+  const form = reactive({ ...initialData }) as T
+  const errors = ref({}) as Ref<Partial<Record<keyof T, string>>>
   const loading = ref(false)
 
-  const validate = (rules: Partial<Record<keyof T, (value: any) => string | null>>) => {
+  const validate = (rules: FormRules<T>) => {
     let isValid = true
     errors.value = {}
     for (const field in rules) {
       const rule = rules[field]
       if (rule) {
-        const value = (form as any)[field]
-        const errorMsg = rule(value)
+        const errorMsg = rule(form[field])
         if (errorMsg) {
-          errors.value[field as keyof T] = errorMsg
+          errors.value[field] = errorMsg
           isValid = false
         }
       }
@@ -28,8 +30,8 @@ export function useForm<T extends Record<string, any>>(initialData: T) {
     errors.value = {}
   }
 
-  const setField = (field: keyof T, value: any) => {
-    ;(form as any)[field] = value
+  const setField = <K extends keyof T>(field: K, value: T[K]) => {
+    form[field] = value
     if (errors.value[field]) delete errors.value[field]
   }
 

@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 export function useRoleManager() {
     const permissionStore = usePermissionStore()
     const { success, error } = useAlert()
-    const { t } = useI18n()
+    const { t, te } = useI18n()
 
     const rolesData = computed(() => permissionStore.roles)
     const permissionsData = computed(() => permissionStore.permissions)
@@ -40,13 +40,8 @@ export function useRoleManager() {
     })
 
     const formatRecurso = (recurso: string): string => {
-        const map: Record<string, string> = {
-            'admin': 'Administracao',
-            'flashcards': 'Flashcards',
-            'quizes': 'Quizzes',
-            'prompts': 'Prompts IA'
-        }
-        return map[recurso] || recurso
+        const key = `admin.roles.groups.${recurso}`
+        return te(key) ? t(key) : recurso
     }
 
     const resetForm = (): void => {
@@ -104,16 +99,31 @@ export function useRoleManager() {
         }
     }
 
-    const handleConfirmDelete = async (roleId: number): Promise<void> => {
-        if (!confirm(t('admin.roles.confirmDelete') + '?')) return
+    // Confirmação de exclusão via ConfirmModal (antes: window.confirm nativo)
+    const confirmModalVisible = ref(false)
+    const roleToDelete = ref<Role | null>(null)
+    const deleting = ref(false)
+
+    const handleConfirmDelete = (role: Role): void => {
+        roleToDelete.value = role
+        confirmModalVisible.value = true
+    }
+
+    const handleDeleteRole = async (): Promise<void> => {
+        if (!roleToDelete.value) return
+        deleting.value = true
         try {
-            await permissionStore.deleteRole(roleId)
+            await permissionStore.deleteRole(roleToDelete.value.id)
             success(t('admin.roles.deleteSuccess'))
         } catch (err: unknown) {
             const errorMessage = err && typeof err === 'object' && 'response' in err
                 ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
                 : t('admin.roles.errorDelete')
             error(errorMessage || t('admin.roles.errorDelete'))
+        } finally {
+            deleting.value = false
+            confirmModalVisible.value = false
+            roleToDelete.value = null
         }
     }
 
@@ -139,6 +149,10 @@ export function useRoleManager() {
         handleEditRole,
         handleSaveRole,
         handleConfirmDelete,
+        handleDeleteRole,
+        confirmModalVisible,
+        roleToDelete,
+        deleting,
         handleCloseModal
     }
 }

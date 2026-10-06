@@ -1,9 +1,12 @@
 import { ref, onMounted } from 'vue'
 import { useAlert } from '@/shared/composables/useAlert'
-import { tagService, type Tag } from '@/modules/tags/services/tagService'
+import { tagService } from '@/modules/tags/services/tagService'
+import type { Tag } from '@/core/types'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 
 export function useTags() {
+  const authStore = useAuthStore()
   const { success, error } = useAlert()
   const { t } = useI18n()
   const tags = ref<Tag[]>([])
@@ -22,16 +25,7 @@ export function useTags() {
     descricao: '',
   })
 
-  const getCurrentUserId = (): number | null => {
-    const userData = localStorage.getItem('user')
-    if (!userData) return null
-    try {
-      const user = JSON.parse(userData)
-      return user.id
-    } catch {
-      return null
-    }
-  }
+  const getCurrentUserId = (): number | null => authStore.user?.id ?? null
 
   const fetchTags = async () => {
     const userId = getCurrentUserId()
@@ -92,7 +86,7 @@ export function useTags() {
 
     try {
       if (editingTag.value) {
-        await tagService.update(editingTag.value.id!, form.value)
+        await tagService.update(editingTag.value.id, form.value)
         success(t('tags.successUpdate'))
       } else {
         await tagService.create({ ...form.value, criado_por: userId })
@@ -118,7 +112,7 @@ export function useTags() {
 
     deleting.value = true
     try {
-      await tagService.delete(tagToDelete.value.id!)
+      await tagService.delete(tagToDelete.value.id)
       success(t('tags.successDelete'))
       await fetchTags()
     } catch (err: unknown) {

@@ -1,19 +1,22 @@
 import api from '@/core/services/api'
 import type { Frase, ApiResponse } from '@/core/types'
 
+type FraseInput = Omit<Frase, 'id' | 'criado_em'>
+
+// Todos os métodos devolvem o corpo da resposta ({ success, message, data })
 export const fraseService = {
-  getByPrompt: (promptId: number): Promise<ApiResponse<Frase[]>> =>
-    api.get(`/frases/prompt/${promptId}`),
+  getByPrompt: async (promptId: number): Promise<ApiResponse<Frase[]>> =>
+    (await api.get<ApiResponse<Frase[]>>(`/frases/prompt/${promptId}`)).data,
 
-  getById: (id: number): Promise<ApiResponse<Frase>> => api.get(`/frases/view/${id}`),
+  getById: async (id: number): Promise<ApiResponse<Frase>> =>
+    (await api.get<ApiResponse<Frase>>(`/frases/view/${id}`)).data,
 
-  create: (data: Omit<Frase, 'id' | 'criado_em'>): Promise<ApiResponse<Frase>> =>
-    api.post('/frases', data),
+  create: async (data: FraseInput): Promise<ApiResponse<Frase>> =>
+    (await api.post<ApiResponse<Frase>>('/frases', data)).data,
 
-  update: (
-    id: number,
-    data: Partial<Omit<Frase, 'id' | 'criado_em'>>,
-  ): Promise<ApiResponse<Frase>> => api.put(`/frases/edit/${id}`, data),
+  update: async (id: number, data: Partial<FraseInput>): Promise<ApiResponse<Frase>> =>
+    (await api.put<ApiResponse<Frase>>(`/frases/edit/${id}`, data)).data,
 
-  delete: (id: number): Promise<ApiResponse<null>> => api.delete(`/frases/delete/${id}`),
+  delete: async (id: number): Promise<ApiResponse<null>> =>
+    (await api.delete<ApiResponse<null>>(`/frases/delete/${id}`)).data,
 }

@@ -1,10 +1,13 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { promptService } from '@//modules/prompts/services/promptService'
-import { useTraducoes } from '@/modules/traducoes/composables/useTraducoes.ts'
+import { promptService } from '@/modules/prompts/services/promptService'
+import { useTraducoes } from '@/modules/traducoes/composables/useTraducoes'
 import { useImagens } from '@/modules/imagens/composables/useImagens'
 import { useFrases } from '@/modules/frases/composables/useFrases'
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
+import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
 import type { Prompt, Traducao, Imagem, Frase } from '@/core/types'
 
 type DeleteItemType = 'traducao' | 'imagem' | 'frase'
@@ -17,6 +20,7 @@ interface DeleteItem {
 export function usePromptDetail() {
   const route = useRoute()
   const { error } = useAlert()
+  const { t, te } = useI18n()
   const prompt = ref<Prompt | null>(null)
   const activeTab = ref<'traducoes' | 'imagens' | 'frases'>('traducoes')
 
@@ -33,7 +37,7 @@ export function usePromptDetail() {
   const deleting = ref(false)
 
   const promptId = ref<number>(0)
-  const { frases, fetchFrases, deleteFrase } = useFrases(promptId.value)
+  const { frases, fetchFrases, deleteFrase } = useFrases()
 
   const fetchPrompt = async (): Promise<void> => {
     const idParam = route.params.id
@@ -46,8 +50,7 @@ export function usePromptDetail() {
         }
       } catch (err: unknown) {
         const axiosError = err as { response?: { data?: { message?: string } } }
-        console.error('Erro ao carregar prompt:', axiosError.response?.data?.message)
-        error(axiosError.response?.data?.message || 'Erro ao carregar prompt')
+        error(axiosError.response?.data?.message || t('prompts.errorLoadOne'))
       }
     }
   }
@@ -56,14 +59,8 @@ export function usePromptDetail() {
     loadingTraducoes.value = true
     try {
       await fetchTraducoes(promptId.value)
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { status?: number; data?: { message?: string } } }
-      if (axiosError.response?.status === 400) {
-        // Prompt não tem traduções ainda, ignora
-        console.log('Nenhuma tradução encontrada para este prompt')
-      } else {
-        error(axiosError.response?.data?.message || 'Erro ao carregar traduções')
-      }
+    } catch {
+      // Alerta de erro já exibido pelo composable (lista vazia não é erro)
     } finally {
       loadingTraducoes.value = false
     }
@@ -73,14 +70,8 @@ export function usePromptDetail() {
     loadingImagens.value = true
     try {
       await fetchImagens(promptId.value)
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { status?: number; data?: { message?: string } } }
-      if (axiosError.response?.status === 400) {
-        // Prompt não tem imagens ainda, ignora
-        console.log('Nenhuma imagem encontrada para este prompt')
-      } else {
-        error(axiosError.response?.data?.message || 'Erro ao carregar imagens')
-      }
+    } catch {
+      // Alerta de erro já exibido pelo composable (lista vazia não é erro)
     } finally {
       loadingImagens.value = false
     }
@@ -89,40 +80,37 @@ export function usePromptDetail() {
   const loadFrases = async (): Promise<void> => {
     loadingFrases.value = true
     try {
-      await fetchFrases()
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { status?: number; data?: { message?: string } } }
-      if (axiosError.response?.status === 400) {
-        // Prompt não tem frases ainda, ignora
-        console.log('Nenhuma frase encontrada para este prompt')
-      } else {
-        error(axiosError.response?.data?.message || 'Erro ao carregar frases')
-      }
+      await fetchFrases(promptId.value)
+    } catch {
+      // Alerta de erro já exibido pelo composable (lista vazia não é erro)
     } finally {
       loadingFrases.value = false
     }
   }
 
-  const formatDate = (date?: string): string => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('pt-BR')
+  const formatDate = (date?: string): string => formatLocaleDate(date)
+
+  // Rótulo traduzido do tipo da frase (o valor gravado no backend não muda)
+  const getTipoLabel = (tipo?: string): string => {
+    const key = `frases.tipos.${tipo || 'relacionada'}`
+    return te(key) ? t(key) : tipo || ''
   }
 
   const confirmDeleteTraducao = (traducao: Traducao): void => {
     itemToDelete.value = { type: 'traducao', id: traducao.id }
-    confirmMessage.value = 'Tem certeza que deseja excluir esta tradução?'
+    confirmMessage.value = t('traducoes.deleteMessage')
     confirmModalVisible.value = true
   }
 
   const confirmDeleteImagem = (imagem: Imagem): void => {
     itemToDelete.value = { type: 'imagem', id: imagem.id }
-    confirmMessage.value = 'Tem certeza que deseja excluir esta imagem?'
+    confirmMessage.value = t('imagens.deleteMessage')
     confirmModalVisible.value = true
   }
 
   const confirmDeleteFrase = (frase: Frase): void => {
     itemToDelete.value = { type: 'frase', id: frase.id }
-    confirmMessage.value = 'Tem certeza que deseja excluir esta frase?'
+    confirmMessage.value = t('frases.deleteMessage')
     confirmModalVisible.value = true
   }
 
@@ -134,20 +122,16 @@ export function usePromptDetail() {
       switch (itemToDelete.value.type) {
         case 'traducao':
           await deleteTraducao(itemToDelete.value.id)
-          await loadTraducoes()
           break
         case 'imagem':
           await deleteImagem(itemToDelete.value.id)
-          await loadImagens()
           break
         case 'frase':
           await deleteFrase(itemToDelete.value.id)
-          await loadFrases()
           break
       }
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } }
-      error(axiosError.response?.data?.message || 'Erro ao excluir item')
+    } catch {
+      // Alerta de erro já exibido pelo composable
     } finally {
       deleting.value = false
       confirmModalVisible.value = false
@@ -175,6 +159,8 @@ export function usePromptDetail() {
     confirmMessage,
     deleting,
     formatDate,
+    getTipoLabel,
+    getNivelLabelKey,
     confirmDeleteTraducao,
     confirmDeleteImagem,
     confirmDeleteFrase,

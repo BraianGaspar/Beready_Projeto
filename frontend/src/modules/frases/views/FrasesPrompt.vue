@@ -1,224 +1,132 @@
 <template>
-  <div class="frases-page">
-    <div class="frases-hero">
-      <button class="hero-back-btn" @click="$router.push(`/prompts/${promptId}`)">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        {{ $t('common.voltar') }}
-      </button>
-      <div class="hero-content">
-        <div class="hero-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-        </div>
-        <h1 class="hero-title">Frases Semelhantes</h1>
-        <p class="hero-subtitle">Prompt: {{ promptTexto }}</p>
-      </div>
-    </div>
+  <PageContainer class="frases-prompt">
+    <PageHeader
+      :title="$t('frases.title')"
+      :subtitle="$t('common.promptLabel', { texto: promptTexto })"
+      icon="chat"
+      :back-to="`/prompts/${promptId}`"
+    >
+      <template #actions>
+        <BaseButton variant="secondary" icon="plus" @click="openModal">{{ $t('frases.new') }}</BaseButton>
+      </template>
+    </PageHeader>
 
-    <div class="content-container">
-      <div class="header-actions">
-        <button class="btn-primary" @click="openModal">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Nova Frase
-        </button>
-      </div>
+    <BaseSpinner v-if="loading" center size="lg" show-label :label="$t('frases.loading')" />
 
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>{{ $t('common.carregando') }} frases...</p>
-      </div>
+    <EmptyState
+      v-else-if="frases.length === 0"
+      icon="chat"
+      :title="$t('frases.emptyTitle')"
+      :description="$t('frases.emptyDescription')"
+    >
+      <BaseButton icon="plus" @click="openModal">{{ $t('frases.add') }}</BaseButton>
+    </EmptyState>
 
-      <div v-else-if="frases.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-16 w-16"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-        </div>
-        <h2 class="empty-title">Nenhuma frase semelhante</h2>
-        <p class="empty-description">Adicione frases semelhantes para este prompt</p>
-        <button class="empty-btn" @click="openModal">Adicionar Frase</button>
-      </div>
-
-      <div v-else class="frases-grid">
-        <div v-for="frase in frases" :key="frase.id" class="frase-card">
-          <div class="card-header">
-            <span class="badge" :class="frase.tipo_frase">{{
-              frase.tipo_frase || 'relacionada'
-            }}</span>
-            <div class="card-actions">
-              <button class="btn-icon edit" @click="editFrase(frase)">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-              </button>
-              <button class="btn-icon delete" @click="confirmDelete(frase)">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-          <p class="frase-text">{{ frase.frase_semelhante }}</p>
-          <div class="card-footer">
-            <span class="similarity"
-              >Similaridade: {{ (frase.pontuacao_semelhante || 0) * 100 }}%</span
-            >
-            <span class="level">{{ frase.nivel_dificuldade || 'iniciante' }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal -->
-    <div v-if="modalOpen" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-container">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            {{ editingId ? $t('common.editar') + ' Frase' : 'Nova Frase' }}
-          </h3>
-          <button class="modal-close" @click="closeModal">×</button>
-        </div>
-        <form @submit.prevent="save">
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">Frase Semelhante *</label>
-              <textarea
-                v-model="form.frase_semelhante"
-                rows="3"
-                required
-                class="form-textarea"
-                placeholder="Digite uma frase semelhante..."
-              ></textarea>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Similaridade (%)</label>
-              <input
-                type="range"
-                v-model.number="form.pontuacao_semelhante"
-                min="0"
-                max="1"
-                step="0.01"
-                class="form-range"
+    <ul v-else class="frases-prompt__grid u-grid-auto" role="list">
+      <li v-for="frase in frases" :key="frase.id" class="frases-prompt__item">
+        <BaseCard as="article" padding="sm" class="frases-prompt__card">
+          <div class="frases-prompt__card-top">
+            <BaseBadge variant="primary">{{ getTipoLabel(frase.tipo_frase) }}</BaseBadge>
+            <div class="frases-prompt__actions">
+              <BaseButton
+                variant="ghost"
+                icon="pencil"
+                :aria-label="$t('common.editar')"
+                @click="editFrase(frase)"
               />
-              <span class="range-value">{{ (form.pontuacao_semelhante || 0) * 100 }}%</span>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Tipo de Frase</label>
-              <select v-model="form.tipo_frase" class="form-select">
-                <option value="alternativa">Alternativa</option>
-                <option value="sinonimo">Sinônimo</option>
-                <option value="exemplo">Exemplo</option>
-                <option value="relacionada">Relacionada</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ $t('flashcards.dificuldade') }}</label>
-              <select v-model="form.nivel_dificuldade" class="form-select">
-                <option value="iniciante">Iniciante</option>
-                <option value="intermediario">Intermediário</option>
-                <option value="avancado">Avançado</option>
-              </select>
+              <BaseButton
+                variant="ghost-danger"
+                icon="trash"
+                :aria-label="$t('common.excluir')"
+                @click="confirmDelete(frase)"
+              />
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-cancel" @click="closeModal">
-              {{ $t('common.cancelar') }}
-            </button>
-            <button type="submit" class="btn-save" :disabled="saving">
-              {{ saving ? 'Salvando...' : $t('common.salvar') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <p class="frases-prompt__text">{{ frase.frase_semelhante }}</p>
+          <template #footer>
+            <div class="frases-prompt__meta">
+              <span>{{ $t('frases.similarity', { valor: Math.round((frase.pontuacao_semelhante || 0) * 100) }) }}</span>
+              <BaseBadge size="sm">{{ $t(getNivelLabelKey(frase.nivel_dificuldade)) }}</BaseBadge>
+            </div>
+          </template>
+        </BaseCard>
+      </li>
+    </ul>
 
-    <!-- Confirm Modal -->
+    <!-- Criar / editar -->
+    <BaseModal v-model="modalOpen" :title="editingId ? $t('frases.edit') : $t('frases.new')">
+      <form id="frases-prompt-form" class="u-stack" @submit.prevent="save">
+        <BaseTextarea
+          v-model="form.frase_semelhante"
+          :label="$t('frases.fraseLabel')"
+          :placeholder="$t('frases.frasePlaceholder')"
+          :rows="3"
+          required
+        />
+        <BaseField field-id="frases-prompt-similaridade" :label="$t('frases.similarityLabel')">
+          <div class="frases-prompt__range">
+            <input
+              id="frases-prompt-similaridade"
+              v-model.number="form.pontuacao_semelhante"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              class="frases-prompt__range-input"
+              :aria-valuetext="`${Math.round((form.pontuacao_semelhante || 0) * 100)}%`"
+            />
+            <output for="frases-prompt-similaridade" class="frases-prompt__range-value">
+              {{ Math.round((form.pontuacao_semelhante || 0) * 100) }}%
+            </output>
+          </div>
+        </BaseField>
+        <div class="frases-prompt__form-row">
+          <BaseSelect v-model="form.tipo_frase" :label="$t('frases.tipoLabel')" :options="tipoOptions" />
+          <BaseSelect v-model="form.nivel_dificuldade" :label="$t('flashcards.dificuldade')" :options="nivelOptions" />
+        </div>
+      </form>
+      <template #footer>
+        <BaseButton variant="secondary" @click="closeModal">{{ $t('common.cancelar') }}</BaseButton>
+        <BaseButton type="submit" form="frases-prompt-form" :loading="saving">
+          {{ saving ? $t('common.salvando') : $t('common.salvar') }}
+        </BaseButton>
+      </template>
+    </BaseModal>
+
     <ConfirmModal
       v-model="confirmModalVisible"
-      title="Confirmar exclusão"
-      message="Tem certeza que deseja excluir esta frase?"
-      confirm-text="$t('common.excluir')"
+      :title="$t('prompts.confirmDelete')"
+      :message="$t('frases.deleteMessage')"
+      :warning="$t('confirmModal.irreversible')"
+      :confirm-text="$t('common.excluir')"
       type="danger"
       :loading="deleting"
       @confirm="handleConfirmDelete"
     />
-  </div>
+  </PageContainer>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useFrasesPrompt } from './FrasesPrompt'
-import ConfirmModal from '@/shared/components/common/ConfirmModal.vue'
+import {
+  BaseBadge,
+  BaseButton,
+  BaseCard,
+  BaseField,
+  BaseModal,
+  BaseSelect,
+  BaseSpinner,
+  BaseTextarea,
+  ConfirmModal,
+  EmptyState,
+  PageContainer,
+  PageHeader,
+  type SelectOption,
+} from '@/shared/components/ui'
+
+const { t } = useI18n()
 
 const {
   promptId,
@@ -231,6 +139,8 @@ const {
   editingId,
   deleting,
   confirmModalVisible,
+  getTipoLabel,
+  getNivelLabelKey,
   openModal,
   closeModal,
   editFrase,
@@ -238,6 +148,19 @@ const {
   confirmDelete,
   handleConfirmDelete,
 } = useFrasesPrompt()
+
+const tipoOptions = computed<SelectOption[]>(() => [
+  { value: 'alternativa', label: t('frases.tipos.alternativa') },
+  { value: 'sinonimo', label: t('frases.tipos.sinonimo') },
+  { value: 'exemplo', label: t('frases.tipos.exemplo') },
+  { value: 'relacionada', label: t('frases.tipos.relacionada') },
+])
+
+const nivelOptions = computed<SelectOption[]>(() => [
+  { value: 'iniciante', label: t('common.iniciante') },
+  { value: 'intermediario', label: t('common.intermediario') },
+  { value: 'avancado', label: t('common.avancado') },
+])
 </script>
 
 <style scoped>

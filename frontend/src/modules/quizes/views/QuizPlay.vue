@@ -1,161 +1,104 @@
 <template>
-  <div class="quiz-play-container">
-    <div class="quiz-play-header">
-      <button class="btn-back" @click="voltar">← $t('common.voltar')</button>
-      <span v-if="!loading && !isFinished" class="progress-tracker">
-        Questão {{ currentQuestionIndex + 1 }} de {{ totalQuestoes }}
-      </span>
-    </div>
+  <PageContainer size="sm" class="quiz-play">
+    <PageHeader variant="plain" :title="$t('quizes.jogar')" icon="light-bulb" back-to="/quizes">
+      <div v-if="!loading && !isFinished && total > 0" class="quiz-play__progress">
+        <span class="quiz-play__progress-label" aria-hidden="true">
+          {{ $t('quizPlay.progress', { current: currentIndex + 1, total }) }}
+        </span>
+        <BaseProgress
+          :value="currentIndex + 1"
+          :max="total"
+          :label="$t('common.progresso')"
+          :value-text="$t('quizPlay.progress', { current: currentIndex + 1, total })"
+        />
+      </div>
+    </PageHeader>
 
-    <div v-if="loading" class="state-message">$t('common.carregando')estões do quiz...</div>
+    <BaseSpinner v-if="loading" center size="lg" show-label :label="$t('quizPlay.loading')" />
 
-    <div v-else-if="isFinished" class="state-message completion-card">
-      <h2>🏆 Quiz Finalizado!</h2>
-      <p>Suas respostas foram computadas com sucesso no banco de dados.</p>
-      <button class="btn-primary" @click="voltar">$t('common.voltar') para Listagem</button>
-    </div>
+    <BaseCard v-else-if="isFinished" as="section">
+      <EmptyState icon="trophy" :title="$t('quizPlay.finished')" :description="$t('quizPlay.result', { acertos, total })">
+        <BaseButton icon="refresh" @click="jogarNovamente">{{ $t('quizPlay.playAgain') }}</BaseButton>
+        <BaseButton variant="secondary" icon="arrow-left" @click="voltar">{{ $t('quizPlay.backToList') }}</BaseButton>
+      </EmptyState>
+    </BaseCard>
 
-    <div v-else-if="currentQuestao" class="quiz-card">
-      <div class="questao-section">
-        <span class="label-type">ENUNCIADO</span>
-        <p class="enunciado-text">{{ currentQuestao.enunciado }}</p>
+    <BaseCard v-else-if="currentQuiz" as="section" class="quiz-play__card">
+      <div class="quiz-play__question">
+        <BaseBadge variant="primary" size="sm">{{ $t('quizPlay.question') }}</BaseBadge>
+        <p class="quiz-play__question-text">{{ currentQuiz.titulo }}</p>
       </div>
 
-      <div class="alternativas-list">
-        <button
-          v-for="alt in currentQuestao.alternativas"
-          :key="alt.id"
-          class="btn-alternativa"
-          :class="{
-            'selected': selectedAlternativaId === alt.id,
-            'correct-highlight': respondido && alt.correta,
-            'wrong-highlight': respondido && selectedAlternativaId === alt.id && !alt.correta
-          }"
-          :disabled="respondido"
-          @click="selectedAlternativaId = alt.id"
-        >
-          {{ alt.texto }}
-        </button>
+      <div aria-live="polite">
+        <div v-if="respostaVisivel" class="quiz-play__answer">
+          <BaseBadge variant="info" size="sm">{{ $t('quizPlay.answer') }}</BaseBadge>
+          <p v-if="currentQuiz.descricao" class="quiz-play__answer-text">{{ currentQuiz.descricao }}</p>
+          <p v-else class="quiz-play__answer-text quiz-play__answer-text--empty">{{ $t('quizPlay.noAnswer') }}</p>
+        </div>
+        <p v-else class="quiz-play__instructions">
+          <BaseIcon name="information-circle" />
+          {{ $t('quizPlay.instructions') }}
+        </p>
       </div>
 
-      <div class="quiz-actions">
-        <button
-          v-if="!respondido"
-          class="btn-action-confirm"
-          :disabled="selectedAlternativaId === null"
-          @click="verificarResposta"
-        >
-          Confirmar Resposta
-        </button>
-        <button v-else class="btn-action-next" @click="avançar">
-          {{ currentQuestionIndex + 1 === totalQuestoes ? 'Finalizar Quiz' : 'Próxima Questão →' }}
-        </button>
-      </div>
-    </div>
-  </div>
+      <template #footer>
+        <BaseButton v-if="!respostaVisivel" size="lg" icon="eye" block @click="mostrarResposta">
+          {{ $t('quizPlay.showAnswer') }}
+        </BaseButton>
+        <div v-else class="quiz-play__answers">
+          <BaseButton
+            variant="danger"
+            size="lg"
+            icon="x-circle"
+            class="quiz-play__choice"
+            @click="responder(false)"
+          >
+            {{ $t('quizPlay.wrong') }}
+          </BaseButton>
+          <BaseButton
+            variant="success"
+            size="lg"
+            icon="check-circle"
+            class="quiz-play__choice"
+            @click="responder(true)"
+          >
+            {{ $t('quizPlay.correct') }}
+          </BaseButton>
+        </div>
+      </template>
+    </BaseCard>
+  </PageContainer>
 </template>
 
 <script setup lang="ts">
+import {
+  BaseBadge,
+  BaseButton,
+  BaseCard,
+  BaseIcon,
+  BaseProgress,
+  BaseSpinner,
+  EmptyState,
+  PageContainer,
+  PageHeader,
+} from '@/shared/components/ui'
 import { useQuizPlay } from './QuizPlay'
 
 const {
-  currentQuestao,
-  currentQuestionIndex,
-  selectedAlternativaId,
-  respondido,
+  currentQuiz,
+  currentIndex,
+  total,
+  acertos,
+  respostaVisivel,
   loading,
   isFinished,
-  totalQuestoes,
-  verificarResposta,
-  avançar,
-  voltar
+  mostrarResposta,
+  responder,
+  jogarNovamente,
+  voltar,
 } = useQuizPlay()
 </script>
 
 <style scoped>
-.quiz-play-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  color: white;
-  padding: 20px;
-  position: relative;
-}
-.quiz-play-header {
-  position: absolute;
-  top: 20px;
-  width: 90%;
-  display: flex;
-  justify-content: space-between;
-}
-.quiz-card {
-  background: white;
-  color: #333;
-  border-radius: 12px;
-  padding: 30px;
-  width: 100%;
-  max-width: 600px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-.label-type {
-  font-size: 11px;
-  font-weight: bold;
-  color: #3b82f6;
-  letter-spacing: 1px;
-}
-.enunciado-text {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 15px 0 25px 0;
-}
-.alternativas-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.btn-alternativa {
-  background: #f3f4f6;
-  border: 2px solid transparent;
-  color: #374151;
-  padding: 14px;
-  border-radius: 8px;
-  text-align: left;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-alternativa:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-.btn-alternativa.selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
-}
-.btn-alternativa.correct-highlight {
-  background: #dcfce7 !important;
-  color: #166534 !important;
-  border-color: #22c55e !important;
-}
-.btn-alternativa.wrong-highlight {
-  background: #fee2e2 !important;
-  color: #991b1b !important;
-  border-color: #ef4444 !important;
-}
-.quiz-actions {
-  margin-top: 25px;
-}
-.btn-action-confirm, .btn-action-next {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-}
-.btn-action-confirm { background: #3b82f6; color: white; }
-.btn-action-confirm:disabled { background: #cbd5e1; cursor: not-allowed; }
-.btn-action-next { background: #10b981; color: white; }
+@import '@/styles/views/quizes/quiz-play.css';
 </style>

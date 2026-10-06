@@ -1,25 +1,20 @@
 import { ref } from 'vue'
 import { flashcardService } from '../services/flashcardService'
-import type { Flashcard } from '../services/flashcardService'
+import type { Flashcard, FlashcardInput } from '@/core/types'
+import { getApiErrorMessage } from '@/core/services/api'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
 import { usePlan } from '@/shared/composables/usePlan'
+import { normalizeNivel, type NivelDificuldade } from '@/shared/utils/nivelDificuldade'
 
-// Tipo para os dados de criação (sem os campos auto-gerados)
-type CreateFlashcardData = Omit<Flashcard, 'id' | 'criado_em' | 'atualizado_em'>
-
-// Tipo para os dados de atualização (parcial)
-type UpdateFlashcardData = Partial<Flashcard>
-
-// Tipo para o erro da API
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string
-    }
-  }
-  message?: string
+export interface FlashcardFormData {
+  frente: string
+  verso: string
+  nivel_dificuldade?: NivelDificuldade
+  usuario_id: number
+  prompt_id?: number
+  frase_id?: number
 }
 
 export function useFlashcards() {
@@ -34,118 +29,84 @@ export function useFlashcards() {
     return plan.canCreateMore('flashcards', flashcards.value.length)
   }
 
-  const loadFlashcards = async (usuarioId: number) => {
+  const loadFlashcards = async () => {
     loading.value = true
     try {
-      const response = await flashcardService.getByUsuario(usuarioId)
+      const response = await flashcardService.getAll()
       flashcards.value = response.data.data || []
       return flashcards.value
     } catch (err: unknown) {
-      console.error('Erro ao carregar flashcards:', err)
-      error(t('flashcards.errorLoad'))
+      error(getApiErrorMessage(err) || t('flashcards.errorLoad'))
       flashcards.value = []
     } finally {
       loading.value = false
     }
   }
 
-  const createFlashcard = async (data: {
-    frente: string
-    verso: string
-    nivel_dificuldade?: 'facil' | 'medio' | 'dificil'
-    usuario_id: number
-    prompt_id?: number
-    frase_id?: number
-  }) => {
+  const createFlashcard = async (data: FlashcardFormData) => {
     if (!permissionStore.canCreate('flashcards')) {
-      error(t('permissions.createDenied', { recurso: 'flashcards' }))
+      error(t('permissions.createDenied', { recurso: t('common.flashcards') }))
       throw new Error('Permissão negada')
     }
 
     if (!canCreateMore()) {
-      error(t('plan.limitReached', { recurso: 'flashcards' }))
+      error(t('plan.limitReached', { recurso: t('common.flashcards') }))
       throw new Error('Limite do plano atingido')
     }
 
     loading.value = true
     try {
-      // Construir o objeto no formato que o service/backend espera
-      const serviceData: CreateFlashcardData = {
+      const payload: FlashcardInput = {
         usuario_id: data.usuario_id,
         frente: data.frente,
         verso: data.verso,
-        nivel_dificuldade: data.nivel_dificuldade || 'medio',
+        nivel_dificuldade: normalizeNivel(data.nivel_dificuldade),
         prompt_id: data.prompt_id,
-        frase_id: data.frase_id
+        frase_id: data.frase_id,
       }
 
-      const response = await flashcardService.create(serviceData)
+      const response = await flashcardService.create(payload)
+      const created: Flashcard = { ...payload, ...response.data.data }
 
-      const newFlashcard: Flashcard = {
-        id: response.data.data.id || 0,
-        usuario_id: data.usuario_id,
-        frente: response.data.data.frente || data.frente,
-        verso: response.data.data.verso || data.verso,
-        nivel_dificuldade: response.data.data.nivel_dificuldade || data.nivel_dificuldade || 'medio',
-        prompt_id: response.data.data.prompt_id || data.prompt_id,
-        frase_id: response.data.data.frase_id || data.frase_id,
-        criado_em: response.data.data.criado_em || new Date().toISOString(),
-        atualizado_em: response.data.data.atualizado_em || new Date().toISOString()
-      }
-
-      flashcards.value.unshift(newFlashcard)
+      flashcards.value.unshift(created)
       success(t('flashcards.successCreate'))
-      return newFlashcard
+      return created
     } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.response?.data?.message || t('flashcards.errorCreate'))
+      error(getApiErrorMessage(err) || t('flashcards.errorCreate'))
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const updateFlashcard = async (id: number, data: Partial<{
-    frente: string
-    verso: string
-    nivel_dificuldade?: 'facil' | 'medio' | 'dificil'
-    usuario_id: number
-    prompt_id?: number
-    frase_id?: number
-  }>) => {
+  const updateFlashcard = async (id: number, data: Partial<FlashcardFormData>) => {
     if (!permissionStore.canEdit('flashcards')) {
-      error(t('permissions.editDenied', { recurso: 'flashcards' }))
+      error(t('permissions.editDenied', { recurso: t('common.flashcards') }))
       throw new Error('Permissão negada')
     }
 
     loading.value = true
     try {
-      // Construir o objeto no formato que o service/backend espera
-      const serviceData: UpdateFlashcardData = {}
-      if (data.frente !== undefined) serviceData.frente = data.frente
-      if (data.verso !== undefined) serviceData.verso = data.verso
-      if (data.nivel_dificuldade !== undefined) serviceData.nivel_dificuldade = data.nivel_dificuldade
-      if (data.usuario_id !== undefined) serviceData.usuario_id = data.usuario_id
-      if (data.prompt_id !== undefined) serviceData.prompt_id = data.prompt_id
-      if (data.frase_id !== undefined) serviceData.frase_id = data.frase_id
+      const payload: Partial<FlashcardInput> = {}
+      if (data.frente !== undefined) payload.frente = data.frente
+      if (data.verso !== undefined) payload.verso = data.verso
+      if (data.nivel_dificuldade !== undefined) {
+        payload.nivel_dificuldade = normalizeNivel(data.nivel_dificuldade)
+      }
+      if (data.prompt_id !== undefined) payload.prompt_id = data.prompt_id
+      if (data.frase_id !== undefined) payload.frase_id = data.frase_id
 
-      const response = await flashcardService.update(id, serviceData)
+      const response = await flashcardService.update(id, payload)
 
-      const index = flashcards.value.findIndex(f => f.id === id)
-      if (index !== -1) {
-        const current = flashcards.value[index]
-        if (current) {
-          flashcards.value[index] = {
-            ...current,
-            ...response.data.data
-          }
-        }
+      const index = flashcards.value.findIndex((f) => f.id === id)
+      const current = flashcards.value[index]
+      if (current) {
+        flashcards.value[index] = { ...current, ...response.data.data }
       }
       success(t('flashcards.successUpdate'))
       return response.data.data
     } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.response?.data?.message || t('flashcards.errorUpdate'))
+      error(getApiErrorMessage(err) || t('flashcards.errorUpdate'))
       throw err
     } finally {
       loading.value = false
@@ -154,19 +115,18 @@ export function useFlashcards() {
 
   const deleteFlashcard = async (id: number) => {
     if (!permissionStore.canDelete('flashcards')) {
-      error(t('permissions.deleteDenied', { recurso: 'flashcards' }))
+      error(t('permissions.deleteDenied', { recurso: t('common.flashcards') }))
       throw new Error('Permissão negada')
     }
 
     loading.value = true
     try {
       await flashcardService.delete(id)
-      flashcards.value = flashcards.value.filter(f => f.id !== id)
+      flashcards.value = flashcards.value.filter((f) => f.id !== id)
       success(t('flashcards.successDelete'))
       return true
     } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.response?.data?.message || t('flashcards.errorDelete'))
+      error(getApiErrorMessage(err) || t('flashcards.errorDelete'))
       throw err
     } finally {
       loading.value = false

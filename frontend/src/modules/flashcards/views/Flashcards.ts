@@ -1,20 +1,23 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFlashcards } from '../composables/useFlashcards'
-import type { Flashcard, User } from '@/core/types'
+import type { Flashcard } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
+import { useAuthStore } from '@/stores/auth'
+import { normalizeNivel, type NivelDificuldade } from '@/shared/utils/nivelDificuldade'
 
 interface FormData {
   frente: string
   verso: string
-  nivel_dificuldade: 'facil' | 'medio' | 'dificil'
+  nivel_dificuldade: NivelDificuldade
 }
 
 export function useFlashcardsView() {
   const router = useRouter()
   const { t } = useI18n()
   const permissionStore = usePermissionStore()
+  const authStore = useAuthStore()
 
   const {
     flashcards,
@@ -37,12 +40,10 @@ export function useFlashcardsView() {
   const form = reactive<FormData>({
     frente: '',
     verso: '',
-    nivel_dificuldade: 'medio',
+    nivel_dificuldade: 'iniciante',
   })
 
-  const flashcardsList = computed<Flashcard[]>(() => {
-    return flashcards.value as unknown as Flashcard[]
-  })
+  const flashcardsList = computed<Flashcard[]>(() => flashcards.value)
 
   const flashcardsCount = computed(() => flashcards.value.length)
 
@@ -62,7 +63,7 @@ export function useFlashcardsView() {
   const resetForm = (): void => {
     form.frente = ''
     form.verso = ''
-    form.nivel_dificuldade = 'medio'
+    form.nivel_dificuldade = 'iniciante'
     editingId.value = null
     isEditing.value = false
   }
@@ -79,7 +80,7 @@ export function useFlashcardsView() {
     if (!canEdit.value) return
     form.frente = flashcard.frente
     form.verso = flashcard.verso
-    form.nivel_dificuldade = flashcard.nivel_dificuldade || 'medio'
+    form.nivel_dificuldade = normalizeNivel(flashcard.nivel_dificuldade)
     editingId.value = flashcard.id
     isEditing.value = true
     showModal.value = true
@@ -107,13 +108,9 @@ export function useFlashcardsView() {
     try {
       await deleteFlashcard(deletingFlashcard.value.id)
       showDeleteModal.value = false
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        const user = JSON.parse(userData) as User
-        await loadFlashcards(user.id)
-      }
-    } catch (error: unknown) {
-      console.error('Erro ao deletar flashcard:', error)
+      await loadFlashcards()
+    } catch {
+      // Alerta de erro já exibido por useFlashcards
     } finally {
       deleting.value = false
       deletingFlashcard.value = null
@@ -121,16 +118,8 @@ export function useFlashcardsView() {
   }
 
   const submitForm = async (): Promise<void> => {
-    const userData = localStorage.getItem('user')
-    if (!userData) return
-
-    let user: User
-    try {
-      user = JSON.parse(userData) as User
-    } catch (e: unknown) {
-      console.error('Erro ao fazer parse do userData:', e)
-      return
-    }
+    const user = authStore.user
+    if (!user) return
 
     submitting.value = true
 
@@ -149,9 +138,9 @@ export function useFlashcardsView() {
       }
 
       closeModal()
-      await loadFlashcards(user.id)
-    } catch (error: unknown) {
-      console.error('Erro ao salvar flashcard:', error)
+      await loadFlashcards()
+    } catch {
+      // Alerta de erro já exibido por useFlashcards
     } finally {
       submitting.value = false
     }
@@ -162,22 +151,9 @@ export function useFlashcardsView() {
     resetForm()
   }
 
-  const getUserFromLocalStorage = (): User | null => {
-    const userData = localStorage.getItem('user')
-    if (!userData) return null
-    try {
-      return JSON.parse(userData) as User
-    } catch {
-      return null
-    }
-  }
-
   onMounted(async () => {
     await permissionStore.loadPermissions()
-    const user = getUserFromLocalStorage()
-    if (user?.id) {
-      await loadFlashcards(user.id)
-    }
+    await loadFlashcards()
   })
 
   return {

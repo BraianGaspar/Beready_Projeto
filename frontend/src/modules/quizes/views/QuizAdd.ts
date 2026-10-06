@@ -1,20 +1,22 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAlert } from '@/shared/composables/useAlert'
-import { API_BASE_URL } from '@/shared/config/env'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
+import { useQuizes } from '../composables/useQuizes'
+import type { NivelDificuldade } from '@/shared/utils/nivelDificuldade'
 
 export function useQuizAdd() {
   const router = useRouter()
-  const { success, error } = useAlert()
+  const authStore = useAuthStore()
   const { t } = useI18n()
-  const loading = ref(false)
+  // createQuiz verifica permissão e limite do plano e exibe os alertas
+  const { createQuiz, loading } = useQuizes()
 
   const form = ref({
     titulo: '',
     descricao: '',
     tipo_criacao: 'manual',
-    nivel_dificuldade: 'iniciante',
+    nivel_dificuldade: 'iniciante' as NivelDificuldade,
     total_questoes: 0,
     tempo_limite: null as number | null,
     publico: false,
@@ -25,48 +27,23 @@ export function useQuizAdd() {
   })
 
   const handleSubmit = async () => {
-    // Validação
     if (!form.value.titulo) {
       errors.value.titulo = t('quizes.tituloRequired')
       return
     }
+    errors.value.titulo = ''
 
-    const userData = localStorage.getItem('user')
-    if (!userData) {
-      error(t('quizes.userNotAuthenticated'))
+    const user = authStore.user
+    if (!user) {
       router.push('/login')
       return
     }
 
-    const user = JSON.parse(userData)
-    loading.value = true
-
     try {
-      const response = await fetch(`${API_BASE_URL}/quizes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          ...form.value,
-          usuario_id: user.id,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        success(t('quizes.successCreate'))
-        setTimeout(() => router.push('/quizes'), 1500)
-      } else {
-        error(data.message || t('quizes.errorCreate'))
-      }
-    } catch (err) {
-      console.error('Erro:', err)
-      error(t('quizes.errorCreate'))
-    } finally {
-      loading.value = false
+      await createQuiz({ ...form.value, usuario_id: user.id })
+      router.push('/quizes')
+    } catch {
+      // Alerta de erro já exibido por useQuizes
     }
   }
 

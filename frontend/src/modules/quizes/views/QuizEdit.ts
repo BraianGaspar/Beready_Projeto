@@ -1,30 +1,15 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useQuizes } from '../composables/useQuizes'
-import { useAlert } from '@/shared/composables/useAlert'
-
-// Tipo para o erro da API
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string
-    }
-  }
-  message?: string
-}
-
-// Tipo para o usuário do localStorage
-interface UserData {
-  id: number
-  nome?: string
-  email?: string
-}
+import { normalizeNivel, type NivelDificuldade } from '@/shared/utils/nivelDificuldade'
 
 export function useQuizEdit() {
   const router = useRouter()
   const route = useRoute()
-  const { success, error } = useAlert()
-  const { updateQuiz, deleteQuiz, loadQuizes } = useQuizes()
+  const { t } = useI18n()
+  // useQuizes já exibe os alertas de sucesso/erro
+  const { getQuiz, updateQuiz, deleteQuiz } = useQuizes()
 
   const loading = ref(false)
   const deleteLoading = ref(false)
@@ -34,7 +19,7 @@ export function useQuizEdit() {
     id: null as number | null,
     titulo: '',
     descricao: '',
-    nivel_dificuldade: 'intermediario',
+    nivel_dificuldade: 'iniciante' as NivelDificuldade,
     tempo_limite: null as number | null,
     total_questoes: 0,
     publico: false,
@@ -47,70 +32,58 @@ export function useQuizEdit() {
   })
 
   const validateForm = (): boolean => {
-    let isValid = true
     if (!form.titulo.trim()) {
-      errors.titulo = 'Título é obrigatório'
-      isValid = false
-    } else {
-      errors.titulo = ''
+      errors.titulo = t('quizes.tituloRequired')
+      return false
     }
-    return isValid
+    errors.titulo = ''
+    return true
   }
 
   const loadQuiz = async () => {
-    const id = route.params.id
-    if (!id) return
+    const id = Number(route.params.id)
+    if (!id) {
+      router.push('/quizes')
+      return
+    }
 
     loading.value = true
     try {
-      // Buscar quiz por ID (implementar no service se necessário)
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        const user = JSON.parse(userData) as UserData
-        await loadQuizes(user.id)
-        // Atualizar form com os dados do quiz
+      const quiz = await getQuiz(id)
+      if (!quiz) {
+        router.push('/quizes')
+        return
       }
-    } catch (err: unknown) {
-      console.error('Erro ao carregar quiz:', err)
-      const apiError = err as ApiError
-      error(apiError.message || 'Erro ao carregar quiz')
+      form.id = quiz.id
+      form.titulo = quiz.titulo ?? ''
+      form.descricao = quiz.descricao ?? ''
+      form.nivel_dificuldade = normalizeNivel(quiz.nivel_dificuldade)
+      form.tempo_limite = quiz.tempo_limite ?? null
+      form.total_questoes = quiz.total_questoes ?? 0
+      form.publico = !!quiz.publico
+      form.tipo_criacao = quiz.tipo_criacao || 'manual'
     } finally {
       loading.value = false
     }
   }
 
   const handleSubmit = async () => {
-    if (!validateForm()) return
+    if (!form.id || !validateForm()) return
 
-    const userData = localStorage.getItem('user')
-    if (!userData) {
-      error('Usuário não autenticado')
-      return
-    }
-
-    const user = JSON.parse(userData) as UserData
     loading.value = true
-
     try {
-      const data = {
-        usuario_id: user.id,
+      await updateQuiz(form.id, {
         titulo: form.titulo,
         descricao: form.descricao,
         nivel_dificuldade: form.nivel_dificuldade,
         tempo_limite: form.tempo_limite ?? undefined,
-        total_questoes: 0,
+        total_questoes: form.total_questoes,
         publico: form.publico,
-        tipo_criacao: 'manual' as const,
-      }
-
-      if (form.id) {
-        await updateQuiz(form.id, data)
-        success('Quiz atualizado com sucesso!')
-      }
+        tipo_criacao: form.tipo_criacao,
+      })
       router.push('/quizes')
-    } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.message || 'Erro ao salvar quiz')
+    } catch {
+      // Alerta de erro já exibido por useQuizes
     } finally {
       loading.value = false
     }
@@ -126,12 +99,9 @@ export function useQuizEdit() {
     deleteLoading.value = true
     try {
       await deleteQuiz(form.id)
-      success('Quiz excluído com sucesso!')
       router.push('/quizes')
-    } catch (err: unknown) {
-      const apiError = err as ApiError
-      error(apiError.message || 'Erro ao excluir quiz')
-      showDeleteModal.value = false
+    } catch {
+      // Alerta de erro já exibido por useQuizes
     } finally {
       deleteLoading.value = false
       showDeleteModal.value = false

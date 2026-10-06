@@ -1,82 +1,35 @@
 <template>
-  <div class="forgot-password-page">
-    <div class="forgot-password-card">
-      <div class="forgot-password-header">
-        <div class="header-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-            />
-          </svg>
-        </div>
-        <h1 class="forgot-password-title">{{ $t('forgotPassword.title') }}</h1>
-        <p class="forgot-password-subtitle">{{ $t('forgotPassword.subtitle') }}</p>
-      </div>
+  <AuthCard
+    :title="$t('forgotPassword.title')"
+    :subtitle="$t('forgotPassword.subtitle')"
+    icon="key"
+  >
+    <form class="forgot-password__form" @submit.prevent="handleSubmit">
+      <BaseInput
+        v-model="form.email"
+        type="email"
+        :label="$t('login.email')"
+        autocomplete="email"
+        :placeholder="$t('forgotPassword.emailPlaceholder')"
+        :hint="$t('forgotPassword.helpText')"
+        required
+      />
+      <BaseButton type="submit" :loading="loading" block>
+        {{ loading ? $t('common.salvando') : $t('forgotPassword.submitButton') }}
+      </BaseButton>
+    </form>
 
-      <form @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label class="form-label">{{ $t('login.email') }}</label>
-          <input
-            v-model="form.email"
-            type="email"
-            class="form-input"
-            :placeholder="$t('forgotPassword.emailPlaceholder')"
-            required
-          />
-        </div>
-        <div class="forgot-password-input-help">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          {{ $t('forgotPassword.helpText') }}
-        </div>
-        <button type="submit" class="btn-submit" :disabled="loading">
-          {{ loading ? $t('common.salvando') : $t('forgotPassword.submitButton') }}
-        </button>
-      </form>
-
-      <div class="forgot-password-back-link">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        <router-link to="/login">{{ $t('forgotPassword.backToLogin') }}</router-link>
-      </div>
-    </div>
-  </div>
+    <template #footer>
+      <BaseButton variant="ghost" icon="arrow-left" to="/login">
+        {{ $t('forgotPassword.backToLogin') }}
+      </BaseButton>
+    </template>
+  </AuthCard>
 </template>
 
 <script setup lang="ts">
+import { BaseButton, BaseInput } from '@/shared/components/ui'
+import AuthCard from '../components/AuthCard.vue'
 import { useForgotPassword } from './useForgotPassword'
 
 const { form, loading, handleSubmit } = useForgotPassword()

@@ -1,17 +1,30 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlert } from '@/shared/composables/useAlert'
-import { API_BASE_URL } from '@/shared/config/env'
+import api, { getApiErrorMessage } from '@/core/services/api'
 import { respostaService } from '@/modules/progresso/services/respostaService'
+import { progressoService } from '@/modules/progresso/services/progressoService'
+import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
+import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
+
+interface StudyCard {
+  id: number
+  pergunta: string
+  resposta: string
+  nivel_dificuldade: string
+}
 
 export function useFlashcardStudy() {
   const sessionStartTime = ref(Date.now())
 
   const router = useRouter()
   const route = useRoute()
+  const authStore = useAuthStore()
   const { error } = useAlert()
+  const { t } = useI18n()
 
-  const flashcards = ref<any[]>([])
+  const flashcards = ref<StudyCard[]>([])
   const currentIndex = ref(0)
   const loading = ref(true)
   const isFlipped = ref(false)
@@ -33,18 +46,10 @@ export function useFlashcardStudy() {
 
   const loadAllFlashcardIds = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/flashcards`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      })
-
-      const data = await response.json()
+      const { data } = await api.get('/flashcards')
 
       if (data.success && Array.isArray(data.data)) {
-        allFlashcardIds.value = data.data.map((item: any) => Number(item.id))
+        allFlashcardIds.value = data.data.map((item: { id: number | string }) => Number(item.id))
       }
     } catch (err) {
       console.error('Erro ao carregar lista de flashcards:', err)
@@ -63,7 +68,7 @@ export function useFlashcardStudy() {
     const id = route.params.id
 
     if (!id) {
-      error('ID do flashcard não informado')
+      error(t('flashcardStudy.missingId'))
       router.push('/flashcards')
       return
     }
@@ -71,15 +76,7 @@ export function useFlashcardStudy() {
     loading.value = true
 
     try {
-      const response = await fetch(`${API_BASE_URL}/flashcards/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      })
-
-      const data = await response.json()
+      const { data } = await api.get(`/flashcards/${id}`)
 
       if (data.success) {
         const item = data.data
@@ -89,20 +86,19 @@ export function useFlashcardStudy() {
             id: item.id,
             pergunta: item.pergunta || item.frente || '',
             resposta: item.resposta || item.verso || '',
-            nivel_dificuldade:
-              item.nivel_dificuldade || item.dificuldade || 'iniciante',
+            nivel_dificuldade: item.nivel_dificuldade || 'iniciante',
           },
         ]
 
         currentIndex.value = 0
         updateHasNextFlashcard()
       } else {
-        error(data.message || 'Erro ao carregar flashcard')
+        error(data.message || t('flashcardStudy.errorLoad'))
         router.push('/flashcards')
       }
     } catch (err) {
       console.error(err)
-      error('Erro de conexão com o servidor')
+      error(getApiErrorMessage(err) || t('errors.networkError'))
       router.push('/flashcards')
     } finally {
       loading.value = false
@@ -151,17 +147,7 @@ export function useFlashcardStudy() {
 
   const incrementarProgresso = async (usuarioId: number) => {
     try {
-      await fetch(`${API_BASE_URL}/progresso/incrementar-flashcards`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          usuario_id: usuarioId,
-          quantidade: 1,
-        }),
-      })
+      await progressoService.incrementarFlashcards(usuarioId, 1)
     } catch (err) {
       console.error('Erro ao incrementar progresso:', err)
     }
@@ -175,17 +161,7 @@ export function useFlashcardStudy() {
     if (segundos <= 0) return
 
     try {
-      await fetch(`${API_BASE_URL}/progresso/incrementar-tempo`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          usuario_id: usuarioId,
-          segundos,
-        }),
-      })
+      await progressoService.incrementarTempo(segundos, usuarioId)
     } catch (err) {
       console.error('Erro ao incrementar tempo de estudo:', err)
     }
@@ -196,28 +172,23 @@ export function useFlashcardStudy() {
     if (rating === 'good') stats.value.good++
     if (rating === 'easy') stats.value.easy++
 
-    const userData = localStorage.getItem('user')
+    const userId = authStore.user?.id
 
-    if (userData && currentFlashcard.value) {
-      try {
-        const localUser = JSON.parse(userData)
-        const isCorrect = rating !== 'hard'
+    if (userId && currentFlashcard.value) {
+      const isCorrect = rating !== 'hard'
 
-        respostaService
-          .registrarResposta({
-            usuario_id: Number(localUser.id),
-            tipo: 'flashcard',
-            referencia_id: currentFlashcard.value.id,
-            correto: isCorrect,
-          })
-          .catch((err) => {
-            console.warn('Falha ao registrar resposta:', err)
-          })
+      respostaService
+        .registrarResposta({
+          usuario_id: userId,
+          tipo: 'flashcard',
+          referencia_id: currentFlashcard.value.id,
+          correto: isCorrect,
+        })
+        .catch(() => {
+          // Registro de resposta é best-effort: não interrompe o estudo
+        })
 
-        incrementarProgresso(Number(localUser.id))
-      } catch (e) {
-        console.error(e)
-      }
+      incrementarProgresso(userId)
     }
 
     if (hasNextFlashcard.value) {
@@ -228,15 +199,10 @@ export function useFlashcardStudy() {
   }
 
   const finishStudy = () => {
-    const userData = localStorage.getItem('user')
+    const userId = authStore.user?.id
 
-    if (userData) {
-      try {
-        const localUser = JSON.parse(userData)
-        incrementarTempo(Number(localUser.id))
-      } catch (e) {
-        console.error(e)
-      }
+    if (userId) {
+      incrementarTempo(userId)
     }
 
     showCompletionModal.value = true
@@ -265,31 +231,7 @@ export function useFlashcardStudy() {
     }
   }
 
-  const getLevelClass = (level: string) => {
-    const normalized = String(level).toLowerCase()
-
-    const classes: Record<string, string> = {
-      iniciante: 'level-beginner',
-      medio: 'level-intermediate',
-      intermediario: 'level-intermediate',
-      avancado: 'level-advanced',
-    }
-
-    return classes[normalized] || 'level-beginner'
-  }
-
-  const getLevelText = (level: string) => {
-    const normalized = String(level).toLowerCase()
-
-    const texts: Record<string, string> = {
-      iniciante: 'Iniciante',
-      medio: 'Intermediário',
-      intermediario: 'Intermediário',
-      avancado: 'Avançado',
-    }
-
-    return texts[normalized] || level
-  }
+  const getLevelText = (level: string) => t(getNivelLabelKey(level))
 
   watch(
     () => route.params.id,
@@ -321,7 +263,6 @@ export function useFlashcardStudy() {
     rateCard,
     finishStudy,
     studyAgain,
-    getLevelClass,
     getLevelText,
   }
 }

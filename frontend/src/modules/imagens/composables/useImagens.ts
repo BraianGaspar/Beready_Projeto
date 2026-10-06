@@ -1,70 +1,70 @@
-// frontend/src/modules/imagens/composables/useImagens.ts
 import { ref } from 'vue'
+import axios from 'axios'
 import { imagemService } from '../services/imagemService'
-import type { Imagem, ApiResponse } from '@/core/types'
+import type { Imagem } from '@/core/types'
+import { getApiErrorMessage } from '@/core/services/api'
 import { useAlert } from '@/shared/composables/useAlert'
+import { useI18n } from 'vue-i18n'
 
+type ImagemInput = Omit<Imagem, 'id' | 'criado_em'>
+
+/**
+ * CRUD de imagens geradas. Este composable já exibe os alertas de
+ * sucesso/erro; as views não devem repeti-los (apenas tratar o fluxo).
+ */
 export function useImagens() {
   const imagens = ref<Imagem[]>([])
   const loading = ref(false)
   const { success, error } = useAlert()
+  const { t } = useI18n()
+
+  const fail = (err: unknown, fallback: string): never => {
+    error(getApiErrorMessage(err) || (err instanceof Error && err.message) || fallback)
+    throw err
+  }
 
   const fetchImagens = async (promptId: number): Promise<Imagem[]> => {
     loading.value = true
     try {
-      const response = (await imagemService.getByPrompt(promptId)) as ApiResponse<Imagem[]>
+      const response = await imagemService.getByPrompt(promptId)
       imagens.value = response.data || []
       return imagens.value
     } catch (err) {
-      const axiosError = err as {
-        response?: { status?: number; data?: { message?: string } }
-        message?: string
-      }
-      if (axiosError.response?.status !== 400) {
-        error(
-          axiosError.response?.data?.message || axiosError.message || 'Erro ao carregar imagens',
-        )
-      }
-      throw err
+      imagens.value = []
+      // 400 = prompt sem imagens (não é erro para o usuário)
+      if (axios.isAxiosError(err) && err.response?.status === 400) return imagens.value
+      return fail(err, t('imagens.errorLoad'))
     } finally {
       loading.value = false
     }
   }
 
-  const createImagem = async (data: Omit<Imagem, 'id' | 'criado_em'>): Promise<Imagem> => {
+  const createImagem = async (data: ImagemInput): Promise<Imagem> => {
     loading.value = true
     try {
-      const response = (await imagemService.create(data)) as ApiResponse<Imagem>
-      const newImagem = response.data
-      imagens.value.unshift(newImagem)
-      success('Imagem criada com sucesso!')
-      return newImagem
+      const response = await imagemService.create(data)
+      if (!response.success) throw new Error(response.message)
+      imagens.value.unshift(response.data)
+      success(t('imagens.successCreate'))
+      return response.data
     } catch (err) {
-      const axiosError = err as { response?: { data?: { message?: string } }; message?: string }
-      error(axiosError.response?.data?.message || axiosError.message || 'Erro ao criar imagem')
-      throw err
+      return fail(err, t('imagens.errorCreate'))
     } finally {
       loading.value = false
     }
   }
 
-  const updateImagem = async (
-    id: number,
-    data: Partial<Omit<Imagem, 'id' | 'criado_em'>>,
-  ): Promise<Imagem> => {
+  const updateImagem = async (id: number, data: Partial<ImagemInput>): Promise<Imagem> => {
     loading.value = true
     try {
-      const response = (await imagemService.update(id, data)) as ApiResponse<Imagem>
-      if (response.success) {
-        await fetchImagens(response.data.prompt_id)
-        success('Imagem atualizada com sucesso!')
-        return response.data
-      }
-      throw new Error(response.message)
+      const response = await imagemService.update(id, data)
+      if (!response.success) throw new Error(response.message)
+      const index = imagens.value.findIndex((i) => i.id === id)
+      if (index !== -1) imagens.value[index] = response.data
+      success(t('imagens.successUpdate'))
+      return response.data
     } catch (err) {
-      const axiosError = err as { response?: { data?: { message?: string } }; message?: string }
-      error(axiosError.response?.data?.message || axiosError.message || 'Erro ao atualizar imagem')
-      throw err
+      return fail(err, t('imagens.errorUpdate'))
     } finally {
       loading.value = false
     }
@@ -73,17 +73,12 @@ export function useImagens() {
   const deleteImagem = async (id: number): Promise<void> => {
     loading.value = true
     try {
-      const response = (await imagemService.delete(id)) as ApiResponse<null>
-      if (response.success) {
-        imagens.value = imagens.value.filter((i) => i.id !== id)
-        success('Imagem excluída com sucesso!')
-      } else {
-        throw new Error(response.message)
-      }
+      const response = await imagemService.delete(id)
+      if (!response.success) throw new Error(response.message)
+      imagens.value = imagens.value.filter((i) => i.id !== id)
+      success(t('imagens.successDelete'))
     } catch (err) {
-      const axiosError = err as { response?: { data?: { message?: string } }; message?: string }
-      error(axiosError.response?.data?.message || axiosError.message || 'Erro ao excluir imagem')
-      throw err
+      fail(err, t('imagens.errorDelete'))
     } finally {
       loading.value = false
     }

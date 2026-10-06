@@ -1,46 +1,47 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/shared/composables/useAlert'
-import { API_BASE_URL } from '@/shared/config/env'
+import { getApiErrorMessage } from '@/core/services/api'
+import { flashcardService } from '../services/flashcardService'
+import { useFlashcards } from '../composables/useFlashcards'
+import { usePermissionStore } from '@/stores/permissionStore'
+import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
+import type { Flashcard } from '@/core/types'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
 
 export function useFlashcardView() {
   const router = useRouter()
   const route = useRoute()
-  const { success, error } = useAlert()
-  const flashcard = ref<any>(null)
+  const { t } = useI18n()
+  const { error } = useAlert()
+  const permissionStore = usePermissionStore()
+  // deleteFlashcard verifica permissão e exibe os alertas de sucesso/erro
+  const { deleteFlashcard } = useFlashcards()
+
+  const flashcard = ref<Flashcard | null>(null)
   const loading = ref(true)
   const deleting = ref(false)
   const showConfirmModal = ref(false)
 
   const loadFlashcard = async () => {
-    const id = route.params.id
+    const id = Number(route.params.id)
     if (!id) {
-      error('ID do flashcard não informado')
       router.push('/flashcards')
       return
     }
 
     loading.value = true
     try {
-      const response = await fetch(`${API_BASE_URL}/flashcards/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
+      const { data } = await flashcardService.getById(id)
+      if (data.success && data.data) {
         flashcard.value = data.data
       } else {
-        error(data.message || 'Erro ao carregar flashcard')
+        error(data.message || t('flashcards.errorLoad'))
         router.push('/flashcards')
       }
     } catch (err) {
-      console.error('Erro:', err)
-      error('Erro de conexão com o servidor')
+      error(getApiErrorMessage(err) || t('flashcards.errorLoad'))
       router.push('/flashcards')
     } finally {
       loading.value = false
@@ -51,11 +52,8 @@ export function useFlashcardView() {
     router.push('/flashcards')
   }
 
-  const editFlashcard = () => {
-    router.push(`/flashcards/${flashcard.value.id}/edit`)
-  }
-
   const studyFlashcard = () => {
+    if (!flashcard.value) return
     router.push(`/flashcards/${flashcard.value.id}/study`)
   }
 
@@ -64,57 +62,23 @@ export function useFlashcardView() {
   }
 
   const confirmDelete = async () => {
-    if (!flashcard.value?.id) return
+    if (!flashcard.value) return
 
     deleting.value = true
     try {
-      const response = await fetch(`${API_BASE_URL}/flashcards/${flashcard.value.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        success('Flashcard excluído com sucesso!')
-        showConfirmModal.value = false
-        router.push('/flashcards')
-      } else {
-        error(data.message || 'Erro ao excluir flashcard')
-      }
-    } catch (err) {
-      console.error('Erro:', err)
-      error('Erro de conexão com o servidor')
+      await deleteFlashcard(flashcard.value.id)
+      showConfirmModal.value = false
+      router.push('/flashcards')
+    } catch {
+      // Alerta de erro já exibido por useFlashcards
     } finally {
       deleting.value = false
     }
   }
 
-  const getLevelClass = (level: string) => {
-    const classes: Record<string, string> = {
-      iniciante: 'level-beginner',
-      intermediario: 'level-intermediate',
-      avancado: 'level-advanced',
-    }
-    return classes[level] || 'level-beginner'
-  }
+  const getLevelText = (level?: string) => t(getNivelLabelKey(level))
 
-  const getLevelText = (level: string) => {
-    const texts: Record<string, string> = {
-      iniciante: 'Iniciante',
-      intermediario: 'Intermediário',
-      avancado: 'Avançado',
-    }
-    return texts[level] || level
-  }
-
-  const formatDate = (date: string) => {
-    if (!date) return 'Data não informada'
-    return new Date(date).toLocaleDateString('pt-BR')
-  }
+  const formatDate = (date?: string) => formatLocaleDate(date)
 
   onMounted(() => {
     loadFlashcard()
@@ -125,11 +89,11 @@ export function useFlashcardView() {
     loading,
     deleting,
     showConfirmModal,
+    canDelete: () => permissionStore.canDelete('flashcards'),
     goBack,
-    editFlashcard,
     studyFlashcard,
+    openDeleteModal,
     confirmDelete,
-    getLevelClass,
     getLevelText,
     formatDate,
   }

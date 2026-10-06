@@ -1,13 +1,17 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlert } from '@/shared/composables/useAlert'
-import { API_BASE_URL } from '@/shared/config/env'
+import api, { getApiErrorMessage } from '@/core/services/api'
 import { usePermissionStore } from '@/stores/permissionStore'
+import { useI18n } from 'vue-i18n'
+import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
+import { formatDate as formatLocaleDate } from '@/shared/utils/intl'
 
 export function useQuizView() {
   const router = useRouter()
   const route = useRoute()
   const { error } = useAlert()
+  const { t } = useI18n()
   const permissionStore = usePermissionStore()
   
   const quizId = ref<number | null>(null)
@@ -25,14 +29,14 @@ export function useQuizView() {
   const loadQuiz = async () => {
     const id = route.params.id
     if (!id) {
-      error('ID do quiz não informado')
+      error(t('quizes.missingId'))
       router.push('/quizes')
       return
     }
 
     // Verificar permissão de visualização
     if (!permissionStore.canView('quizes')) {
-      error('Você não tem permissão para visualizar este quiz')
+      error(t('quizes.viewDenied'))
       router.push('/quizes')
       return
     }
@@ -40,52 +44,27 @@ export function useQuizView() {
     quizId.value = Number(id)
 
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch(`${API_BASE_URL}quizes/${quizId.value}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-      })
-
-      const data = await response.json()
+      const response = await api.get(`/quizes/${quizId.value}`)
+      const data = response.data
 
       if (data.success) {
         quiz.value = data.data
       } else {
-        error(data.message || 'Erro ao carregar quiz')
+        error(data.message || t('quizes.errorLoadOne'))
         router.push('/quizes')
       }
     } catch (err) {
       console.error('Erro:', err)
-      error('Erro de conexão com o servidor')
+      error(getApiErrorMessage(err) || t('errors.networkError'))
       router.push('/quizes')
     }
   }
 
-  const getLevelClass = (level: string) => {
-    const classes: Record<string, string> = {
-      iniciante: 'level-beginner',
-      intermediario: 'level-intermediate',
-      avancado: 'level-advanced',
-    }
-    return classes[level] || 'level-beginner'
-  }
-
-  const getLevelText = (level: string) => {
-    const texts: Record<string, string> = {
-      iniciante: 'Iniciante',
-      intermediario: 'Intermediário',
-      avancado: 'Avançado',
-    }
-    return texts[level] || level
-  }
+  const getLevelText = (level: string) => t(getNivelLabelKey(level))
 
   const formatDate = (date: string | null) => {
-    if (!date) return 'Não informado'
-    return new Date(date).toLocaleDateString('pt-BR')
+    if (!date) return t('profile.naoInformado')
+    return formatLocaleDate(date)
   }
 
   onMounted(() => {
@@ -95,7 +74,6 @@ export function useQuizView() {
   return {
     quiz,
     quizId,
-    getLevelClass,
     getLevelText,
     formatDate,
   }
