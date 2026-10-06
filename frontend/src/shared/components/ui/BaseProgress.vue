@@ -1,16 +1,28 @@
 <template>
-  <div class="ui-progress" :class="[`ui-progress--${variant}`, `ui-progress--${size}`]">
-    <div v-if="showLabel && (label || $slots.label)" class="ui-progress__header" aria-hidden="true">
-      <span class="ui-progress__label">
+  <div class="ui-progress flex min-w-0 flex-col gap-2">
+    <div
+      v-if="showLabel && (label || $slots.label)"
+      class="ui-progress__header flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm"
+      aria-hidden="true"
+    >
+      <span class="ui-progress__label min-w-0 font-semibold text-text wrap-anywhere">
         <slot name="label">{{ label }}</slot>
       </span>
-      <span class="ui-progress__value">{{ displayText }}</span>
+      <span class="ui-progress__value tabular-nums text-text-muted">{{ displayText }}</span>
     </div>
+    <!-- ring-inset: contorno para a trilha aparecer também sobre fundos muted -->
     <div
-      class="ui-progress__track"
+      class="ui-progress__track block w-full overflow-hidden rounded-full bg-surface-muted ring-1 ring-inset ring-border"
+      :class="heightClasses[size]"
       v-bind="decorative ? { 'aria-hidden': 'true' } : ariaAttrs"
     >
-      <span class="ui-progress__fill" :style="{ '--ui-progress-value': `${percent}%` }"></span>
+      <!-- inline-size acompanha a direção do texto (RTL enche da direita para a esquerda);
+           a duração vira 0 com prefers-reduced-motion (tokens) -->
+      <span
+        class="ui-progress__fill block h-full rounded-full transition-size duration-slow"
+        :class="colorClasses[variant]"
+        :style="{ inlineSize: `${percent}%` }"
+      ></span>
     </div>
   </div>
 </template>
@@ -22,6 +34,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+type Variant = 'primary' | 'success' | 'warning' | 'danger' | 'info'
+type Size = 'sm' | 'md' | 'lg'
+
 const props = withDefaults(
   defineProps<{
     /** Valor atual (limitado entre min e max) */
@@ -32,8 +47,8 @@ const props = withDefaults(
     label?: string
     /** Texto anunciado no lugar do número (padrão: porcentagem formatada no idioma) */
     valueText?: string
-    variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
-    size?: 'sm' | 'md' | 'lg'
+    variant?: Variant
+    size?: Size
     /** Mostra rótulo e valor acima da barra */
     showLabel?: boolean
     /** Só visual: esconde de leitores de tela (o valor deve estar em texto em outro lugar) */
@@ -52,6 +67,20 @@ const props = withDefaults(
 )
 
 defineSlots<{ label?: () => unknown }>()
+
+const heightClasses: Record<Size, string> = {
+  sm: 'h-1.5',
+  md: 'h-2',
+  lg: 'h-3',
+}
+
+const colorClasses: Record<Variant, string> = {
+  primary: 'bg-primary',
+  success: 'bg-success',
+  warning: 'bg-warning',
+  danger: 'bg-danger',
+  info: 'bg-info',
+}
 
 const { locale } = useI18n()
 
@@ -82,83 +111,3 @@ const ariaAttrs = computed(() => ({
   'aria-valuetext': displayText.value,
 }))
 </script>
-
-<style scoped>
-.ui-progress {
-  --ui-progress-color: var(--color-primary);
-  --ui-progress-height: var(--space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.ui-progress__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-1) var(--space-3);
-  font-size: var(--font-size-sm);
-}
-
-.ui-progress__label {
-  min-width: 0;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  overflow-wrap: anywhere;
-}
-
-.ui-progress__value {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text-muted);
-}
-
-.ui-progress__track {
-  display: block;
-  inline-size: 100%;
-  block-size: var(--ui-progress-height);
-  border-radius: var(--radius-full);
-  background: var(--color-surface-muted);
-  /* contorno para a trilha aparecer também sobre fundos muted */
-  box-shadow: inset 0 0 0 var(--border-width) var(--color-border);
-  overflow: hidden;
-}
-
-/* inline-size acompanha a direção do texto (RTL enche da direita para a esquerda) */
-.ui-progress__fill {
-  display: block;
-  inline-size: var(--ui-progress-value);
-  block-size: 100%;
-  border-radius: var(--radius-full);
-  background: var(--ui-progress-color);
-  /* duração vira 0 com prefers-reduced-motion (tokens) */
-  transition: inline-size var(--duration-slow) var(--easing-standard);
-}
-
-/* Tamanhos */
-.ui-progress--sm {
-  --ui-progress-height: 0.375rem;
-}
-
-.ui-progress--lg {
-  --ui-progress-height: var(--space-3);
-}
-
-/* Tons */
-.ui-progress--success {
-  --ui-progress-color: var(--color-success);
-}
-
-.ui-progress--warning {
-  --ui-progress-color: var(--color-warning);
-}
-
-.ui-progress--danger {
-  --ui-progress-color: var(--color-danger);
-}
-
-.ui-progress--info {
-  --ui-progress-color: var(--color-info);
-}
-</style>

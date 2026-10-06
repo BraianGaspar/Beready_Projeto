@@ -9,9 +9,9 @@
 
     <BaseSpinner v-if="loading" center size="lg" show-label :label="$t('progresso.carregando')" />
 
-    <ul v-else class="progress-dash__grid u-grid-auto" role="list">
-      <li v-for="stat in stats" :key="stat.label">
-        <StatCard :label="stat.label" :value="stat.value" :icon="stat.icon" :variant="stat.variant" />
+    <ul v-else class="progress-dash__grid grid list-none grid-cols-fill-64 gap-4" role="list">
+      <li v-for="stat in stats" :key="stat.label" class="flex">
+        <StatCard :label="stat.label" :value="stat.value" :icon="stat.icon" :variant="stat.variant" class="flex-1" />
       </li>
     </ul>
   </PageContainer>
@@ -80,7 +80,3 @@ const stats = computed<ProgressStat[]>(() => [
   },
 ])
 </script>
-
-<style scoped>
-@import '@/styles/views/progresso/progresso.css';
-</style>

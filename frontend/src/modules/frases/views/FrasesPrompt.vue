@@ -22,12 +22,12 @@
       <BaseButton icon="plus" @click="openModal">{{ $t('frases.add') }}</BaseButton>
     </EmptyState>
 
-    <ul v-else class="frases-prompt__grid u-grid-auto" role="list">
-      <li v-for="frase in frases" :key="frase.id" class="frases-prompt__item">
-        <BaseCard as="article" padding="sm" class="frases-prompt__card">
-          <div class="frases-prompt__card-top">
+    <ul v-else class="frases-prompt__grid grid list-none grid-cols-fill gap-6" role="list">
+      <li v-for="frase in frases" :key="frase.id" class="frases-prompt__item flex min-w-0">
+        <BaseCard as="article" padding="sm" class="frases-prompt__card flex-1">
+          <div class="frases-prompt__card-top flex items-center justify-between gap-2">
             <BaseBadge variant="primary">{{ getTipoLabel(frase.tipo_frase) }}</BaseBadge>
-            <div class="frases-prompt__actions">
+            <div class="frases-prompt__actions flex gap-1">
               <BaseButton
                 variant="ghost"
                 icon="pencil"
@@ -42,9 +42,9 @@
               />
             </div>
           </div>
-          <p class="frases-prompt__text">{{ frase.frase_semelhante }}</p>
+          <p class="frases-prompt__text mt-3 wrap-anywhere leading-relaxed text-text">{{ frase.frase_semelhante }}</p>
           <template #footer>
-            <div class="frases-prompt__meta">
+            <div class="frases-prompt__meta flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
               <span>{{ $t('frases.similarity', { valor: Math.round((frase.pontuacao_semelhante || 0) * 100) }) }}</span>
               <BaseBadge size="sm">{{ $t(getNivelLabelKey(frase.nivel_dificuldade)) }}</BaseBadge>
             </div>
@@ -55,7 +55,7 @@
 
     <!-- Criar / editar -->
     <BaseModal v-model="modalOpen" :title="editingId ? $t('frases.edit') : $t('frases.new')">
-      <form id="frases-prompt-form" class="u-stack" @submit.prevent="save">
+      <form id="frases-prompt-form" class="flex flex-col gap-4" @submit.prevent="save">
         <BaseTextarea
           v-model="form.frase_semelhante"
           :label="$t('frases.fraseLabel')"
@@ -64,7 +64,7 @@
           required
         />
         <BaseField field-id="frases-prompt-similaridade" :label="$t('frases.similarityLabel')">
-          <div class="frases-prompt__range">
+          <div class="frases-prompt__range flex items-center gap-3">
             <input
               id="frases-prompt-similaridade"
               v-model.number="form.pontuacao_semelhante"
@@ -72,15 +72,15 @@
               min="0"
               max="1"
               step="0.01"
-              class="frases-prompt__range-input"
+              class="frases-prompt__range-input min-h-control min-w-0 flex-1 cursor-pointer accent-primary focus-visible:focus-ring"
               :aria-valuetext="`${Math.round((form.pontuacao_semelhante || 0) * 100)}%`"
             />
-            <output for="frases-prompt-similaridade" class="frases-prompt__range-value">
+            <output for="frases-prompt-similaridade" class="frases-prompt__range-value min-w-14 text-end font-semibold tabular-nums text-primary">
               {{ Math.round((form.pontuacao_semelhante || 0) * 100) }}%
             </output>
           </div>
         </BaseField>
-        <div class="frases-prompt__form-row">
+        <div class="frases-prompt__form-row grid grid-cols-fit-48 gap-4">
           <BaseSelect v-model="form.tipo_frase" :label="$t('frases.tipoLabel')" :options="tipoOptions" />
           <BaseSelect v-model="form.nivel_dificuldade" :label="$t('flashcards.dificuldade')" :options="nivelOptions" />
         </div>
@@ -162,7 +162,3 @@ const nivelOptions = computed<SelectOption[]>(() => [
   { value: 'avancado', label: t('common.avancado') },
 ])
 </script>
-
-<style scoped>
-@import '@/styles/views/frases/frases.css';
-</style>

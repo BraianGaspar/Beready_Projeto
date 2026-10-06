@@ -1,23 +1,37 @@
 <template>
-  <div class="ui-check" :class="{ 'ui-check--disabled': disabled }" v-bind="rootAttrs">
+  <div class="ui-check relative flex flex-col gap-1" v-bind="rootAttrs">
+    <!-- input invisível é o `peer`: a caixa (dentro do label irmão) reage com peer-*-deep: -->
     <input
       v-bind="controlAttrs"
       :id="fieldId"
       v-model="model"
       type="checkbox"
-      class="ui-check__input"
+      class="ui-check__input peer absolute m-0 size-5 opacity-0"
       :disabled="disabled"
       :aria-describedby="describedBy"
     />
-    <label :for="fieldId" class="ui-check__label">
-      <span class="ui-check__box" aria-hidden="true">
-        <BaseIcon name="check" class="ui-check__mark" :stroke-width="3" />
+    <label
+      :for="fieldId"
+      class="ui-check__label inline-flex min-h-6 items-start gap-3 text-sm text-text"
+      :class="disabled ? 'cursor-not-allowed opacity-disabled' : 'cursor-pointer'"
+    >
+      <span
+        class="ui-check__box mt-nudge inline-flex size-5 shrink-0 items-center justify-center rounded-sm border-2 border-solid border-border-strong bg-surface text-primary-contrast transition-colors peer-checked-deep:border-primary peer-checked-deep:bg-primary peer-focus-visible-deep:focus-ring"
+        aria-hidden="true"
+      >
+        <BaseIcon
+          name="check"
+          class="ui-check__mark size-check opacity-0 peer-checked-deep:opacity-100"
+          :stroke-width="3"
+        />
       </span>
       <span class="ui-check__text">
         <slot>{{ label }}</slot>
       </span>
     </label>
-    <p v-if="hint" :id="`${fieldId}-hint`" class="ui-check__hint">{{ hint }}</p>
+    <p v-if="hint" :id="`${fieldId}-hint`" class="ui-check__hint ps-check-indent text-xs text-text-muted">
+      {{ hint }}
+    </p>
   </div>
 </template>
 
@@ -42,78 +56,3 @@ defineSlots<{ default?: () => unknown }>()
 const model = defineModel<boolean>({ default: false })
 const { fieldId, rootAttrs, controlAttrs, describedBy } = useField(props)
 </script>
-
-<style scoped>
-.ui-check {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.ui-check__input {
-  position: absolute;
-  opacity: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin: 0;
-}
-
-.ui-check__label {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  min-height: 1.5rem;
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.ui-check__box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-block-start: 0.1rem;
-  border: 2px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-primary-contrast);
-  transition:
-    background-color var(--transition-base),
-    border-color var(--transition-base);
-}
-
-.ui-check__mark {
-  width: 0.85rem;
-  height: 0.85rem;
-  opacity: 0;
-}
-
-.ui-check__input:checked + .ui-check__label .ui-check__box {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.ui-check__input:checked + .ui-check__label .ui-check__mark {
-  opacity: 1;
-}
-
-.ui-check__input:focus-visible + .ui-check__label .ui-check__box {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-ring-offset);
-}
-
-.ui-check__hint {
-  padding-inline-start: calc(1.25rem + var(--space-3));
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
-.ui-check--disabled .ui-check__label {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-</style>

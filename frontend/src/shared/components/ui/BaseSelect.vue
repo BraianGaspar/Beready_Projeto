@@ -8,11 +8,11 @@
     :required="required"
     :disabled="disabled"
   >
-    <div class="ui-select">
+    <div class="ui-select relative flex items-center">
       <select
         v-bind="controlAttrs"
         :id="fieldId"
-        class="ui-control ui-select__control"
+        :class="[controlClass, 'ui-select__control min-h-control cursor-pointer appearance-none pe-control-chevron']"
         :required="required"
         :disabled="disabled"
         :aria-invalid="error ? 'true' : undefined"
@@ -32,7 +32,10 @@
           </option>
         </slot>
       </select>
-      <BaseIcon name="chevron-down" class="ui-select__chevron" />
+      <BaseIcon
+        name="chevron-down"
+        class="ui-select__chevron pointer-events-none absolute end-3 size-4 text-text-muted"
+      />
     </div>
   </BaseField>
 </template>
@@ -40,6 +43,7 @@
 <script setup lang="ts">
 import BaseField from './BaseField.vue'
 import BaseIcon from './BaseIcon.vue'
+import { controlClass } from './control'
 import { useField } from './useField'
 
 export interface SelectOption {
@@ -87,28 +91,3 @@ const onChange = (event: Event) => {
   model.value = match ? match.value : el.value
 }
 </script>
-
-<style scoped>
-@import './control.css';
-
-.ui-select {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.ui-select__control {
-  appearance: none;
-  padding-inline-end: calc(var(--space-3) * 2 + 1rem);
-  cursor: pointer;
-}
-
-.ui-select__chevron {
-  position: absolute;
-  inset-inline-end: var(--space-3);
-  width: 1rem;
-  height: 1rem;
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-</style>

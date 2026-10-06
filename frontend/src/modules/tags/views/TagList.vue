@@ -12,19 +12,19 @@
       <BaseButton icon="plus" @click="openModal">{{ $t('tags.createFirst') }}</BaseButton>
     </EmptyState>
 
-    <ul v-else class="tag-list__grid u-grid-auto" role="list">
+    <ul v-else class="tag-list__grid grid list-none grid-cols-fill gap-4" role="list">
       <!-- A cor da tag é dado do usuário: vai numa custom property local (não é cor fixa de tema) -->
-      <li v-for="tag in tags" :key="tag.id" class="tag-list__item" :style="{ '--tag-color': tag.cor }">
-        <BaseCard as="article" padding="sm" class="tag-list__card">
-          <div class="tag-list__row">
-            <span class="tag-list__swatch" aria-hidden="true"></span>
-            <div class="tag-list__info">
-              <h2 class="tag-list__name">{{ tag.nome }}</h2>
-              <p class="tag-list__description" :class="{ 'tag-list__description--empty': !tag.descricao }">
+      <li v-for="tag in tags" :key="tag.id" class="tag-list__item flex min-w-0" :style="{ '--tag-color': tag.cor }">
+        <BaseCard as="article" padding="sm" class="tag-list__card flex-1 border-s-4 border-s-tag">
+          <div class="tag-list__row flex items-start gap-3">
+            <span class="tag-list__swatch mt-1 h-6 w-6 shrink-0 rounded-full border border-solid border-border bg-tag" aria-hidden="true"></span>
+            <div class="tag-list__info min-w-0 flex-1">
+              <h2 class="tag-list__name wrap-anywhere text-lg font-semibold text-text">{{ tag.nome }}</h2>
+              <p class="tag-list__description mt-1 wrap-anywhere text-sm text-text-muted" :class="{ 'tag-list__description--empty italic': !tag.descricao }">
                 {{ tag.descricao || $t('tags.semDescricao') }}
               </p>
             </div>
-            <div class="tag-list__actions">
+            <div class="tag-list__actions flex shrink-0 gap-1">
               <BaseButton variant="ghost" icon="pencil" :aria-label="`${$t('common.editar')}: ${tag.nome}`" @click="editTag(tag)" />
               <BaseButton
                 variant="ghost-danger"
@@ -44,12 +44,12 @@
       :title="editingTag ? $t('tags.editTag') : $t('tags.newTag')"
       :description="editingTag ? $t('tags.editSubtitle') : $t('tags.createSubtitle')"
     >
-      <form id="tag-list-form" class="u-stack" @submit.prevent="saveTag">
+      <form id="tag-list-form" class="flex flex-col gap-4" @submit.prevent="saveTag">
         <BaseInput v-model="form.nome" :label="$t('tags.nome')" :placeholder="$t('tags.nomePlaceholder')" required />
         <BaseField field-id="tag-list-cor" :label="$t('tags.cor')">
-          <div class="tag-list__color">
-            <input id="tag-list-cor" v-model="form.cor" type="color" class="tag-list__color-input" />
-            <span class="tag-list__color-value">{{ form.cor }}</span>
+          <div class="tag-list__color flex items-center gap-3">
+            <input id="tag-list-cor" v-model="form.cor" type="color" class="tag-list__color-input size-control cursor-pointer rounded-md border border-solid border-border-strong bg-surface p-1 focus-visible:focus-ring" />
+            <span class="tag-list__color-value font-mono text-sm uppercase text-text-muted">{{ form.cor }}</span>
           </div>
         </BaseField>
         <BaseTextarea
@@ -115,7 +115,3 @@ const {
   handleConfirmDelete,
 } = useTags()
 </script>
-
-<style scoped>
-@import '@/styles/views/tags/tags.css';
-</style>

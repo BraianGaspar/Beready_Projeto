@@ -1,11 +1,11 @@
 <template>
   <AuthCard :title="$t('register.title')" :subtitle="$t('register.subtitle')" icon="users" size="lg">
-    <form class="user-register__form" @submit.prevent="handleSubmit">
-      <div class="user-register__grid">
+    <form class="user-register__form flex flex-col gap-6" @submit.prevent="handleSubmit">
+      <div class="user-register__grid grid grid-cols-fit-64 gap-6">
         <!-- Seção 1: Informações Pessoais -->
-        <fieldset class="user-register__section">
-          <legend class="user-register__section-title">
-            <BaseIcon name="user" />
+        <fieldset class="user-register__section flex min-w-0 flex-col gap-4 border-0">
+          <legend class="user-register__section-title mb-1 inline-flex items-center gap-2 text-base font-semibold text-text">
+            <BaseIcon name="user" class="size-5 text-primary" />
             {{ $t('register.personalInfo') }}
           </legend>
 
@@ -40,13 +40,13 @@
         </fieldset>
 
         <!-- Seção 2: Segurança -->
-        <fieldset class="user-register__section">
-          <legend class="user-register__section-title">
-            <BaseIcon name="lock-closed" />
+        <fieldset class="user-register__section flex min-w-0 flex-col gap-4 border-0">
+          <legend class="user-register__section-title mb-1 inline-flex items-center gap-2 text-base font-semibold text-text">
+            <BaseIcon name="lock-closed" class="size-5 text-primary" />
             {{ $t('register.security') }}
           </legend>
 
-          <div class="user-register__field">
+          <div class="user-register__field flex flex-col gap-2">
             <BaseInput
               v-model="form.senha"
               type="password"
@@ -64,7 +64,7 @@
             />
           </div>
 
-          <div class="user-register__field">
+          <div class="user-register__field flex flex-col gap-2">
             <BaseInput
               v-model="form.confirmar_senha"
               type="password"
@@ -76,8 +76,8 @@
             />
             <p
               v-if="form.confirmar_senha"
-              class="user-register__match"
-              :class="passwordsMatch ? 'user-register__match--ok' : 'user-register__match--error'"
+              class="user-register__match inline-flex items-center gap-1 text-xs font-semibold"
+              :class="passwordsMatch ? 'user-register__match--ok text-success' : 'user-register__match--error text-danger'"
               aria-live="polite"
             >
               <BaseIcon :name="passwordsMatch ? 'check-circle' : 'x-circle'" />
@@ -89,9 +89,9 @@
         </fieldset>
 
         <!-- Seção 3: Preferências -->
-        <fieldset class="user-register__section">
-          <legend class="user-register__section-title">
-            <BaseIcon name="book-open" />
+        <fieldset class="user-register__section flex min-w-0 flex-col gap-4 border-0">
+          <legend class="user-register__section-title mb-1 inline-flex items-center gap-2 text-base font-semibold text-text">
+            <BaseIcon name="book-open" class="size-5 text-primary" />
             {{ $t('register.learningPreferences') }}
           </legend>
 
@@ -114,7 +114,7 @@
         </fieldset>
       </div>
 
-      <div class="user-register__actions">
+      <div class="user-register__actions flex flex-wrap justify-end gap-3 *:grow *:basis-40 md:*:shrink-0 md:*:grow-0 md:*:basis-auto">
         <BaseButton variant="secondary" to="/login">{{ $t('common.cancelar') }}</BaseButton>
         <BaseButton type="submit" :loading="loading">
           {{ loading ? $t('common.salvando') : $t('register.createAccount') }}
@@ -124,7 +124,7 @@
 
     <template #footer>
       {{ $t('register.jaTemConta') }}
-      <router-link to="/login">{{ $t('register.loginLink') }}</router-link>
+      <router-link to="/login" class="font-semibold">{{ $t('register.loginLink') }}</router-link>
     </template>
   </AuthCard>
 </template>
@@ -155,7 +155,3 @@ const {
   handleSubmit,
 } = useRegister()
 </script>
-
-<style scoped>
-@import '@/styles/views/users/register.css';
-</style>

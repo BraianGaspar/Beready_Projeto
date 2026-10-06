@@ -39,21 +39,21 @@
       </BaseAlert>
     </template>
 
-    <ul v-else class="quiz-list__grid u-grid-auto" role="list">
+    <ul v-else class="quiz-list__grid grid list-none grid-cols-fill gap-6" role="list">
       <li v-for="quiz in quizes" :key="quiz.id">
-        <BaseCard as="article" padding="none" interactive class="quiz-list__card">
-          <button type="button" class="quiz-list__content" @click="viewQuiz(quiz.id)">
+        <BaseCard as="article" padding="none" interactive class="quiz-list__card h-full">
+          <button type="button" class="quiz-list__content flex min-h-full w-full cursor-pointer flex-col items-start gap-2 border-0 bg-transparent p-5 text-start text-text font-inherit hover:bg-surface-hover focus-visible:focus-ring-inset" @click="viewQuiz(quiz.id)">
             <BaseBadge :variant="getNivelVariant(quiz.nivel_dificuldade)" size="sm">
               {{ getDifficultyText(quiz.nivel_dificuldade) }}
             </BaseBadge>
-            <span class="quiz-list__title">{{ quiz.titulo }}</span>
-            <span class="quiz-list__description">{{ quiz.descricao || $t('quizes.semDescricao') }}</span>
-            <span class="quiz-list__meta">
-              <span class="quiz-list__meta-item">
+            <span class="quiz-list__title wrap-anywhere text-lg font-semibold">{{ quiz.titulo }}</span>
+            <span class="quiz-list__description line-clamp-3 wrap-anywhere text-sm text-text-muted">{{ quiz.descricao || $t('quizes.semDescricao') }}</span>
+            <span class="quiz-list__meta mt-auto flex flex-wrap gap-x-4 gap-y-2 pt-2 text-sm text-text-muted">
+              <span class="quiz-list__meta-item inline-flex items-center gap-1">
                 <BaseIcon name="document" />
                 {{ quiz.total_questoes || 0 }} {{ $t('quizes.questoes') }}
               </span>
-              <span class="quiz-list__meta-item">
+              <span class="quiz-list__meta-item inline-flex items-center gap-1">
                 <BaseIcon name="clock" />
                 {{ quiz.tempo_limite ? $t('time.minutes', { n: quiz.tempo_limite }) : $t('quizes.semLimite') }}
               </span>
@@ -61,7 +61,7 @@
           </button>
 
           <template #footer>
-            <BaseButton icon="play" class="quiz-list__play" @click="playQuiz(quiz.id)">
+            <BaseButton icon="play" class="quiz-list__play me-auto" @click="playQuiz(quiz.id)">
               {{ $t('quizes.jogar') }}
             </BaseButton>
             <BaseButton
@@ -90,7 +90,7 @@
       :description="isEditing ? $t('quizes.editSubtitle') : $t('quizes.createSubtitle')"
       @close="closeModal"
     >
-      <form id="quiz-list-form" class="u-stack" @submit.prevent="submitForm">
+      <form id="quiz-list-form" class="flex flex-col gap-4" @submit.prevent="submitForm">
         <BaseInput
           v-model="form.titulo"
           :label="$t('quizes.titulo')"
@@ -103,7 +103,7 @@
           :placeholder="$t('quizes.descricaoPlaceholder')"
           :rows="3"
         />
-        <div class="quiz-list__form-row">
+        <div class="quiz-list__form-row grid grid-cols-fit-48 gap-4">
           <BaseSelect
             :model-value="form.nivel_dificuldade"
             :label="$t('quizes.nivel')"
@@ -204,7 +204,3 @@ const nivelOptions = computed<SelectOption[]>(() => [
 const toOptionalNumber = (value: string | number | null | undefined): number | undefined =>
   value === '' || value == null ? undefined : Number(value)
 </script>
-
-<style scoped>
-@import '@/styles/views/quizes/quizes.css';
-</style>

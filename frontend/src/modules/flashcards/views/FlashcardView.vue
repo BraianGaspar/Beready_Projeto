@@ -15,18 +15,18 @@
     <BaseSpinner v-if="loading" center size="lg" show-label />
 
     <BaseCard v-else-if="flashcard" as="article" padding="none">
-      <section class="fcard-view__section">
+      <section class="fcard-view__section flex flex-col items-start gap-3 p-5 md:p-8">
         <BaseBadge variant="primary" size="sm">{{ $t('flashcards.perguntaLabel') }}</BaseBadge>
-        <p class="fcard-view__text fcard-view__text--question">{{ flashcard.frente }}</p>
+        <p class="fcard-view__text fcard-view__text--question wrap-anywhere whitespace-pre-line text-xl font-semibold leading-relaxed text-text md:text-2xl">{{ flashcard.frente }}</p>
       </section>
-      <section class="fcard-view__section fcard-view__section--answer">
+      <section class="fcard-view__section fcard-view__section--answer border-0 border-t border-solid border-border flex flex-col items-start gap-3 p-5 md:p-8">
         <BaseBadge variant="info" size="sm">{{ $t('flashcards.respostalabel') }}</BaseBadge>
-        <p class="fcard-view__text">{{ flashcard.verso }}</p>
+        <p class="fcard-view__text wrap-anywhere whitespace-pre-line text-lg leading-relaxed text-text">{{ flashcard.verso }}</p>
       </section>
 
       <template v-if="flashcard.criado_em" #footer>
-        <dl class="fcard-view__meta">
-          <dt>{{ $t('flashcards.criadoEm') }}</dt>
+        <dl class="fcard-view__meta flex flex-wrap gap-x-2 gap-y-1 text-sm text-text-muted">
+          <dt class="font-semibold after:content-colon">{{ $t('flashcards.criadoEm') }}</dt>
           <dd>{{ formatDate(flashcard.criado_em) }}</dd>
         </dl>
       </template>
@@ -75,7 +75,3 @@ const {
 
 const nivelVariant = computed(() => getNivelVariant(flashcard.value?.nivel_dificuldade))
 </script>
-
-<style scoped>
-@import '@/styles/views/flashcards/flashcard-view.css';
-</style>

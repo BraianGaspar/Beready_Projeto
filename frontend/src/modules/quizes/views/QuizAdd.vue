@@ -9,8 +9,8 @@
 
     <BaseCard>
       <!-- novalidate: a validação do título é feita em useQuizAdd (mensagem traduzida no campo) -->
-      <form class="quiz-form__form" novalidate @submit.prevent="handleSubmit">
-        <div class="quiz-form__grid">
+      <form class="quiz-form__form flex flex-col gap-6" novalidate @submit.prevent="handleSubmit">
+        <div class="quiz-form__grid grid grid-cols-fit-56 gap-5">
           <BaseInput
             v-model="form.titulo"
             :label="$t('quizes.titulo')"
@@ -26,7 +26,7 @@
           />
           <BaseTextarea
             v-model="form.descricao"
-            class="quiz-form__full"
+            class="quiz-form__full col-span-full"
             :label="$t('quizes.descricao')"
             :placeholder="$t('quizes.descricaoPlaceholder')"
             :rows="4"
@@ -49,10 +49,10 @@
             :placeholder="$t('quizes.tempoPlaceholder')"
             @update:model-value="form.tempo_limite = $event === '' || $event == null ? null : Number($event)"
           />
-          <BaseCheckbox v-model="form.publico" class="quiz-form__full" :label="$t('quizes.publico')" />
+          <BaseCheckbox v-model="form.publico" class="quiz-form__full col-span-full" :label="$t('quizes.publico')" />
         </div>
 
-        <div class="quiz-form__actions">
+        <div class="quiz-form__actions flex flex-wrap justify-end gap-3 border-0 border-t border-solid border-border pt-5 *:shrink *:grow *:basis-full sm:*:shrink-0 sm:*:grow-0 sm:*:basis-auto">
           <BaseButton variant="secondary" to="/quizes">{{ $t('common.cancelar') }}</BaseButton>
           <BaseButton type="submit" icon="check" :loading="loading">
             {{ loading ? $t('common.salvando') : $t('quizes.createButton') }}
@@ -89,7 +89,3 @@ const nivelOptions = computed<SelectOption[]>(() => [
   { value: 'avancado', label: t('common.avancado') },
 ])
 </script>
-
-<style scoped>
-@import '@/styles/views/quizes/quiz-form.css';
-</style>

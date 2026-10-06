@@ -22,12 +22,12 @@
       <BaseButton icon="plus" @click="openModal">{{ $t('traducoes.add') }}</BaseButton>
     </EmptyState>
 
-    <ul v-else class="traducoes-prompt__grid u-grid-auto" role="list">
-      <li v-for="traducao in traducoes" :key="traducao.id" class="traducoes-prompt__item">
-        <BaseCard as="article" padding="sm" class="traducoes-prompt__card">
-          <div class="traducoes-prompt__card-top">
+    <ul v-else class="traducoes-prompt__grid grid list-none grid-cols-fill gap-6" role="list">
+      <li v-for="traducao in traducoes" :key="traducao.id" class="traducoes-prompt__item flex min-w-0">
+        <BaseCard as="article" padding="sm" class="traducoes-prompt__card flex-1">
+          <div class="traducoes-prompt__card-top flex items-center justify-between gap-2">
             <BaseBadge variant="primary" icon="language">{{ traducao.idioma_destino?.toUpperCase() || 'PT' }}</BaseBadge>
-            <div class="traducoes-prompt__actions">
+            <div class="traducoes-prompt__actions flex gap-1">
               <BaseButton
                 variant="ghost"
                 icon="pencil"
@@ -42,9 +42,9 @@
               />
             </div>
           </div>
-          <p class="traducoes-prompt__text">{{ traducao.texto_traduzido }}</p>
+          <p class="traducoes-prompt__text mt-3 wrap-anywhere leading-relaxed text-text">{{ traducao.texto_traduzido }}</p>
           <template #footer>
-            <div class="traducoes-prompt__meta">
+            <div class="traducoes-prompt__meta flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
               <span>{{ $t('traducoes.confidence', { valor: Math.round((traducao.pontuacao_confianca || 0) * 100) }) }}</span>
               <span>{{ formatDate(traducao.criado_em) }}</span>
             </div>
@@ -55,7 +55,7 @@
 
     <!-- Criar / editar -->
     <BaseModal v-model="modalOpen" :title="editingId ? $t('traducoes.edit') : $t('traducoes.new')">
-      <form id="traducoes-prompt-form" class="u-stack" @submit.prevent="save">
+      <form id="traducoes-prompt-form" class="flex flex-col gap-4" @submit.prevent="save">
         <BaseTextarea
           v-model="form.texto_traduzido"
           :label="$t('traducoes.textLabel')"
@@ -65,7 +65,7 @@
         />
         <BaseSelect v-model="form.idioma_destino" :label="$t('traducoes.targetLanguage')" :options="idiomaOptions" />
         <BaseField field-id="traducoes-prompt-confianca" :label="$t('traducoes.confidenceLabel')">
-          <div class="traducoes-prompt__range">
+          <div class="traducoes-prompt__range flex items-center gap-3">
             <input
               id="traducoes-prompt-confianca"
               v-model.number="form.pontuacao_confianca"
@@ -73,10 +73,10 @@
               min="0"
               max="1"
               step="0.01"
-              class="traducoes-prompt__range-input"
+              class="traducoes-prompt__range-input min-h-control min-w-0 flex-1 cursor-pointer accent-primary focus-visible:focus-ring"
               :aria-valuetext="`${Math.round((form.pontuacao_confianca || 0) * 100)}%`"
             />
-            <output for="traducoes-prompt-confianca" class="traducoes-prompt__range-value">
+            <output for="traducoes-prompt-confianca" class="traducoes-prompt__range-value min-w-14 text-end font-semibold tabular-nums text-primary">
               {{ Math.round((form.pontuacao_confianca || 0) * 100) }}%
             </output>
           </div>
@@ -163,7 +163,3 @@ const servicoOptions: SelectOption[] = [
   { value: 'openai', label: 'OpenAI' },
 ]
 </script>
-
-<style scoped>
-@import '@/styles/views/traducoes/traducoes.css';
-</style>

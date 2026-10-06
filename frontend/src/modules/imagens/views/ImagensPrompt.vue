@@ -22,26 +22,26 @@
       <BaseButton icon="plus" @click="openModal">{{ $t('imagens.add') }}</BaseButton>
     </EmptyState>
 
-    <ul v-else class="imagens-prompt__grid u-grid-auto" role="list">
-      <li v-for="imagem in imagens" :key="imagem.id" class="imagens-prompt__item">
-        <BaseCard as="article" padding="none" class="imagens-prompt__card">
-          <div class="imagens-prompt__media">
+    <ul v-else class="imagens-prompt__grid grid list-none grid-cols-fill-60 gap-6" role="list">
+      <li v-for="imagem in imagens" :key="imagem.id" class="imagens-prompt__item flex min-w-0">
+        <BaseCard as="article" padding="none" class="imagens-prompt__card flex-1">
+          <div class="imagens-prompt__media relative aspect-photo bg-surface-muted">
             <img
               :src="imagem.url_imagem"
               :alt="imagem.prompt_imagem || $t('imagens.altFallback')"
-              class="imagens-prompt__img"
+              class="imagens-prompt__img block h-full w-full object-cover"
               loading="lazy"
             />
             <BaseButton
               variant="danger"
               icon="trash"
-              class="imagens-prompt__media-action"
+              class="imagens-prompt__media-action absolute end-2 top-2 shadow-md"
               :aria-label="$t('common.excluir')"
               @click="confirmDelete(imagem)"
             />
           </div>
           <template #footer>
-            <div class="imagens-prompt__meta">
+            <div class="imagens-prompt__meta flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
               <span>{{ imagem.servico_geracao || $t('imagens.aiFallback') }}</span>
               <BaseBadge size="sm">{{ getQualidadeLabel(imagem.qualidade_imagem) }}</BaseBadge>
               <span>{{ formatDate(imagem.criado_em) }}</span>
@@ -53,7 +53,7 @@
 
     <!-- Criar / editar -->
     <BaseModal v-model="modalOpen" :title="editingId ? $t('imagens.edit') : $t('imagens.new')">
-      <form id="imagens-prompt-form" class="u-stack" @submit.prevent="save">
+      <form id="imagens-prompt-form" class="flex flex-col gap-4" @submit.prevent="save">
         <BaseInput
           v-model="form.url_imagem"
           type="url"
@@ -68,7 +68,7 @@
           :placeholder="$t('imagens.promptPlaceholder')"
           :rows="3"
         />
-        <div class="imagens-prompt__form-row">
+        <div class="imagens-prompt__form-row grid grid-cols-fit-40 gap-4">
           <BaseSelect v-model="form.servico_geracao" :label="$t('imagens.serviceLabel')" :options="servicoOptions" />
           <BaseSelect v-model="form.qualidade_imagem" :label="$t('imagens.qualityLabel')" :options="qualidadeOptions" />
           <BaseSelect v-model="form.dimensoes" :label="$t('imagens.dimensionsLabel')" :options="dimensoesOptions" />
@@ -156,7 +156,3 @@ const dimensoesOptions: SelectOption[] = ['512x512', '1024x1024', '1024x1792', '
   label: d,
 }))
 </script>
-
-<style scoped>
-@import '@/styles/views/imagens/imagens.css';
-</style>

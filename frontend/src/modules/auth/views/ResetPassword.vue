@@ -4,7 +4,7 @@
     :subtitle="$t('resetPassword.subtitle')"
     icon="key"
   >
-    <form class="reset-password__form" @submit.prevent="handleSubmit">
+    <form class="reset-password__form flex flex-col gap-5" @submit.prevent="handleSubmit">
       <BaseInput
         v-model="form.senha"
         type="password"
@@ -28,7 +28,7 @@
         required
       />
 
-      <div class="reset-password__actions">
+      <div class="reset-password__actions mt-1 flex flex-wrap gap-3 *:grow *:basis-36">
         <BaseButton variant="secondary" to="/login">{{ $t('common.cancelar') }}</BaseButton>
         <BaseButton
           type="submit"
@@ -42,7 +42,7 @@
 
     <template #footer>
       {{ $t('resetPassword.rememberPassword') }}
-      <router-link to="/login">{{ $t('resetPassword.loginLink') }}</router-link>
+      <router-link to="/login" class="font-semibold">{{ $t('resetPassword.loginLink') }}</router-link>
     </template>
   </AuthCard>
 </template>
@@ -54,7 +54,3 @@ import { useResetPassword } from './useResetPassword'
 
 const { form, loading, handleSubmit } = useResetPassword()
 </script>
-
-<style scoped>
-@import '@/styles/views/users/reset-password.css';
-</style>

@@ -1,3 +1,5 @@
+> **HISTÓRICO — não é mais guia.** A migração terminou (06/10/2026): tudo está em Tailwind ligado aos tokens, sem CSS por tela nem arquivos legados. Os números e pendências abaixo descrevem o estado antigo. Regras atuais: [`design-system.md`](./design-system.md).
+
 # Auditoria do design system — frontend BeReady
 
 > Fase 1 (fundação) concluída em 05/10/2026. Este documento orienta a **fase 2** (migração das telas).

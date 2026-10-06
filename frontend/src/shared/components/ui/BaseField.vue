@@ -1,15 +1,26 @@
 <template>
-  <div class="ui-field" :class="{ 'ui-field--invalid': !!error, 'ui-field--disabled': disabled }">
-    <label v-if="label" :for="fieldId" class="ui-field__label">
+  <div class="ui-field flex min-w-0 flex-col gap-1">
+    <label
+      v-if="label"
+      :for="fieldId"
+      class="ui-field__label text-sm font-semibold"
+      :class="disabled ? 'text-text-muted' : 'text-text'"
+    >
       {{ label }}
-      <span v-if="required" class="ui-field__required" aria-hidden="true">*</span>
+      <span v-if="required" class="ui-field__required ms-1 text-danger" aria-hidden="true">*</span>
     </label>
     <slot />
-    <p v-if="error" :id="`${fieldId}-error`" class="ui-field__error">
-      <BaseIcon name="exclamation-circle" class="ui-field__error-icon" />
+    <p
+      v-if="error"
+      :id="`${fieldId}-error`"
+      class="ui-field__error flex items-start gap-1 text-xs font-medium text-danger"
+    >
+      <BaseIcon name="exclamation-circle" class="ui-field__error-icon mt-nudge-em" />
       <span>{{ error }}</span>
     </p>
-    <p v-else-if="hint" :id="`${fieldId}-hint`" class="ui-field__hint">{{ hint }}</p>
+    <p v-else-if="hint" :id="`${fieldId}-hint`" class="ui-field__hint text-xs text-text-muted">
+      {{ hint }}
+    </p>
   </div>
 </template>
 
@@ -33,45 +44,3 @@ withDefaults(
 
 defineSlots<{ default: () => unknown }>()
 </script>
-
-<style scoped>
-.ui-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-.ui-field__label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-}
-
-.ui-field__required {
-  color: var(--color-danger);
-  margin-inline-start: var(--space-1);
-}
-
-.ui-field__hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
-.ui-field__error {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-1);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-danger);
-}
-
-.ui-field__error-icon {
-  margin-block-start: 0.1em;
-}
-
-.ui-field--disabled .ui-field__label {
-  color: var(--color-text-muted);
-}
-</style>

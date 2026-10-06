@@ -16,48 +16,48 @@
       </template>
     </PageHeader>
 
-    <div class="user-profile__grid">
+    <div class="user-profile__grid grid grid-cols-fit-88 gap-6">
       <BaseCard as="section" :title="$t('profile.personalInfo')">
-        <div class="user-profile__identity">
-          <span class="user-profile__avatar">
+        <div class="user-profile__identity flex flex-wrap items-start gap-5">
+          <span class="user-profile__avatar inline-flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-3 border-solid border-primary-soft bg-primary-soft text-3xl text-primary-soft-text">
             <img
               v-if="user?.foto_perfil"
               :src="user.foto_perfil"
               :alt="$t('profile.fotoPerfil')"
-              class="user-profile__avatar-image"
+              class="user-profile__avatar-image h-full w-full object-cover"
             />
             <BaseIcon v-else name="user" />
           </span>
-          <dl class="user-profile__list">
+          <dl class="user-profile__list flex min-w-0 grow basis-56 flex-col gap-5">
             <div class="user-profile__item">
-              <dt class="user-profile__label">{{ $t('register.nome') }}</dt>
-              <dd class="user-profile__value">{{ user?.nome || '-' }}</dd>
+              <dt class="user-profile__label mb-1 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('register.nome') }}</dt>
+              <dd class="user-profile__value wrap-anywhere text-base text-text">{{ user?.nome || '-' }}</dd>
             </div>
             <div class="user-profile__item">
-              <dt class="user-profile__label">{{ $t('login.email') }}</dt>
-              <dd class="user-profile__value">{{ user?.email || '-' }}</dd>
+              <dt class="user-profile__label mb-1 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('login.email') }}</dt>
+              <dd class="user-profile__value wrap-anywhere text-base text-text">{{ user?.email || '-' }}</dd>
             </div>
             <div class="user-profile__item">
-              <dt class="user-profile__label">{{ $t('profile.telefone') }}</dt>
-              <dd class="user-profile__value">{{ formattedPhone || $t('profile.naoInformado') }}</dd>
+              <dt class="user-profile__label mb-1 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('profile.telefone') }}</dt>
+              <dd class="user-profile__value wrap-anywhere text-base text-text">{{ formattedPhone || $t('profile.naoInformado') }}</dd>
             </div>
           </dl>
         </div>
       </BaseCard>
 
       <BaseCard as="section" :title="$t('profile.learningPreferences')">
-        <dl class="user-profile__list">
+        <dl class="user-profile__list flex min-w-0 grow basis-56 flex-col gap-5">
           <div class="user-profile__item">
-            <dt class="user-profile__label">{{ $t('profile.nivelIngles') }}</dt>
-            <dd class="user-profile__value">{{ getNivelIngles(user?.nivel_ingles) }}</dd>
+            <dt class="user-profile__label mb-1 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('profile.nivelIngles') }}</dt>
+            <dd class="user-profile__value wrap-anywhere text-base text-text">{{ getNivelIngles(user?.nivel_ingles) }}</dd>
           </div>
           <div class="user-profile__item">
-            <dt class="user-profile__label">{{ $t('profile.idiomaPreferido') }}</dt>
-            <dd class="user-profile__value">{{ getIdiomaPreferido(user?.idioma_preferido) }}</dd>
+            <dt class="user-profile__label mb-1 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('profile.idiomaPreferido') }}</dt>
+            <dd class="user-profile__value wrap-anywhere text-base text-text">{{ getIdiomaPreferido(user?.idioma_preferido) }}</dd>
           </div>
           <div class="user-profile__item">
-            <dt class="user-profile__label">{{ $t('profile.status') }}</dt>
-            <dd class="user-profile__value">
+            <dt class="user-profile__label mb-1 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('profile.status') }}</dt>
+            <dd class="user-profile__value wrap-anywhere text-base text-text">
               <BaseBadge :variant="user?.status === 'ativo' ? 'success' : 'danger'" icon>
                 {{ user?.status === 'ativo' ? $t('profile.ativo') : $t('profile.inativo') }}
               </BaseBadge>
@@ -68,14 +68,14 @@
     </div>
 
     <BaseCard as="section" :title="$t('profile.learningGoals')">
-      <p class="user-profile__goals">
+      <p class="user-profile__goals wrap-anywhere whitespace-pre-line leading-relaxed text-text">
         {{ user?.objetivos_aprendizado || $t('profile.noGoals') }}
       </p>
     </BaseCard>
 
     <BaseModal v-model="showDeleteModal" :title="$t('profile.deleteAccount')" size="sm">
-      <div class="user-profile__delete u-stack">
-        <p class="user-profile__delete-text">{{ $t('profile.deleteConfirmMessage') }}</p>
+      <div class="user-profile__delete flex flex-col gap-4">
+        <p class="user-profile__delete-text text-text">{{ $t('profile.deleteConfirmMessage') }}</p>
         <BaseAlert variant="danger" :message="$t('profile.deleteWarning')" />
         <BaseInput
           v-model="confirmEmail"
@@ -126,7 +126,3 @@ const {
   handleDeleteAccount,
 } = useProfile()
 </script>
-
-<style scoped>
-@import '@/styles/views/users/profile.css';
-</style>

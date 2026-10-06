@@ -8,9 +8,9 @@
 
     <!-- PAINEL ADMIN -->
     <BaseCard v-if="isAdmin" as="section" muted padding="sm" class="dashboard__admin">
-      <div class="dashboard__admin-row">
+      <div class="dashboard__admin-row flex flex-wrap items-center gap-x-4 gap-y-3">
         <BaseBadge variant="primary" icon="shield-check">{{ $t('admin.badge') }}</BaseBadge>
-        <div class="dashboard__admin-links">
+        <div class="dashboard__admin-links flex flex-wrap gap-2">
           <BaseButton variant="secondary" size="sm" icon="users" @click="goToAdmin('users')">
             {{ $t('admin.users') }}
           </BaseButton>
@@ -28,7 +28,7 @@
     </BaseCard>
 
     <!-- Estatísticas -->
-    <div class="dashboard__stats u-grid-auto">
+    <div class="dashboard__stats grid grid-cols-fill-56 gap-4">
       <StatCard
         :label="$t('dashboard.flashcardsCount')"
         :value="stats.flashcardsCount || 0"
@@ -63,30 +63,30 @@
         :value-text="$t('dashboard.percentComplete', { percent: stats.progressoGeral || 0 })"
         size="lg"
       />
-      <p class="dashboard__progress-text">
+      <p class="dashboard__progress-text mt-3 text-sm text-text-muted">
         {{ $t('dashboard.percentComplete', { percent: stats.progressoGeral || 0 }) }} -
         {{ $t('dashboard.continueAssim') }}
       </p>
     </BaseCard>
 
     <!-- Funcionalidades -->
-    <ul class="dashboard__features u-grid-auto">
+    <ul class="dashboard__features grid list-none grid-cols-fill gap-5">
       <li v-for="feature in features" :key="feature.to">
-        <BaseCard as="article" interactive class="dashboard__feature">
-          <div class="dashboard__feature-body">
-            <span class="dashboard__feature-icon" aria-hidden="true">
+        <BaseCard as="article" interactive class="dashboard__feature relative h-full">
+          <div class="dashboard__feature-body flex items-start gap-4">
+            <span class="dashboard__feature-icon inline-flex size-13 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-2xl text-primary-soft-text" aria-hidden="true">
               <BaseIcon :name="feature.icon" />
             </span>
-            <div class="dashboard__feature-content">
-              <h2 class="dashboard__feature-title">
-                <router-link :to="feature.to" class="dashboard__feature-link">
+            <div class="dashboard__feature-content flex min-w-0 flex-col gap-1">
+              <h2 class="dashboard__feature-title text-lg font-semibold leading-tight">
+                <router-link :to="feature.to" class="dashboard__feature-link text-text no-underline after:absolute after:inset-0 after:rounded-inherit after:content-empty focus-visible:outline-hidden focus-visible:after:rounded-xl focus-visible:after:focus-ring-inset">
                   {{ feature.title }}
                 </router-link>
               </h2>
-              <p class="dashboard__feature-description">{{ feature.description }}</p>
-              <span class="dashboard__feature-cta" aria-hidden="true">
+              <p class="dashboard__feature-description text-sm text-text-muted">{{ feature.description }}</p>
+              <span class="dashboard__feature-cta mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary" aria-hidden="true">
                 {{ feature.cta }}
-                <BaseIcon name="arrow-right" class="dashboard__feature-cta-icon" />
+                <BaseIcon name="arrow-right" class="dashboard__feature-cta-icon size-em" />
               </span>
             </div>
           </div>
@@ -175,7 +175,3 @@ const features = computed<DashboardFeature[]>(() => [
   },
 ])
 </script>
-
-<style scoped>
-@import '@/styles/views/dashboard.css';
-</style>

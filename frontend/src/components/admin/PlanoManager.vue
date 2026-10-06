@@ -1,15 +1,15 @@
 <template>
-  <div class="plano-manager">
-    <div class="plano-manager__header">
-      <h2 class="plano-manager__title">{{ $t('admin.planos.title') }}</h2>
-      <div class="plano-manager__toolbar">
-        <div class="plano-manager__filters" role="group" :aria-label="$t('admin.status')">
+  <div class="plano-manager flex flex-col gap-4">
+    <div class="plano-manager__header flex flex-wrap items-center justify-between gap-3">
+      <h2 class="plano-manager__title text-xl font-semibold text-text">{{ $t('admin.planos.title') }}</h2>
+      <div class="plano-manager__toolbar flex flex-wrap items-center gap-3">
+        <div class="plano-manager__filters inline-flex flex-wrap gap-1 rounded-lg bg-surface-muted p-1" role="group" :aria-label="$t('admin.status')">
           <button
             v-for="f in filters"
             :key="f.value"
             type="button"
-            class="plano-manager__filter"
-            :class="{ 'plano-manager__filter--active': filterStatus === f.value }"
+            class="plano-manager__filter inline-flex min-h-control cursor-pointer items-center gap-1 rounded-md border border-solid px-4 text-sm font-inherit transition-colors focus-visible:focus-ring"
+            :class="filterStatus === f.value ? 'plano-manager__filter--active border-border bg-surface font-semibold text-primary shadow-sm' : 'border-transparent bg-transparent font-medium text-text-muted hover:bg-surface-hover hover:text-text'"
             :aria-pressed="filterStatus === f.value"
             @click="filterStatus = f.value"
           >
@@ -23,61 +23,61 @@
 
     <EmptyState v-if="!filteredPlanos.length" compact icon="inbox" title-tag="h3" :title="$t('common.empty')" />
 
-    <ul v-else class="plano-manager__grid u-grid-auto" role="list">
-      <li v-for="plano in filteredPlanos" :key="plano.id" class="plano-manager__item">
+    <ul v-else class="plano-manager__grid grid list-none grid-cols-fill-80 gap-4" role="list">
+      <li v-for="plano in filteredPlanos" :key="plano.id" class="plano-manager__item flex min-w-0">
         <BaseCard
           as="article"
           padding="sm"
           :title="plano.nome"
           title-tag="h3"
-          class="plano-manager__card"
-          :class="{ 'plano-manager__card--inactive': !plano.is_ativo }"
+          class="plano-manager__card flex-1"
+          :muted="!plano.is_ativo"
         >
           <template #actions>
             <BaseBadge v-if="plano.is_ativo" variant="success" icon="check-circle">{{ $t('admin.planos.active') }}</BaseBadge>
             <BaseBadge v-else icon="x-circle">{{ $t('admin.planos.inactive') }}</BaseBadge>
           </template>
 
-          <p class="plano-manager__description">{{ plano.descricao || $t('common.semDescricao') }}</p>
+          <p class="plano-manager__description wrap-anywhere text-sm text-text-muted">{{ plano.descricao || $t('common.semDescricao') }}</p>
 
-          <dl class="plano-manager__prices">
-            <div class="plano-manager__price">
-              <dt>{{ $t('admin.planos.monthly') }}</dt>
-              <dd>{{ formatCurrency(plano.preco_mensal) }}</dd>
+          <dl class="plano-manager__prices my-4 grid grid-cols-fit-28 gap-2">
+            <div class="plano-manager__price rounded-md bg-primary-soft p-3 text-primary-soft-text">
+              <dt class="text-xs font-medium">{{ $t('admin.planos.monthly') }}</dt>
+              <dd class="wrap-anywhere text-lg font-bold">{{ formatCurrency(plano.preco_mensal) }}</dd>
             </div>
-            <div class="plano-manager__price">
-              <dt>{{ $t('admin.planos.yearly') }}</dt>
-              <dd>{{ formatCurrency(plano.preco_anual) }}</dd>
+            <div class="plano-manager__price rounded-md bg-primary-soft p-3 text-primary-soft-text">
+              <dt class="text-xs font-medium">{{ $t('admin.planos.yearly') }}</dt>
+              <dd class="wrap-anywhere text-lg font-bold">{{ formatCurrency(plano.preco_anual) }}</dd>
             </div>
-            <div v-if="plano.dias_trial > 0" class="plano-manager__price">
-              <dt>{{ $t('admin.planos.trialDays') }}</dt>
-              <dd>{{ plano.dias_trial }} {{ $t('admin.planos.days') }}</dd>
+            <div v-if="plano.dias_trial > 0" class="plano-manager__price rounded-md bg-primary-soft p-3 text-primary-soft-text">
+              <dt class="text-xs font-medium">{{ $t('admin.planos.trialDays') }}</dt>
+              <dd class="wrap-anywhere text-lg font-bold">{{ plano.dias_trial }} {{ $t('admin.planos.days') }}</dd>
             </div>
           </dl>
 
-          <div class="plano-manager__role">
-            <span class="plano-manager__label">{{ $t('admin.planos.role') }}:</span>
-            <span class="plano-manager__value">{{ plano.role?.nome || $t('admin.planos.noRole') }}</span>
+          <div class="plano-manager__role flex flex-wrap items-center gap-2 text-sm">
+            <span class="plano-manager__label text-text-muted">{{ $t('admin.planos.role') }}:</span>
+            <span class="plano-manager__value font-semibold text-text">{{ plano.role?.nome || $t('admin.planos.noRole') }}</span>
             <BaseBadge v-if="plano.role?.nivel" size="sm" variant="primary">
               {{ $t('admin.roles.level') }} {{ plano.role.nivel }}
             </BaseBadge>
           </div>
 
-          <section v-if="plano.recursos?.length" class="plano-manager__section">
-            <h4 class="plano-manager__section-title">{{ $t('admin.planos.resources') }}</h4>
-            <ul class="plano-manager__tags" role="list">
+          <section v-if="plano.recursos?.length" class="plano-manager__section mt-4">
+            <h4 class="plano-manager__section-title mb-2 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('admin.planos.resources') }}</h4>
+            <ul class="plano-manager__tags flex list-none flex-wrap gap-2" role="list">
               <li v-for="recurso in plano.recursos" :key="recurso">
                 <BaseBadge size="sm" icon="check">{{ formatRecurso(recurso) }}</BaseBadge>
               </li>
             </ul>
           </section>
 
-          <section v-if="Object.keys(plano.limites || {}).length" class="plano-manager__section">
-            <h4 class="plano-manager__section-title">{{ $t('admin.planos.limits') }}</h4>
-            <dl class="plano-manager__limits">
-              <div v-for="(value, key) in plano.limites" :key="key" class="plano-manager__limit">
-                <dt>{{ formatLimiteKey(key) }}</dt>
-                <dd>
+          <section v-if="Object.keys(plano.limites || {}).length" class="plano-manager__section mt-4">
+            <h4 class="plano-manager__section-title mb-2 text-xs font-semibold uppercase tracking-label text-text-muted">{{ $t('admin.planos.limits') }}</h4>
+            <dl class="plano-manager__limits grid gap-1">
+              <div v-for="(value, key) in plano.limites" :key="key" class="plano-manager__limit flex border-0 border-b border-solid border-border last:border-b-0 flex-wrap items-center justify-between gap-2 py-1 text-sm">
+                <dt class="text-text-muted">{{ formatLimiteKey(key) }}</dt>
+                <dd class="font-semibold text-text">
                   <BaseBadge v-if="value === -1" size="sm" variant="info" icon="sparkles">
                     {{ $t('admin.planos.unlimited') }}
                   </BaseBadge>
@@ -87,9 +87,9 @@
             </dl>
           </section>
 
-          <p v-if="plano.ordem !== undefined" class="plano-manager__order">
-            <span class="plano-manager__label">{{ $t('admin.planos.order') }}:</span>
-            <span class="plano-manager__value">{{ plano.ordem }}</span>
+          <p v-if="plano.ordem !== undefined" class="plano-manager__order mt-3 flex flex-wrap items-center gap-2 text-sm">
+            <span class="plano-manager__label text-text-muted">{{ $t('admin.planos.order') }}:</span>
+            <span class="plano-manager__value font-semibold text-text">{{ plano.ordem }}</span>
           </p>
 
           <template #footer>
@@ -110,8 +110,8 @@
       :title="editingPlano ? $t('admin.planos.edit') : $t('admin.planos.new')"
       @close="handleCloseModal"
     >
-      <form id="plano-manager-form" class="u-stack" @submit.prevent="handleSavePlano">
-        <div class="plano-manager__form-row">
+      <form id="plano-manager-form" class="flex flex-col gap-4" @submit.prevent="handleSavePlano">
+        <div class="plano-manager__form-row grid grid-cols-fit-48 gap-4">
           <BaseInput v-model="formData.nome" :label="$t('admin.planos.name')" :placeholder="$t('admin.planos.namePlaceholder')" required />
           <BaseInput
             v-model="formData.descricao"
@@ -120,12 +120,12 @@
           />
         </div>
 
-        <div class="plano-manager__form-row">
+        <div class="plano-manager__form-row grid grid-cols-fit-48 gap-4">
           <BaseSelect v-model="roleIdModel" :label="$t('admin.planos.role')" :options="roleOptions" />
           <BaseInput v-model.number="formData.ordem" type="number" inputmode="numeric" :label="$t('admin.planos.order')" placeholder="0" />
         </div>
 
-        <div class="plano-manager__form-row">
+        <div class="plano-manager__form-row grid grid-cols-fit-48 gap-4">
           <BaseInput
             v-model.number="formData.preco_mensal"
             type="number"
@@ -160,7 +160,7 @@
 
         <BaseTextarea
           v-model="limitesTextData"
-          class="plano-manager__code"
+          mono
           :label="$t('admin.planos.limits')"
           :hint="$t('admin.planos.limitsHint')"
           :placeholder="limitesPlaceholder"
@@ -258,7 +258,3 @@ const roleIdModel = computed<string | number>({
   },
 })
 </script>
-
-<style scoped>
-@import '@/styles/components/PlanoManager.css';
-</style>

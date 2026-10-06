@@ -5,9 +5,9 @@ import router from './router'
 import i18n from './locales'
 import { useAuthStore } from './stores/auth'
 
-// Design system: tokens + temas (claro/escuro/daltônico) e depois a base global
-import './styles/themes.css'
-import './styles/main.css'
+// Design system: tokens + temas (claro/escuro/daltônico) e depois o Tailwind (reset base + utilitários)
+import './styles/tokens.css'
+import './styles/tailwind.css'
 
 const app = createApp(App)
 const pinia = createPinia()

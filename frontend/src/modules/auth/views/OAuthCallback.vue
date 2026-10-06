@@ -1,6 +1,6 @@
 <template>
   <AuthCard :title="error ? $t('oauth.processError') : $t('oauth.loading')" icon="login">
-    <div class="oauth-callback__body">
+    <div class="oauth-callback__body flex flex-col gap-4">
       <BaseSpinner v-if="loading" size="lg" center :label="$t('oauth.loading')" />
 
       <template v-if="error">
@@ -18,7 +18,3 @@ import { useOAuthCallback } from './OAuthCallback'
 
 const { error, loading, goToLogin } = useOAuthCallback()
 </script>
-
-<style scoped>
-@import '@/styles/views/auth/oauth-callback.css';
-</style>

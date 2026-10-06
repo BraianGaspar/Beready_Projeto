@@ -1,13 +1,13 @@
 <template>
-  <div class="role-manager">
-    <div class="role-manager__header">
-      <h2 class="role-manager__title">{{ $t('admin.roles.title') }}</h2>
+  <div class="role-manager flex flex-col gap-4">
+    <div class="role-manager__header flex flex-wrap items-center justify-between gap-3">
+      <h2 class="role-manager__title text-xl font-semibold text-text">{{ $t('admin.roles.title') }}</h2>
       <BaseButton icon="plus" @click="openCreateModal">{{ $t('admin.roles.new') }}</BaseButton>
     </div>
 
-    <ul class="role-manager__grid u-grid-auto" role="list">
-      <li v-for="role in rolesData" :key="role.id" class="role-manager__item">
-        <BaseCard as="article" padding="sm" :title="role.nome" title-tag="h3" class="role-manager__card">
+    <ul class="role-manager__grid grid list-none grid-cols-fill gap-4" role="list">
+      <li v-for="role in rolesData" :key="role.id" class="role-manager__item flex min-w-0">
+        <BaseCard as="article" padding="sm" :title="role.nome" title-tag="h3" class="role-manager__card flex-1">
           <template #actions>
             <BaseButton
               variant="ghost"
@@ -24,18 +24,18 @@
             />
           </template>
 
-          <div class="role-manager__badges">
+          <div class="role-manager__badges flex flex-wrap gap-2">
             <BaseBadge v-if="role.is_sistema" variant="info" icon="lock-closed">{{ $t('admin.roles.system') }}</BaseBadge>
             <BaseBadge v-else icon="pencil">{{ $t('admin.roles.custom') }}</BaseBadge>
             <BaseBadge variant="primary" icon="chart-bar">{{ $t('admin.roles.level') }} {{ role.nivel }}</BaseBadge>
           </div>
 
-          <ul v-if="role.permissoes?.length" class="role-manager__permissions" role="list" :aria-label="$t('admin.roles.permissions')">
+          <ul v-if="role.permissoes?.length" class="role-manager__permissions mt-3 flex list-none flex-wrap gap-2" role="list" :aria-label="$t('admin.roles.permissions')">
             <li v-for="perm in role.permissoes" :key="perm.id">
               <BaseBadge size="sm">{{ perm.descricao }}</BaseBadge>
             </li>
           </ul>
-          <p v-else class="role-manager__empty">{{ $t('admin.roles.noPermissions') }}</p>
+          <p v-else class="role-manager__empty mt-3 text-sm italic text-text-muted">{{ $t('admin.roles.noPermissions') }}</p>
         </BaseCard>
       </li>
     </ul>
@@ -47,8 +47,8 @@
       :title="editingRole ? $t('admin.roles.edit') : $t('admin.roles.new')"
       @close="handleCloseModal"
     >
-      <form id="role-manager-form" class="u-stack" @submit.prevent="handleSaveRole">
-        <div class="role-manager__form-row">
+      <form id="role-manager-form" class="flex flex-col gap-4" @submit.prevent="handleSaveRole">
+        <div class="role-manager__form-row grid grid-cols-fit-56 gap-4">
           <BaseInput v-model="formData.nome" :label="$t('admin.roles.name')" :placeholder="$t('admin.roles.namePlaceholder')" required />
           <BaseInput
             v-model.number="formData.nivel"
@@ -65,12 +65,12 @@
           :placeholder="$t('admin.roles.descriptionPlaceholder')"
         />
 
-        <fieldset class="role-manager__fieldset">
-          <legend class="role-manager__legend">{{ $t('admin.roles.permissions') }}</legend>
+        <fieldset class="role-manager__fieldset flex min-w-0 flex-col gap-4 border-0">
+          <legend class="role-manager__legend mb-2 text-sm font-semibold text-text">{{ $t('admin.roles.permissions') }}</legend>
 
-          <div v-for="(perms, recurso) in groupedPermissions" :key="recurso" class="role-manager__group">
-            <h3 class="role-manager__group-title">{{ formatRecurso(recurso) }}</h3>
-            <div class="role-manager__checks">
+          <div v-for="(perms, recurso) in groupedPermissions" :key="recurso" class="role-manager__group rounded-lg border border-solid border-border bg-surface-muted p-4">
+            <h3 class="role-manager__group-title mb-3 text-xs font-semibold uppercase tracking-label text-text-muted">{{ formatRecurso(recurso) }}</h3>
+            <div class="role-manager__checks grid grid-cols-fill-56 gap-x-4 gap-y-2">
               <BaseCheckbox
                 v-for="perm in perms"
                 :key="perm.id"
@@ -81,7 +81,7 @@
             </div>
           </div>
 
-          <p v-if="Object.keys(groupedPermissions).length === 0" class="role-manager__empty">
+          <p v-if="Object.keys(groupedPermissions).length === 0" class="role-manager__empty mt-3 text-sm italic text-text-muted">
             {{ $t('admin.roles.noPermissionsAvailable') }}
           </p>
         </fieldset>
@@ -146,7 +146,3 @@ const togglePermission = (id: number, checked: boolean) => {
   if (!checked) formData.value.permission_ids = ids.filter((pid) => pid !== id)
 }
 </script>
-
-<style scoped>
-@import '@/styles/components/RoleManager.css';
-</style>

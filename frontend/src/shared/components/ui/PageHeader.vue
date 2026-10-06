@@ -1,9 +1,12 @@
 <template>
-  <header class="ui-page-header" :class="`ui-page-header--${variant}`">
+  <header
+    class="ui-page-header flex flex-col items-start gap-4"
+    :class="hero && 'rounded-2xl bg-brand p-6 text-hero-text shadow-md md:p-8'"
+  >
     <BaseButton
       v-if="backTo"
       :to="backTo"
-      :variant="variant === 'hero' ? 'secondary' : 'ghost'"
+      :variant="hero ? 'secondary' : 'ghost'"
       size="sm"
       icon="arrow-left"
       class="ui-page-header__back"
@@ -11,16 +14,33 @@
       {{ backLabel || t('common.voltar') }}
     </BaseButton>
 
-    <div class="ui-page-header__main">
-      <span v-if="icon" class="ui-page-header__icon" aria-hidden="true">
+    <div class="ui-page-header__main flex w-full flex-wrap items-center gap-4">
+      <span
+        v-if="icon"
+        class="ui-page-header__icon inline-flex size-14 shrink-0 items-center justify-center rounded-xl text-icon-lg"
+        :class="hero ? 'bg-surface text-primary' : 'bg-primary-soft text-primary-soft-text'"
+        aria-hidden="true"
+      >
         <BaseIcon :name="icon" />
       </span>
-      <div class="ui-page-header__text">
-        <h1 class="ui-page-header__title">{{ title }}</h1>
-        <p v-if="subtitle" class="ui-page-header__subtitle">{{ subtitle }}</p>
+      <div class="ui-page-header__text min-w-0 shrink grow basis-64">
+        <h1
+          class="ui-page-header__title text-2xl font-bold md:text-3xl"
+          :class="hero ? 'text-hero-text' : 'text-text'"
+        >
+          {{ title }}
+        </h1>
+        <p
+          v-if="subtitle"
+          class="ui-page-header__subtitle mt-1"
+          :class="hero ? 'text-hero-text-muted' : 'text-text-muted'"
+        >
+          {{ subtitle }}
+        </p>
         <slot />
       </div>
-      <div v-if="$slots.actions" class="ui-page-header__actions">
+      <!-- < 480px: ações em largura total, dividindo a linha -->
+      <div v-if="$slots.actions" class="ui-page-header__actions flex flex-wrap gap-2 max-sm:w-full max-sm:*:flex-auto">
         <slot name="actions" />
       </div>
     </div>
@@ -28,13 +48,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 import BaseButton from './BaseButton.vue'
 import BaseIcon from './BaseIcon.vue'
 import type { IconName } from './icons'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** Título da tela (vira o <h1> — uma por página) */
     title: string
@@ -56,98 +77,7 @@ defineSlots<{
   actions?: () => unknown
 }>()
 
+const hero = computed(() => props.variant === 'hero')
+
 const { t } = useI18n()
 </script>
-
-<style scoped>
-.ui-page-header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
-}
-
-.ui-page-header--hero {
-  padding: var(--space-6);
-  border-radius: var(--radius-2xl);
-  background: var(--gradient-brand);
-  color: var(--color-hero-text);
-  box-shadow: var(--shadow-md);
-}
-
-.ui-page-header__main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-  width: 100%;
-}
-
-.ui-page-header__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: var(--radius-xl);
-  background: var(--color-primary-soft);
-  color: var(--color-primary-soft-text);
-  font-size: 1.75rem;
-}
-
-.ui-page-header--hero .ui-page-header__icon {
-  background: var(--color-surface);
-  color: var(--color-primary);
-}
-
-.ui-page-header__text {
-  flex: 1 1 16rem;
-  min-width: 0;
-}
-
-.ui-page-header__title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text);
-}
-
-.ui-page-header__subtitle {
-  margin-block-start: var(--space-1);
-  color: var(--color-text-muted);
-}
-
-.ui-page-header--hero .ui-page-header__title {
-  color: var(--color-hero-text);
-}
-
-.ui-page-header--hero .ui-page-header__subtitle {
-  color: var(--color-hero-text-muted);
-}
-
-.ui-page-header__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-@media (min-width: 768px) {
-  .ui-page-header--hero {
-    padding: var(--space-8);
-  }
-
-  .ui-page-header__title {
-    font-size: var(--font-size-3xl);
-  }
-}
-
-@media (max-width: 479.98px) {
-  .ui-page-header__actions {
-    width: 100%;
-  }
-
-  .ui-page-header__actions > :deep(*) {
-    flex: 1 1 auto;
-  }
-}
-</style>

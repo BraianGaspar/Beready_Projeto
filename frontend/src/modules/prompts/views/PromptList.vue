@@ -32,7 +32,7 @@
       </EmptyState>
 
       <BaseAlert v-if="!canCreateMorePrompts" variant="warning">
-        <div class="prompt-list__limit">
+        <div class="prompt-list__limit flex flex-wrap items-center gap-3">
           <span>{{ $t('prompts.limitReached') }}</span>
           <BaseButton to="/planos" variant="secondary" size="sm" icon-end="arrow-right">
             {{ $t('prompts.upgradeToCreateMore') }}
@@ -42,35 +42,35 @@
     </template>
 
     <!-- Grade -->
-    <ul v-else class="prompt-list__grid u-grid-auto" role="list">
-      <li class="prompt-list__item">
+    <ul v-else class="prompt-list__grid grid list-none grid-cols-fill gap-6" role="list">
+      <li class="prompt-list__item flex min-w-0">
         <button
           v-if="canCreatePrompt"
           type="button"
-          class="prompt-list__create"
+          class="prompt-list__create flex min-h-56 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface p-6 text-center text-text font-inherit transition-colors hover:border-primary hover:bg-primary-soft focus-visible:focus-ring"
           @click="openModal"
         >
-          <span class="prompt-list__create-icon" aria-hidden="true">
+          <span class="prompt-list__create-icon inline-flex size-14 items-center justify-center rounded-full bg-primary-soft text-2xl text-primary-soft-text" aria-hidden="true">
             <BaseIcon name="plus" />
           </span>
-          <span class="prompt-list__create-title">{{ $t('prompts.newPrompt') }}</span>
-          <span class="prompt-list__create-subtitle">{{ $t('prompts.createSubtitle') }}</span>
+          <span class="prompt-list__create-title text-lg font-semibold">{{ $t('prompts.newPrompt') }}</span>
+          <span class="prompt-list__create-subtitle text-sm text-text-muted">{{ $t('prompts.createSubtitle') }}</span>
         </button>
-        <div v-else class="prompt-list__create prompt-list__create--disabled" aria-disabled="true">
-          <span class="prompt-list__create-icon" aria-hidden="true">
+        <div v-else class="prompt-list__create prompt-list__create--disabled flex min-h-56 flex-1 cursor-not-allowed flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface-muted p-6 text-center text-text font-inherit" aria-disabled="true">
+          <span class="prompt-list__create-icon inline-flex size-14 items-center justify-center rounded-full bg-surface-hover text-2xl text-text-muted" aria-hidden="true">
             <BaseIcon name="plus" />
           </span>
-          <span class="prompt-list__create-title">{{ $t('prompts.newPrompt') }}</span>
-          <span class="prompt-list__create-subtitle">{{ $t('prompts.createSubtitle') }}</span>
+          <span class="prompt-list__create-title text-lg font-semibold">{{ $t('prompts.newPrompt') }}</span>
+          <span class="prompt-list__create-subtitle text-sm text-text-muted">{{ $t('prompts.createSubtitle') }}</span>
           <BaseBadge variant="warning" icon>{{ canCreateMorePrompts ? $t('common.semPermissao') : $t('common.limiteAtingido') }}</BaseBadge>
         </div>
       </li>
 
-      <li v-for="prompt in prompts" :key="prompt.id" class="prompt-list__item">
-        <BaseCard as="article" padding="sm" class="prompt-list__card">
-          <div class="prompt-list__card-top">
+      <li v-for="prompt in prompts" :key="prompt.id" class="prompt-list__item flex min-w-0">
+        <BaseCard as="article" padding="sm" class="prompt-list__card h-full flex-1">
+          <div class="prompt-list__card-top flex items-center justify-between gap-2">
             <BaseBadge variant="primary" icon="language">{{ getLanguageName(prompt.idioma_original) }}</BaseBadge>
-            <div v-if="canEdit || canDelete" class="prompt-list__actions">
+            <div v-if="canEdit || canDelete" class="prompt-list__actions flex gap-1">
               <BaseButton
                 v-if="canEdit"
                 variant="ghost"
@@ -87,10 +87,10 @@
               />
             </div>
           </div>
-          <p class="prompt-list__text">{{ prompt.texto_original }}</p>
-          <div class="prompt-list__meta">
+          <p class="prompt-list__text my-3 wrap-anywhere line-clamp-4 leading-relaxed text-text">{{ prompt.texto_original }}</p>
+          <div class="prompt-list__meta flex flex-wrap items-center justify-between gap-2">
             <BaseBadge size="sm">{{ getContextName(prompt.contexto) }}</BaseBadge>
-            <span class="prompt-list__date">
+            <span class="prompt-list__date inline-flex items-center gap-1 text-xs text-text-muted">
               <BaseIcon name="clock" />
               {{ formatDate(prompt.criado_em) }}
             </span>
@@ -110,7 +110,7 @@
       :title="editingPrompt ? $t('prompts.editPrompt') : $t('prompts.newPrompt')"
       :description="editingPrompt ? $t('prompts.editSubtitle') : $t('prompts.createSubtitle')"
     >
-      <form id="prompt-list-form" class="prompt-list__form u-stack" @submit.prevent="savePrompt">
+      <form id="prompt-list-form" class="prompt-list__form flex flex-col gap-4" @submit.prevent="savePrompt">
         <BaseTextarea
           v-model="form.texto_original"
           :label="$t('prompts.textoOriginal')"
@@ -209,6 +209,3 @@ const contextoOptions = computed<SelectOption[]>(() => [
 ])
 </script>
 
-<style scoped>
-@import '@/styles/views/prompts/prompts.css';
-</style>

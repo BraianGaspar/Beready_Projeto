@@ -10,7 +10,7 @@
     <BaseSpinner v-if="loading" center size="lg" show-label :label="$t('preferencias.carregando')" />
 
     <BaseCard v-else as="section" padding="lg">
-      <form class="user-preferences__form" @submit.prevent="handleSave">
+      <form class="user-preferences__form flex flex-col gap-6" @submit.prevent="handleSave">
         <BaseSelect
           :model-value="selectedLocale"
           :label="$t('preferencias.idioma')"
@@ -18,9 +18,9 @@
           @update:model-value="onLocaleChange"
         />
 
-        <div class="user-preferences__group">
-          <p :id="temaLabelId" class="user-preferences__label">{{ $t('preferencias.tema') }}</p>
-          <div class="user-preferences__options" role="group" :aria-labelledby="temaLabelId">
+        <div class="user-preferences__group flex flex-col gap-2">
+          <p :id="temaLabelId" class="user-preferences__label text-sm font-semibold text-text">{{ $t('preferencias.tema') }}</p>
+          <div class="user-preferences__options grid grid-cols-fit-36 gap-3" role="group" :aria-labelledby="temaLabelId">
             <BaseButton
               v-for="opt in temaOptions"
               :key="opt.value"
@@ -36,7 +36,7 @@
           </div>
         </div>
 
-        <div class="user-preferences__switches">
+        <div class="user-preferences__switches flex flex-col gap-4 rounded-lg border border-solid border-border bg-surface-muted p-4">
           <BaseSwitch
             v-model="form.modo_daltonico"
             :label="$t('preferencias.modoDaltonico')"
@@ -59,12 +59,12 @@
           />
         </div>
 
-        <div class="user-preferences__group">
-          <p :id="dificuldadeLabelId" class="user-preferences__label">
+        <div class="user-preferences__group flex flex-col gap-2">
+          <p :id="dificuldadeLabelId" class="user-preferences__label text-sm font-semibold text-text">
             {{ $t('preferencias.dificuldadePreferida') }}
           </p>
           <div
-            class="user-preferences__options user-preferences__options--grid"
+            class="user-preferences__options user-preferences__options--grid grid grid-cols-fit-44 gap-3"
             role="group"
             :aria-labelledby="dificuldadeLabelId"
           >
@@ -82,9 +82,9 @@
           </div>
         </div>
 
-        <div class="user-preferences__group">
-          <label :for="metaId" class="user-preferences__label">{{ $t('preferencias.metaDiaria') }}</label>
-          <div class="user-preferences__meta">
+        <div class="user-preferences__group flex flex-col gap-2">
+          <label :for="metaId" class="user-preferences__label text-sm font-semibold text-text">{{ $t('preferencias.metaDiaria') }}</label>
+          <div class="user-preferences__meta flex flex-wrap items-center gap-4">
             <input
               :id="metaId"
               v-model.number="form.meta_diaria_minutos"
@@ -92,15 +92,15 @@
               min="5"
               max="120"
               step="5"
-              class="user-preferences__range"
+              class="user-preferences__range min-h-control min-w-0 grow basis-48 cursor-pointer accent-primary focus-visible:rounded-sm focus-visible:focus-ring"
               :aria-valuetext="$t('time.minutes', { n: form.meta_diaria_minutos })"
             />
-            <output :for="metaId" class="user-preferences__meta-value">
-              <span class="user-preferences__meta-number">{{ form.meta_diaria_minutos }}</span>
-              <span class="user-preferences__meta-unit">{{ $t('preferencias.metaDiariaHelper') }}</span>
+            <output :for="metaId" class="user-preferences__meta-value inline-flex items-baseline gap-1 rounded-md bg-primary-soft px-4 py-2 text-primary-soft-text">
+              <span class="user-preferences__meta-number text-xl font-bold">{{ form.meta_diaria_minutos }}</span>
+              <span class="user-preferences__meta-unit text-xs">{{ $t('preferencias.metaDiariaHelper') }}</span>
             </output>
           </div>
-          <div class="user-preferences__scale" aria-hidden="true">
+          <div class="user-preferences__scale flex justify-between gap-1 text-xs text-text-subtle" aria-hidden="true">
             <span v-for="n in metaMarks" :key="n">{{ $t('time.minutes', { n }) }}</span>
           </div>
         </div>
@@ -114,11 +114,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useId } from 'vue'
+import { computed, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePreferencias } from '../composables/usePreferencias'
 import { useAuthStore } from '@/stores/auth'
-import { setLocale } from '@/locales'
+import { SUPPORTED_LOCALES } from '@/locales'
+import { useAlert } from '@/shared/composables/useAlert'
 import {
   BaseButton,
   BaseCard,
@@ -131,21 +132,22 @@ import {
 } from '@/shared/components/ui'
 
 const { locale, t } = useI18n()
+const { error } = useAlert()
 const selectedLocale = ref(locale.value)
+// O idioma pode mudar por fora (ex.: aplicado do usuário ao reidratar a sessão)
+watch(locale, (value) => {
+  selectedLocale.value = value
+})
 
-// Troca o idioma e ajusta lang/dir do documento (árabe => rtl)
-const changeLocale = () => {
-  setLocale(selectedLocale.value)
-}
-
-const onLocaleChange = (value: string | number | null | undefined) => {
+// Troca o idioma (lang/dir do documento, árabe => rtl) e grava no usuário
+const onLocaleChange = async (value: string | number | null | undefined) => {
   selectedLocale.value = String(value ?? '')
-  changeLocale()
+  const saved = await authStore.changeLanguage(selectedLocale.value)
+  if (!saved) error(t('preferencias.idiomaNaoSalvo'))
 }
 
-const localeCodes = ['pt', 'en', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'ru', 'nl', 'sv', 'pl', 'tr', 'ar']
 const localeOptions = computed<SelectOption[]>(() =>
-  localeCodes.map((code) => ({ value: code, label: t(`idiomas.${code}`) })),
+  SUPPORTED_LOCALES.map((code) => ({ value: code, label: t(`idiomas.${code}`) })),
 )
 
 const temaOptions = computed(() => [
@@ -188,7 +190,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-@import '@/styles/views/preferencias/preferencias.css';
-</style>

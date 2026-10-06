@@ -1,7 +1,7 @@
-// Tailwind removido: o projeto usa apenas o design system próprio
-// (tokens em src/styles/tokens.css + componentes em src/shared/components/ui).
+// Tailwind ligado aos tokens do design system (ver tailwind.config.js e docs/design-system.md)
 export default {
   plugins: {
+    tailwindcss: {},
     autoprefixer: {},
   },
 }

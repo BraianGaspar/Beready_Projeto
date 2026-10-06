@@ -8,12 +8,16 @@
     :required="required"
     :disabled="disabled"
   >
-    <div class="ui-input" :class="{ 'ui-input--icon': icon, 'ui-input--toggle': isPassword }">
-      <BaseIcon v-if="icon" :name="icon" class="ui-input__icon" />
+    <div class="ui-input relative flex items-center">
+      <BaseIcon
+        v-if="icon"
+        :name="icon"
+        class="ui-input__icon pointer-events-none absolute start-3 size-5 text-text-subtle"
+      />
       <input
         v-bind="controlAttrs"
         :id="fieldId"
-        class="ui-control ui-input__control"
+        :class="inputClasses"
         :type="isPassword && showPassword ? 'text' : type"
         :value="model ?? ''"
         :placeholder="placeholder"
@@ -27,7 +31,7 @@
       <button
         v-if="isPassword"
         type="button"
-        class="ui-input__toggle"
+        class="ui-input__toggle absolute end-1 inline-flex size-control-inner items-center justify-center rounded-sm border-0 bg-transparent text-xl text-text-muted focus-visible:focus-ring enabled:hover:bg-surface-hover enabled:hover:text-text"
         :aria-label="showPassword ? t('ui.hidePassword') : t('ui.showPassword')"
         :aria-pressed="showPassword"
         :aria-controls="fieldId"
@@ -45,6 +49,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseField from './BaseField.vue'
 import BaseIcon from './BaseIcon.vue'
+import { controlClass } from './control'
 import type { IconName } from './icons'
 import { useField } from './useField'
 
@@ -86,51 +91,11 @@ const { fieldId, rootAttrs, controlAttrs, describedBy } = useField(props)
 
 const isPassword = computed(() => props.type === 'password')
 const showPassword = ref(false)
+
+// ps-/pe- vêm depois de px- no CSS do Tailwind, então abrem espaço para ícone/botão
+const inputClasses = computed(() => [
+  controlClass,
+  'ui-input__control min-h-control',
+  { 'ps-control-icon': props.icon, 'pe-control': isPassword.value },
+])
 </script>
-
-<style scoped>
-@import './control.css';
-
-.ui-input {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.ui-input__icon {
-  position: absolute;
-  inset-inline-start: var(--space-3);
-  width: 1.25rem;
-  height: 1.25rem;
-  color: var(--color-text-subtle);
-  pointer-events: none;
-}
-
-.ui-input--icon .ui-input__control {
-  padding-inline-start: calc(var(--space-3) * 2 + 1.25rem);
-}
-
-.ui-input--toggle .ui-input__control {
-  padding-inline-end: calc(var(--control-height-md));
-}
-
-.ui-input__toggle {
-  position: absolute;
-  inset-inline-end: var(--space-1);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(var(--control-height-md) - var(--space-2));
-  height: calc(var(--control-height-md) - var(--space-2));
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 1.25rem;
-}
-
-.ui-input__toggle:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-}
-</style>

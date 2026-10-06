@@ -50,25 +50,25 @@
       </BaseAlert>
     </template>
 
-    <ul v-else class="fcard-list__grid u-grid-auto" role="list">
+    <ul v-else class="fcard-list__grid grid list-none grid-cols-fill gap-6" role="list">
       <li v-for="flashcard in flashcards" :key="flashcard.id">
-        <BaseCard as="article" padding="none" interactive class="fcard-list__card">
+        <BaseCard as="article" padding="none" interactive class="fcard-list__card h-full">
           <button
             type="button"
-            class="fcard-list__content"
+            class="fcard-list__content flex min-h-full w-full cursor-pointer flex-col gap-1 border-0 bg-transparent p-5 text-start text-text font-inherit hover:bg-surface-hover focus-visible:focus-ring-inset"
             :title="$t('flashcards.detailsTitle')"
             @click="flashcard.id !== undefined && viewFlashcard(flashcard.id)"
           >
-            <span class="fcard-list__label">{{ $t('flashcards.perguntaLabel') }}</span>
-            <span class="fcard-list__text fcard-list__text--question">{{ flashcard.frente }}</span>
-            <span class="fcard-list__label">{{ $t('flashcards.resposta') }}</span>
-            <span class="fcard-list__text">{{ flashcard.verso }}</span>
+            <span class="fcard-list__label text-xs font-semibold uppercase tracking-wider text-text-muted">{{ $t('flashcards.perguntaLabel') }}</span>
+            <span class="fcard-list__text fcard-list__text--question mb-3 line-clamp-3 wrap-anywhere text-lg font-semibold text-text">{{ flashcard.frente }}</span>
+            <span class="fcard-list__label text-xs font-semibold uppercase tracking-wider text-text-muted">{{ $t('flashcards.resposta') }}</span>
+            <span class="fcard-list__text line-clamp-3 text-text-muted wrap-anywhere">{{ flashcard.verso }}</span>
           </button>
 
           <template #footer>
             <BaseButton
               icon="academic-cap"
-              class="fcard-list__study"
+              class="fcard-list__study me-auto"
               @click="flashcard.id !== undefined && studyFlashcard(flashcard.id)"
             >
               {{ $t('flashcards.estudar') }}
@@ -99,7 +99,7 @@
       :description="isEditing ? $t('flashcards.editSubtitle') : $t('flashcards.createSubtitle')"
       @close="closeModal"
     >
-      <form id="fcard-list-form" class="u-stack" @submit.prevent="submitForm">
+      <form id="fcard-list-form" class="flex flex-col gap-4" @submit.prevent="submitForm">
         <BaseTextarea
           v-model="form.frente"
           :label="$t('flashcards.pergunta')"
@@ -197,7 +197,3 @@ const nivelOptions = computed<SelectOption[]>(() => [
   { value: 'avancado', label: t('common.avancado') },
 ])
 </script>
-
-<style scoped>
-@import '@/styles/views/flashcards/flashcards.css';
-</style>

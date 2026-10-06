@@ -1,6 +1,9 @@
 <template>
-  <span class="ui-badge" :class="[`ui-badge--${variant}`, `ui-badge--${size}`, { 'ui-badge--solid': solid }]">
-    <BaseIcon v-if="iconName" :name="iconName" class="ui-badge__icon" />
+  <span
+    class="ui-badge inline-flex max-w-full items-center gap-1 rounded-full border border-solid align-middle font-semibold leading-base"
+    :class="[sizeClasses[size], (solid ? solidClasses : softClasses)[variant], wrap ? 'whitespace-normal' : 'whitespace-nowrap']"
+  >
+    <BaseIcon v-if="iconName" :name="iconName" class="ui-badge__icon size-em-md" />
     <slot />
   </span>
 </template>
@@ -10,10 +13,13 @@ import { computed } from 'vue'
 import BaseIcon from './BaseIcon.vue'
 import { statusIcons, type IconName, type StatusVariant } from './icons'
 
+type Variant = 'neutral' | 'primary' | StatusVariant
+type Size = 'sm' | 'md'
+
 const props = withDefaults(
   defineProps<{
-    variant?: 'neutral' | 'primary' | StatusVariant
-    size?: 'sm' | 'md'
+    variant?: Variant
+    size?: Size
     /**
      * Ícone: nome do registro, ou `true` para o ícone padrão do status
      * (recomendado em success/warning/danger/info: status não pode depender só de cor).
@@ -21,11 +27,38 @@ const props = withDefaults(
     icon?: IconName | boolean
     /** Fundo sólido em vez de suave */
     solid?: boolean
+    /** Texto longo pode quebrar linha (padrão: uma linha só) */
+    wrap?: boolean
   }>(),
-  { variant: 'neutral', size: 'md', icon: false, solid: false },
+  { variant: 'neutral', size: 'md', icon: false, solid: false, wrap: false },
 )
 
 defineSlots<{ default?: () => unknown }>()
+
+const sizeClasses: Record<Size, string> = {
+  sm: 'px-2 py-0.5 text-xs',
+  md: 'px-3 py-1 text-sm',
+}
+
+// Suave: fundo -soft + texto no tom (neutral ganha borda)
+const softClasses: Record<Variant, string> = {
+  neutral: 'border-border bg-surface-muted text-text-muted',
+  primary: 'border-transparent bg-primary-soft text-primary-soft-text',
+  success: 'border-transparent bg-success-soft text-success',
+  warning: 'border-transparent bg-warning-soft text-warning',
+  danger: 'border-transparent bg-danger-soft text-danger',
+  info: 'border-transparent bg-info-soft text-info',
+}
+
+// Sólido: fundo no tom + texto -contrast (a borda é a mesma da versão suave)
+const solidClasses: Record<Variant, string> = {
+  neutral: 'border-border bg-text-muted text-surface',
+  primary: 'border-transparent bg-primary text-primary-contrast',
+  success: 'border-transparent bg-success text-success-contrast',
+  warning: 'border-transparent bg-warning text-warning-contrast',
+  danger: 'border-transparent bg-danger text-danger-contrast',
+  info: 'border-transparent bg-info text-info-contrast',
+}
 
 const iconName = computed<IconName | null>(() => {
   if (typeof props.icon === 'string') return props.icon
@@ -35,92 +68,3 @@ const iconName = computed<IconName | null>(() => {
   return null
 })
 </script>
-
-<style scoped>
-.ui-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  max-width: 100%;
-  padding: 0.125rem var(--space-2);
-  border: var(--border-width) solid transparent;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-base);
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
-.ui-badge--md {
-  padding: 0.25rem var(--space-3);
-  font-size: var(--font-size-sm);
-}
-
-.ui-badge__icon {
-  width: 1.1em;
-  height: 1.1em;
-}
-
-.ui-badge--neutral {
-  background: var(--color-surface-muted);
-  border-color: var(--color-border);
-  color: var(--color-text-muted);
-}
-
-.ui-badge--primary {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-soft-text);
-}
-
-.ui-badge--success {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.ui-badge--warning {
-  background: var(--color-warning-soft);
-  color: var(--color-warning);
-}
-
-.ui-badge--danger {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
-}
-
-.ui-badge--info {
-  background: var(--color-info-soft);
-  color: var(--color-info);
-}
-
-/* Sólidos */
-.ui-badge--solid.ui-badge--neutral {
-  background: var(--color-text-muted);
-  color: var(--color-surface);
-}
-
-.ui-badge--solid.ui-badge--primary {
-  background: var(--color-primary);
-  color: var(--color-primary-contrast);
-}
-
-.ui-badge--solid.ui-badge--success {
-  background: var(--color-success);
-  color: var(--color-success-contrast);
-}
-
-.ui-badge--solid.ui-badge--warning {
-  background: var(--color-warning);
-  color: var(--color-warning-contrast);
-}
-
-.ui-badge--solid.ui-badge--danger {
-  background: var(--color-danger);
-  color: var(--color-danger-contrast);
-}
-
-.ui-badge--solid.ui-badge--info {
-  background: var(--color-info);
-  color: var(--color-info-contrast);
-}
-</style>

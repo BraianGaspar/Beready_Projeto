@@ -3,38 +3,51 @@
        o wrapper só entra na ordem do Tab quando de fato rola. -->
   <div
     ref="wrapRef"
-    class="ui-table"
+    class="ui-table max-w-full overflow-x-auto overscroll-x-contain focus-visible:focus-ring-inset"
     :style="minWidth ? { '--ui-table-min': minWidth } : undefined"
     :role="scrollable ? 'region' : undefined"
     :aria-labelledby="scrollable && caption ? captionId : undefined"
     :tabindex="scrollable ? 0 : undefined"
   >
-    <table class="ui-table__table">
-      <caption v-if="caption" :id="captionId" class="ui-table__caption" :class="{ 'sr-only': captionHidden }">
+    <!-- < 768px: linhas como cards empilhados; >= 768px (md:): tabela tradicional -->
+    <table class="ui-table__table block w-full border-collapse md:table md:min-w-table">
+      <caption
+        v-if="caption"
+        :id="captionId"
+        class="ui-table__caption px-4 pt-3 text-start text-sm font-semibold text-text"
+        :class="captionHidden ? 'sr-only' : 'block md:table-caption'"
+      >
         {{ caption }}
       </caption>
-      <thead class="ui-table__head">
+      <!-- cabeçalho só para leitores de tela no layout empilhado -->
+      <thead
+        class="ui-table__head clip-hidden absolute h-px w-px overflow-hidden whitespace-nowrap md:clip-auto md:static md:table-header-group md:h-auto md:w-auto md:overflow-visible"
+      >
         <tr>
           <th
             v-for="column in columns"
             :key="column.key"
             scope="col"
-            class="ui-table__th"
-            :class="column.align && `ui-table__cell--${column.align}`"
+            class="ui-table__th border-0 border-b border-solid border-border bg-surface-muted px-4 py-3 align-middle text-xs font-semibold uppercase tracking-label text-text-muted whitespace-nowrap"
+            :class="alignClasses[column.align ?? 'start']"
           >
             {{ column.label }}
           </th>
         </tr>
       </thead>
-      <tbody class="ui-table__body">
-        <tr v-for="(row, index) in rows" :key="getRowKey(row, index)" class="ui-table__row">
+      <tbody class="ui-table__body flex flex-col gap-3 p-3 md:table-row-group md:p-0">
+        <tr
+          v-for="(row, index) in rows"
+          :key="getRowKey(row, index)"
+          class="ui-table__row group/row flex flex-col gap-2 rounded-lg border border-solid border-border bg-surface p-4 md:table-row md:rounded-none md:border-0 md:bg-transparent md:p-0 md:transition-colors md:hover:bg-surface-hover"
+        >
           <td
             v-for="column in columns"
             :key="column.key"
-            class="ui-table__td"
             :class="[
-              column.align && `ui-table__cell--${column.align}`,
-              { 'ui-table__td--no-label': column.hideLabel },
+              tdBase,
+              alignClasses[column.align ?? 'start'],
+              column.hideLabel ? 'justify-end before:content-none' : tdLabel,
             ]"
             :data-label="column.hideLabel ? undefined : column.label"
           >
@@ -85,6 +98,22 @@ defineSlots<
   Record<string, (props: { row: T; value: unknown; index: number }) => unknown>
 >()
 
+// Alinhamento só no layout de tabela (uma classe por célula: text-* não tem ordem garantida entre si)
+const alignClasses: Record<NonNullable<TableColumn['align']>, string> = {
+  start: 'md:text-start',
+  center: 'md:text-center',
+  end: 'md:text-end',
+}
+
+const tdBase =
+  'ui-table__td flex min-w-0 flex-wrap items-center gap-2 text-text wrap-anywhere ' +
+  'md:table-cell md:border-0 md:border-b md:border-solid md:border-border md:px-4 md:py-3 md:align-middle ' +
+  'md:break-normal md:group-last/row:border-b-0'
+// Rótulo da coluna (::before com o data-label), só no layout empilhado
+const tdLabel =
+  'justify-between before:content-label before:text-xs before:font-semibold before:uppercase ' +
+  'before:tracking-label before:text-text-muted md:before:content-none'
+
 const captionId = `ui-table-${useId()}-caption`
 
 const getValue = (row: T, key: string): unknown => (row as Record<string, unknown>)[key]
@@ -117,165 +146,3 @@ onMounted(() => {
 
 onBeforeUnmount(() => observer?.disconnect())
 </script>
-
-<style scoped>
-.ui-table {
-  max-inline-size: 100%;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-}
-
-.ui-table:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: calc(var(--focus-ring-width) * -1);
-}
-
-.ui-table__caption {
-  padding: var(--space-3) var(--space-4) 0;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  text-align: start;
-}
-
-/* ---------- Base (< 768px): linhas como cards empilhados ---------- */
-.ui-table__table {
-  display: block;
-  inline-size: 100%;
-  border-collapse: collapse;
-}
-
-.ui-table__caption:not(.sr-only) {
-  display: block;
-}
-
-/* cabeçalho só para leitores de tela no layout empilhado */
-.ui-table__head {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-}
-
-.ui-table__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3);
-}
-
-.ui-table__row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-}
-
-.ui-table__td {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  min-width: 0;
-  color: var(--color-text);
-  overflow-wrap: anywhere;
-}
-
-.ui-table__td::before {
-  content: attr(data-label);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.ui-table__td--no-label::before {
-  content: none;
-}
-
-.ui-table__td--no-label {
-  justify-content: flex-end;
-}
-
-/* ---------- >= 768px: tabela tradicional ---------- */
-@media (min-width: 768px) {
-  .ui-table__table {
-    display: table;
-    min-inline-size: var(--ui-table-min, 100%);
-  }
-
-  .ui-table__caption:not(.sr-only) {
-    display: table-caption;
-  }
-
-  .ui-table__head {
-    position: static;
-    display: table-header-group;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip: auto;
-  }
-
-  .ui-table__body {
-    display: table-row-group;
-    padding: 0;
-  }
-
-  .ui-table__row {
-    display: table-row;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    transition: background-color var(--transition-base);
-  }
-
-  .ui-table__row:hover {
-    background: var(--color-surface-hover);
-  }
-
-  .ui-table__th,
-  .ui-table__td {
-    display: table-cell;
-    padding: var(--space-3) var(--space-4);
-    border-block-end: var(--border-width) solid var(--color-border);
-    text-align: start;
-    vertical-align: middle;
-    overflow-wrap: normal;
-  }
-
-  .ui-table__th {
-    background: var(--color-surface-muted);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-
-  .ui-table__row:last-child .ui-table__td {
-    border-block-end: 0;
-  }
-
-  .ui-table__td::before {
-    content: none;
-  }
-
-  .ui-table__cell--center {
-    text-align: center;
-  }
-
-  .ui-table__cell--end {
-    text-align: end;
-  }
-}
-</style>

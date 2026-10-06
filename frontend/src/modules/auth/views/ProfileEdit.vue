@@ -7,26 +7,26 @@
       back-to="/profile"
     />
 
-    <form class="edit-profile" @submit.prevent="handleSubmit">
-      <div class="edit-profile__grid">
+    <form class="edit-profile flex flex-col gap-6" @submit.prevent="handleSubmit">
+      <div class="edit-profile__grid grid grid-cols-fit-80 gap-6">
         <BaseCard as="section" :title="$t('profile.personalInfo')">
-          <div class="edit-profile__fields">
-            <div class="edit-profile__photo">
-              <span class="edit-profile__avatar">
+          <div class="edit-profile__fields flex flex-col gap-4">
+            <div class="edit-profile__photo flex flex-wrap items-center gap-4">
+              <span class="edit-profile__avatar inline-flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-full border-3 border-solid border-primary-soft bg-primary-soft text-2xl text-primary-soft-text">
                 <img
                   v-if="imagePreview || form.foto_perfil"
                   :src="imagePreview || form.foto_perfil"
                   :alt="$t('profile.fotoPerfil')"
-                  class="edit-profile__avatar-image"
+                  class="edit-profile__avatar-image h-full w-full object-cover"
                 />
                 <BaseIcon v-else name="user" />
               </span>
-              <BaseField :field-id="photoId" :label="$t('profile.fotoPerfil')" class="edit-profile__photo-field">
+              <BaseField :field-id="photoId" :label="$t('profile.fotoPerfil')" class="edit-profile__photo-field grow basis-48">
                 <input
                   :id="photoId"
                   type="file"
                   accept="image/*"
-                  class="edit-profile__file"
+                  class="edit-profile__file min-h-control w-full cursor-pointer rounded-md border border-dashed border-border-strong bg-surface p-2 text-sm text-text-muted focus-visible:focus-ring file:me-3 file:cursor-pointer file:rounded-sm file:border-0 file:bg-primary-soft file:px-3 file:py-2 file:font-semibold file:text-primary-soft-text"
                   @change="handleImageChange"
                 />
               </BaseField>
@@ -62,7 +62,7 @@
         </BaseCard>
 
         <BaseCard as="section" :title="$t('profile.learningPreferences')">
-          <div class="edit-profile__fields">
+          <div class="edit-profile__fields flex flex-col gap-4">
             <BaseSelect
               v-model="form.nivel_ingles"
               :label="$t('profile.nivelIngles')"
@@ -86,8 +86,8 @@
       </div>
 
       <BaseCard as="section" :title="$t('profile.alterarSenha')" :subtitle="$t('profile.senhaHint')">
-        <div class="edit-profile__password">
-          <div class="edit-profile__fields">
+        <div class="edit-profile__password grid grid-cols-fit-64 items-start gap-x-6 gap-y-4">
+          <div class="edit-profile__fields flex flex-col gap-4">
             <BaseInput
               v-model="form.nova_senha"
               type="password"
@@ -115,7 +115,7 @@
         </div>
       </BaseCard>
 
-      <div class="edit-profile__actions">
+      <div class="edit-profile__actions flex flex-wrap justify-end gap-3 *:grow *:basis-40 md:*:shrink-0 md:*:grow-0 md:*:basis-auto">
         <BaseButton variant="secondary" to="/profile">{{ $t('common.cancelar') }}</BaseButton>
         <BaseButton type="submit" icon="check" :loading="loading">
           {{ loading ? $t('common.carregando') : $t('common.salvar') + ' ' + $t('profile.alteracoes') }}
@@ -140,6 +140,7 @@ import {
   PageHeader,
   type SelectOption,
 } from '@/shared/components/ui'
+import { userLanguageOptions } from '@/locales'
 import PasswordStrength from '../components/PasswordStrength.vue'
 import { useProfileEdit } from './ProfileEdit'
 
@@ -152,12 +153,7 @@ const nivelOptions = computed<SelectOption[]>(() => [
   { value: 'avancado', label: t('profile.nivelAvancado') },
 ])
 
-const idiomaOptions = computed<SelectOption[]>(() => [
-  { value: 'pt-BR', label: t('idiomas.pt') },
-  { value: 'en', label: t('idiomas.en') },
-  { value: 'es', label: t('idiomas.es') },
-  { value: 'fr', label: t('idiomas.fr') },
-])
+const idiomaOptions = computed<SelectOption[]>(() => userLanguageOptions(t))
 
 const {
   form,
@@ -176,7 +172,3 @@ const {
   handleSubmit,
 } = useProfileEdit()
 </script>
-
-<style scoped>
-@import '@/styles/views/users/profile-edit.css';
-</style>

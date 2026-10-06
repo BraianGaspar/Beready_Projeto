@@ -1,7 +1,9 @@
 <template>
+  <!-- Tamanho padrão (1em ou a prop size) vem de .ui-icon em src/styles/tailwind.css, na camada
+       `components`: qualquer utilitário de tamanho passado por quem usa (size-5, size-em-lg…) vence. -->
   <svg
-    class="ui-icon"
-    :class="{ 'ui-icon--directional': DIRECTIONAL.has(name) }"
+    class="ui-icon shrink-0 align-middle"
+    :class="{ 'rtl:-scale-x-100': DIRECTIONAL.has(name) }"
     :style="size ? { '--ui-icon-size': size } : undefined"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -38,17 +40,3 @@ withDefaults(
   { size: undefined, label: undefined, strokeWidth: 2 },
 )
 </script>
-
-<style scoped>
-.ui-icon {
-  width: var(--ui-icon-size, 1em);
-  height: var(--ui-icon-size, 1em);
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-
-/* O escopo do Vue só se aplica ao último seletor, então o ancestral [dir] funciona aqui */
-[dir='rtl'] .ui-icon--directional {
-  transform: scaleX(-1);
-}
-</style>

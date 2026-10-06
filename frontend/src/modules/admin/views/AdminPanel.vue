@@ -6,7 +6,7 @@
       icon="shield-check"
       back-to="/dashboard"
     >
-      <BaseBadge variant="primary" icon="shield-check" class="admin-panel__chip">{{ $t('admin.badge') }}</BaseBadge>
+      <BaseBadge variant="primary" icon="shield-check" class="admin-panel__chip mt-3">{{ $t('admin.badge') }}</BaseBadge>
     </PageHeader>
 
     <BaseTabs :model-value="activeTab" :tabs="tabs" :label="$t('admin.title')" @update:model-value="setTab">
@@ -14,13 +14,13 @@
       <template #users>
         <BaseCard padding="none" class="admin-panel__users">
           <template #header>
-            <div class="admin-panel__users-header">
-              <h2 class="admin-panel__section-title">{{ $t('admin.manageUsers') }}</h2>
+            <div class="admin-panel__users-header flex border-0 border-b border-solid border-border flex-wrap items-center justify-between gap-3 p-4 md:px-6 md:py-5">
+              <h2 class="admin-panel__section-title text-xl font-semibold text-text">{{ $t('admin.manageUsers') }}</h2>
               <BaseInput
                 v-model="searchQuery"
                 type="search"
                 icon="search"
-                class="admin-panel__search"
+                class="admin-panel__search max-w-96 grow basis-64"
                 :placeholder="$t('admin.searchPlaceholder')"
                 :aria-label="$t('admin.searchPlaceholder')"
               />
@@ -42,16 +42,16 @@
             min-width="44rem"
           >
             <template #cell-id="{ row }">
-              <span class="admin-panel__user-id">#{{ row.id }}</span>
+              <span class="admin-panel__user-id font-mono text-sm text-text-muted">#{{ row.id }}</span>
             </template>
             <template #cell-nome="{ row }">
-              <div class="admin-panel__user">
-                <span class="admin-panel__avatar" aria-hidden="true">{{ row.nome?.charAt(0) || 'U' }}</span>
-                <span class="admin-panel__user-name">{{ row.nome }}</span>
+              <div class="admin-panel__user flex min-w-0 items-center gap-3">
+                <span class="admin-panel__avatar inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft font-bold uppercase text-primary-soft-text" aria-hidden="true">{{ row.nome?.charAt(0) || 'U' }}</span>
+                <span class="admin-panel__user-name wrap-anywhere font-semibold">{{ row.nome }}</span>
               </div>
             </template>
             <template #cell-email="{ row }">
-              <span class="admin-panel__email">{{ row.email }}</span>
+              <span class="admin-panel__email min-w-0 wrap-anywhere text-text-muted">{{ row.email }}</span>
             </template>
             <template #cell-role="{ row }">
               <BaseBadge
@@ -97,10 +97,10 @@
       <!-- Estatísticas -->
       <template #stats>
         <h2 class="sr-only">{{ $t('admin.statistics') }}</h2>
-        <div class="admin-panel__stats u-grid-auto">
+        <div class="admin-panel__stats grid grid-cols-fill-56 gap-4">
           <StatCard :label="$t('admin.totalUsers')" :value="stats.total_users || 0" icon="users">
             <template #hint>
-              <span class="admin-panel__stat-split">
+              <span class="admin-panel__stat-split mt-1 flex flex-wrap gap-2">
                 <BaseBadge size="sm" variant="primary" icon="shield-check">{{ $t('admin.adminCount') }}: {{ stats.admin_count || 0 }}</BaseBadge>
                 <BaseBadge size="sm" icon="user">{{ $t('admin.userCount') }}: {{ stats.user_count || 0 }}</BaseBadge>
               </span>
@@ -193,7 +193,3 @@ watch(() => route.query.tab, (newTab) => {
   }
 })
 </script>
-
-<style scoped>
-@import '@/styles/views/admin/admin-panel.css';
-</style>

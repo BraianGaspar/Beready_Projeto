@@ -1,7 +1,7 @@
 <template>
   <PageContainer size="md" class="quiz-view">
     <PageHeader :title="quiz.titulo || $t('common.carregando')" icon="book-open" back-to="/quizes">
-      <div class="quiz-view__badges">
+      <div class="quiz-view__badges mt-3 flex flex-wrap gap-2">
         <BaseBadge v-if="quiz.nivel_dificuldade" :variant="nivelVariant">
           {{ getLevelText(quiz.nivel_dificuldade) }}
         </BaseBadge>
@@ -21,7 +21,7 @@
       </template>
     </PageHeader>
 
-    <div class="quiz-view__stats u-grid-auto">
+    <div class="quiz-view__stats grid grid-cols-fill-56 gap-4">
       <StatCard :label="$t('quizes.totalQuestoes')" :value="quiz.total_questoes || 0" icon="document" />
       <StatCard
         :label="$t('quizes.tempoLimiteLabel')"
@@ -38,7 +38,7 @@
     </div>
 
     <BaseCard :title="$t('quizes.descricao')">
-      <p class="quiz-view__description">{{ quiz.descricao || $t('common.semDescricao') }}</p>
+      <p class="quiz-view__description wrap-anywhere whitespace-pre-line leading-relaxed text-text-muted">{{ quiz.descricao || $t('common.semDescricao') }}</p>
     </BaseCard>
   </PageContainer>
 </template>
@@ -53,7 +53,3 @@ const { quiz, quizId, getLevelText, formatDate } = useQuizView()
 
 const nivelVariant = computed(() => getNivelVariant(quiz.value.nivel_dificuldade))
 </script>
-
-<style scoped>
-@import '@/styles/views/quizes/quiz-view.css';
-</style>

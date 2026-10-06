@@ -1,9 +1,14 @@
 <template>
-  <div class="ui-tabs" :class="{ 'ui-tabs--embedded': embedded }">
+  <div class="ui-tabs flex min-w-0 flex-col" :class="embedded ? 'gap-0' : 'gap-4'">
     <!-- Barra de abas: rolagem horizontal contida aqui em telas estreitas -->
     <div
       ref="listRef"
-      class="ui-tabs__list"
+      class="ui-tabs__list flex gap-1 overflow-x-auto overscroll-x-contain bg-surface-muted scrollbar-thin"
+      :class="
+        embedded
+          ? 'rounded-none border-0 border-b border-solid border-border p-2 md:p-3'
+          : 'rounded-lg border border-solid border-border p-1'
+      "
       role="tablist"
       :aria-label="label || undefined"
       aria-orientation="horizontal"
@@ -15,15 +20,14 @@
         :key="tab.id"
         type="button"
         role="tab"
-        class="ui-tabs__tab"
-        :class="{ 'ui-tabs__tab--active': tab.id === active }"
+        :class="[tabBase, tab.id === active ? tabActive : tabIdle]"
         :aria-selected="tab.id === active ? 'true' : 'false'"
         :aria-controls="panelId(tab.id)"
         :tabindex="tab.id === active ? 0 : -1"
         :disabled="tab.disabled"
         @click="select(tab.id)"
       >
-        <BaseIcon v-if="tab.icon" :name="tab.icon" class="ui-tabs__icon" />
+        <BaseIcon v-if="tab.icon" :name="tab.icon" class="ui-tabs__icon size-em-lg" />
         <span class="ui-tabs__label">{{ tab.label }}</span>
       </button>
     </div>
@@ -33,7 +37,8 @@
       v-if="activeTab"
       :id="panelId(activeTab.id)"
       :key="activeTab.id"
-      class="ui-tabs__panel"
+      class="ui-tabs__panel min-w-0 focus-visible:rounded-md"
+      :class="embedded ? 'focus-visible:focus-ring-inset' : 'focus-visible:focus-ring'"
       role="tabpanel"
       :aria-labelledby="tabId(activeTab.id)"
       tabindex="0"
@@ -75,6 +80,16 @@ const props = withDefaults(
 )
 
 const active = defineModel<K>({ required: true })
+
+// Anel por dentro (focus-ring-inset): a lista tem overflow e cortaria o anel externo
+const tabBase =
+  'ui-tabs__tab inline-flex shrink-0 grow basis-auto items-center justify-center gap-2 min-h-control px-4 ' +
+  'rounded-md border border-solid text-sm font-semibold leading-inherit whitespace-nowrap cursor-pointer ' +
+  'transition-colors focus-visible:focus-ring-inset disabled:cursor-not-allowed disabled:opacity-disabled'
+// Aba ativa: fundo + borda + sombra + barra inferior (não depende só de cor)
+const tabActive = 'bg-surface border-border text-primary shadow-tab-active'
+const tabIdle =
+  'bg-transparent border-transparent text-text-muted enabled:hover:bg-surface-hover enabled:hover:text-text'
 
 const uid = useId()
 const tabId = (id: string) => `ui-tabs-${uid}-tab-${id}`
@@ -118,111 +133,3 @@ const onKeydown = (event: KeyboardEvent) => {
   focusTab(target.id)
 }
 </script>
-
-<style scoped>
-.ui-tabs {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
-.ui-tabs__list {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-muted);
-}
-
-.ui-tabs__tab {
-  display: inline-flex;
-  flex: 1 0 auto;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: var(--control-height-md);
-  padding-inline: var(--space-4);
-  border: var(--border-width) solid transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color var(--transition-base),
-    border-color var(--transition-base),
-    color var(--transition-base);
-}
-
-.ui-tabs__icon {
-  width: 1.25em;
-  height: 1.25em;
-}
-
-.ui-tabs__tab:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-}
-
-/* Anel por dentro: a lista tem overflow e cortaria o anel externo */
-.ui-tabs__tab:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: calc(var(--focus-ring-width) * -1);
-}
-
-.ui-tabs__tab:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* Aba ativa: fundo + borda + sombra + barra inferior (não depende só de cor) */
-.ui-tabs__tab--active,
-.ui-tabs__tab--active:hover:not(:disabled) {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  color: var(--color-primary);
-  box-shadow:
-    inset 0 calc(var(--focus-ring-width) * -1) 0 var(--color-primary),
-    var(--shadow-sm);
-}
-
-.ui-tabs__panel {
-  min-width: 0;
-}
-
-.ui-tabs__panel:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-ring-offset);
-  border-radius: var(--radius-md);
-}
-
-/* Variante dentro de card */
-.ui-tabs--embedded {
-  gap: 0;
-}
-
-.ui-tabs--embedded .ui-tabs__list {
-  padding: var(--space-2);
-  border: 0;
-  border-block-end: var(--border-width) solid var(--color-border);
-  border-radius: 0;
-}
-
-.ui-tabs--embedded .ui-tabs__panel:focus-visible {
-  outline-offset: calc(var(--focus-ring-width) * -1);
-}
-
-@media (min-width: 768px) {
-  .ui-tabs--embedded .ui-tabs__list {
-    padding: var(--space-3);
-  }
-}
-</style>

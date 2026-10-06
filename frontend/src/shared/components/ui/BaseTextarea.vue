@@ -11,7 +11,7 @@
     <textarea
       v-bind="controlAttrs"
       :id="fieldId"
-      class="ui-control ui-textarea"
+      :class="[controlClass, 'ui-textarea min-h-textarea resize-y', mono && 'font-mono']"
       :rows="rows"
       :maxlength="maxlength"
       :value="model ?? ''"
@@ -23,7 +23,11 @@
       @input="model = ($event.target as HTMLTextAreaElement).value"
       @blur="emit('blur', $event)"
     ></textarea>
-    <span v-if="maxlength && showCount" class="ui-textarea__count" aria-hidden="true">
+    <span
+      v-if="maxlength && showCount"
+      class="ui-textarea__count self-end text-xs text-text-muted"
+      aria-hidden="true"
+    >
       {{ (model ?? '').length }}/{{ maxlength }}
     </span>
   </BaseField>
@@ -31,6 +35,7 @@
 
 <script setup lang="ts">
 import BaseField from './BaseField.vue'
+import { controlClass } from './control'
 import { useField } from './useField'
 
 defineOptions({ inheritAttrs: false })
@@ -47,6 +52,8 @@ const props = withDefaults(
     maxlength?: number
     /** Mostra contador "n/max" (requer maxlength) */
     showCount?: boolean
+    /** Fonte monoespaçada (ex.: JSON) */
+    mono?: boolean
     id?: string
   }>(),
   {
@@ -59,6 +66,7 @@ const props = withDefaults(
     rows: 4,
     maxlength: undefined,
     showCount: false,
+    mono: false,
     id: undefined,
   },
 )
@@ -68,18 +76,3 @@ const emit = defineEmits<{ blur: [event: FocusEvent] }>()
 
 const { fieldId, rootAttrs, controlAttrs, describedBy } = useField(props)
 </script>
-
-<style scoped>
-@import './control.css';
-
-.ui-textarea {
-  resize: vertical;
-  min-height: calc(var(--control-height-md) * 2);
-}
-
-.ui-textarea__count {
-  align-self: flex-end;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-</style>

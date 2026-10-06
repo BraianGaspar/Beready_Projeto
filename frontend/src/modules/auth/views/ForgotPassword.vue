@@ -4,7 +4,7 @@
     :subtitle="$t('forgotPassword.subtitle')"
     icon="key"
   >
-    <form class="forgot-password__form" @submit.prevent="handleSubmit">
+    <form class="forgot-password__form flex flex-col gap-5" @submit.prevent="handleSubmit">
       <BaseInput
         v-model="form.email"
         type="email"
@@ -34,7 +34,3 @@ import { useForgotPassword } from './useForgotPassword'
 
 const { form, loading, handleSubmit } = useForgotPassword()
 </script>
-
-<style scoped>
-@import '@/styles/views/users/forgot-password.css';
-</style>

@@ -1,35 +1,51 @@
 <template>
-  <div class="ui-switch" :class="{ 'ui-switch--disabled': disabled }" v-bind="rootAttrs">
-    <div class="ui-switch__row">
-      <label :for="fieldId" class="ui-switch__label">
+  <div
+    class="ui-switch flex flex-col gap-1"
+    :class="{ 'opacity-disabled': disabled }"
+    v-bind="rootAttrs"
+  >
+    <div class="ui-switch__row flex items-center justify-between gap-4">
+      <label
+        :for="fieldId"
+        class="ui-switch__label text-sm font-semibold text-text"
+        :class="cursorClass"
+      >
         <slot>{{ label }}</slot>
       </label>
-      <span class="ui-switch__control">
+      <span class="ui-switch__control relative inline-flex shrink-0">
+        <!-- input invisível por cima da trilha é o `peer` (trilha = irmão; thumb = descendente) -->
         <input
           v-bind="controlAttrs"
           :id="fieldId"
           v-model="model"
           type="checkbox"
           role="switch"
-          class="ui-switch__input"
+          class="ui-switch__input peer absolute inset-0 z-raised m-0 size-full opacity-0"
+          :class="cursorClass"
           :aria-checked="model"
           :disabled="disabled"
           :aria-describedby="describedBy"
         />
-        <span class="ui-switch__track" aria-hidden="true">
-          <span class="ui-switch__thumb">
-            <BaseIcon v-if="model" name="check" class="ui-switch__icon" :stroke-width="3" />
+        <span
+          class="ui-switch__track inline-flex h-6 w-11 items-center rounded-full bg-border-strong p-0.5 transition-colors peer-checked:bg-primary peer-focus-visible:focus-ring"
+          aria-hidden="true"
+        >
+          <span
+            class="ui-switch__thumb inline-flex size-5 items-center justify-center rounded-full bg-surface text-primary shadow-sm transition-transform peer-checked-deep:translate-x-5 rtl:peer-checked-deep:-translate-x-5"
+          >
+            <BaseIcon v-if="model" name="check" class="ui-switch__icon size-3" :stroke-width="3" />
           </span>
         </span>
       </span>
     </div>
-    <p v-if="hint" :id="`${fieldId}-hint`" class="ui-switch__hint">{{ hint }}</p>
+    <p v-if="hint" :id="`${fieldId}-hint`" class="ui-switch__hint text-xs text-text-muted">{{ hint }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
 // Interruptor liga/desliga: checkbox nativo com role="switch" (Espaço alterna).
 // O estado também é indicado pelo ícone de check no "thumb" (não só por cor).
+import { computed } from 'vue'
 import BaseIcon from './BaseIcon.vue'
 import { useField } from './useField'
 
@@ -49,103 +65,6 @@ defineSlots<{ default?: () => unknown }>()
 
 const model = defineModel<boolean>({ default: false })
 const { fieldId, rootAttrs, controlAttrs, describedBy } = useField(props)
+
+const cursorClass = computed(() => (props.disabled ? 'cursor-not-allowed' : 'cursor-pointer'))
 </script>
-
-<style scoped>
-.ui-switch {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.ui-switch__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.ui-switch__label {
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-}
-
-.ui-switch__control {
-  position: relative;
-  display: inline-flex;
-  flex-shrink: 0;
-}
-
-.ui-switch__input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 1;
-}
-
-.ui-switch__track {
-  display: inline-flex;
-  align-items: center;
-  width: 2.75rem;
-  height: 1.5rem;
-  padding: 2px;
-  border-radius: var(--radius-full);
-  background: var(--color-border-strong);
-  transition: background-color var(--transition-base);
-}
-
-.ui-switch__thumb {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-base);
-}
-
-.ui-switch__icon {
-  width: 0.75rem;
-  height: 0.75rem;
-}
-
-.ui-switch__input:checked + .ui-switch__track {
-  background: var(--color-primary);
-}
-
-.ui-switch__input:checked + .ui-switch__track .ui-switch__thumb {
-  transform: translateX(1.25rem);
-}
-
-[dir='rtl'] .ui-switch__input:checked + .ui-switch__track .ui-switch__thumb {
-  transform: translateX(-1.25rem);
-}
-
-.ui-switch__input:focus-visible + .ui-switch__track {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-ring-offset);
-}
-
-.ui-switch__hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
-.ui-switch--disabled {
-  opacity: 0.55;
-}
-
-.ui-switch--disabled .ui-switch__input,
-.ui-switch--disabled .ui-switch__label {
-  cursor: not-allowed;
-}
-</style>
