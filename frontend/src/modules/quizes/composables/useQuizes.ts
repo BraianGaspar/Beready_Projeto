@@ -6,6 +6,20 @@ import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
 import { usePlan } from '@/shared/composables/usePlan'
 import { usePermissionStore } from '@/stores/permissionStore'
+import { getApiErrors } from './useQuestoesForm'
+
+/**
+ * Erro de requisição de quiz com os erros de validação (422) da API, para a tela marcar os campos.
+ */
+export class QuizRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly errors: Record<string, Record<string, string>> = {},
+  ) {
+    super(message)
+    this.name = 'QuizRequestError'
+  }
+}
 
 /**
  * CRUD de quizes do usuário logado. Exibe os alertas de sucesso/erro;
@@ -90,7 +104,7 @@ export function useQuizes() {
     } catch (err: unknown) {
       const errorMsg = errorMessage(err, t('quizes.errorCreate'))
       error(errorMsg)
-      throw new Error(errorMsg)
+      throw new QuizRequestError(errorMsg, getApiErrors(err))
     } finally {
       loading.value = false
     }
@@ -109,7 +123,7 @@ export function useQuizes() {
     } catch (err: unknown) {
       const errorMsg = errorMessage(err, t('quizes.errorUpdate'))
       error(errorMsg)
-      throw new Error(errorMsg)
+      throw new QuizRequestError(errorMsg, getApiErrors(err))
     } finally {
       loading.value = false
     }

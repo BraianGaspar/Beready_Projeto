@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\FlashcardRepositoryInterface;
+use Cake\Datasource\ConnectionManager;
+use Cake\I18n\DateTime;
+use Cake\ORM\TableRegistry;
 
 class FlashcardService
 {
@@ -66,5 +69,58 @@ class FlashcardService
     public function deleteFlashcard(int $id): bool
     {
         return $this->flashcardRepository->delete($id);
+    }
+
+    /**
+     * Flashcards do usuário com revisão vencida e a contagem total (a lista pode ser limitada).
+     *
+     * @return array{total: int, flashcards: array}
+     */
+    public function getDevidos(int $usuarioId, ?int $limite = null): array
+    {
+        $agora = DateTime::now();
+
+        return [
+            'total' => $this->flashcardRepository->countDevidos($usuarioId, $agora),
+            'flashcards' => $this->flashcardRepository->findDevidos($usuarioId, $agora, $limite),
+        ];
+    }
+
+    /**
+     * Grava a avaliação do estudo ('errei' | 'bom' | 'facil'): reagenda o card (SM-2), registra a
+     * resposta (errei = incorreta) e incrementa os flashcards concluídos do usuário.
+     * O chamador deve validar o dono antes (getFlashcardById).
+     */
+    public function revisar(int $flashcardId, int $usuarioId, string $nota): array
+    {
+        return ConnectionManager::get('default')->transactional(
+            fn () => $this->registrarRevisao($flashcardId, $usuarioId, $nota)
+        );
+    }
+
+    private function registrarRevisao(int $flashcardId, int $usuarioId, string $nota): array
+    {
+        $flashcard = $this->getFlashcardById($flashcardId);
+        $agendamento = (new RepeticaoEspacadaService())->calcular($flashcard, $nota, DateTime::now());
+
+        $atualizado = $this->flashcardRepository->salvarAgendamento($flashcardId, [
+            'repeticoes' => $agendamento['repeticoes'],
+            'intervalo_dias' => $agendamento['intervalo_dias'],
+            'fator_ease' => number_format($agendamento['fator_ease'], 2, '.', ''),
+            'ultima_revisao' => DateTime::createFromInterface($agendamento['ultima_revisao']),
+            'proxima_revisao' => DateTime::createFromInterface($agendamento['proxima_revisao']),
+        ]);
+
+        $respostas = TableRegistry::getTableLocator()->get('RespostasUsuario');
+        $respostas->saveOrFail($respostas->newEntity([
+            'usuario_id' => $usuarioId,
+            'tipo' => 'flashcard',
+            'referencia_id' => $flashcardId,
+            'correto' => $nota !== 'errei',
+        ]));
+
+        (new ProgressoService())->incrementarFlashcards($usuarioId, 1);
+
+        return $atualizado;
     }
 }

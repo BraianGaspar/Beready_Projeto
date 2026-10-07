@@ -1,97 +1,75 @@
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizes } from '../composables/useQuizes'
+import { useGerarQuiz } from '../composables/useGerarQuiz'
 import type { Quiz } from '@/core/types'
 import { useI18n } from 'vue-i18n'
 import { usePermissionStore } from '@/stores/permissionStore'
-import { useAuthStore } from '@/stores/auth'
 import { useAlert } from '@/shared/composables/useAlert'
-import { getNivelLabelKey, normalizeNivel, type NivelDificuldade } from '@/shared/utils/nivelDificuldade'
-
-interface FormData {
-  titulo: string
-  descricao: string
-  nivel_dificuldade: NivelDificuldade
-  tempo_limite: number | undefined
-  total_questoes: number
-  publico: boolean
-  tipo_criacao: string
-}
+import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
 
 export function useQuizesView() {
   const router = useRouter()
   const { t } = useI18n()
   const permissionStore = usePermissionStore()
-  const authStore = useAuthStore()
   const { error } = useAlert()
-  const { quizes, loading, loadQuizes, createQuiz, updateQuiz, deleteQuiz, canCreateMore } = useQuizes()
+  const { quizes, loading, loadQuizes, deleteQuiz, canCreateMore } = useQuizes()
+  const gerador = useGerarQuiz()
 
-  const showModal = ref(false)
   const showDeleteModal = ref(false)
-  const isEditing = ref(false)
-  const editingId = ref<number | null>(null)
+  const showGerarModal = ref(false)
   const deletingQuiz = ref<Quiz | null>(null)
-  const submitting = ref(false)
   const deleting = ref(false)
-
-  const form = reactive<FormData>({
-    titulo: '',
-    descricao: '',
-    nivel_dificuldade: 'iniciante',
-    tempo_limite: undefined,
-    total_questoes: 0,
-    publico: false,
-    tipo_criacao: 'manual',
-  })
 
   // Permissões
   const canView = computed(() => permissionStore.canView('quizes'))
   const canCreate = computed(() => permissionStore.canCreate('quizes'))
   const canEdit = computed(() => permissionStore.canEdit('quizes'))
   const canDelete = computed(() => permissionStore.canDelete('quizes'))
-  
+
   const canCreateQuiz = computed(() => canCreate.value && canCreateMore())
   const canCreateMoreQuizes = computed(() => canCreateMore())
 
   const getDifficultyText = (level: string) => t(getNivelLabelKey(level))
 
-  const resetForm = () => {
-    form.titulo = ''
-    form.descricao = ''
-    form.nivel_dificuldade = 'iniciante'
-    form.tempo_limite = undefined
-    form.publico = false
-    editingId.value = null
-    isEditing.value = false
-  }
-
-  const openCreateModal = () => {
+  // Criar = permissão + limite do plano (vale também para o quiz gerado dos flashcards)
+  const ensureCanCreate = (): boolean => {
     if (!canCreate.value) {
       error(t('permissions.createDenied', { recurso: t('common.quizes') }))
-      return
+      return false
     }
     if (!canCreateMore()) {
       error(t('quizes.limitReached'))
-      return
+      return false
     }
-    resetForm()
-    isEditing.value = false
-    showModal.value = true
+    return true
   }
 
-  const openEditModal = (quiz: Quiz) => {
+  // Criação e edição usam o editor completo (dados do quiz + questões)
+  const openCreate = () => {
+    if (ensureCanCreate()) router.push('/quizes/add')
+  }
+
+  const openEdit = (quiz: Quiz) => {
     if (!canEdit.value) {
       error(t('permissions.editDenied', { recurso: t('common.quizes') }))
       return
     }
-    form.titulo = quiz.titulo
-    form.descricao = quiz.descricao || ''
-    form.nivel_dificuldade = normalizeNivel(quiz.nivel_dificuldade)
-    form.tempo_limite = quiz.tempo_limite ?? undefined
-    form.publico = quiz.publico || false
-    editingId.value = quiz.id
-    isEditing.value = true
-    showModal.value = true
+    router.push(`/quizes/edit/${quiz.id}`)
+  }
+
+  const openGerarModal = () => {
+    if (!ensureCanCreate()) return
+    gerador.reset()
+    gerador.carregarTags()
+    showGerarModal.value = true
+  }
+
+  const submitGerar = async () => {
+    const quiz = await gerador.gerar()
+    if (!quiz) return
+    showGerarModal.value = false
+    router.push(`/quizes/${quiz.id}/play`)
   }
 
   const viewQuiz = (id: number) => {
@@ -134,44 +112,6 @@ export function useQuizesView() {
     }
   }
 
-  const submitForm = async () => {
-    const user = authStore.user
-    if (!user) return
-
-    submitting.value = true
-
-    try {
-      const data = {
-        usuario_id: user.id,
-        titulo: form.titulo,
-        descricao: form.descricao,
-        nivel_dificuldade: form.nivel_dificuldade,
-        tempo_limite: form.tempo_limite,
-        total_questoes: 0,
-        publico: form.publico,
-        tipo_criacao: 'manual',
-      }
-
-      if (isEditing.value && editingId.value) {
-        await updateQuiz(editingId.value, data)
-      } else {
-        await createQuiz(data)
-      }
-
-      closeModal()
-      await loadQuizes()
-    } catch {
-      // Alerta de erro já exibido por useQuizes
-    } finally {
-      submitting.value = false
-    }
-  }
-
-  const closeModal = () => {
-    showModal.value = false
-    resetForm()
-  }
-
   onMounted(async () => {
     await permissionStore.loadPermissions()
     await loadQuizes()
@@ -180,21 +120,19 @@ export function useQuizesView() {
   return {
     quizes,
     loading,
-    showModal,
     showDeleteModal,
-    isEditing,
+    showGerarModal,
     deletingQuiz,
-    submitting,
     deleting,
-    form,
-    openCreateModal,
-    openEditModal,
+    gerador,
+    openCreate,
+    openEdit,
+    openGerarModal,
+    submitGerar,
     viewQuiz,
     playQuiz,
     confirmDelete,
     handleDelete,
-    submitForm,
-    closeModal,
     getDifficultyText,
     canView,
     canEdit,

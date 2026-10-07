@@ -17,6 +17,7 @@ export function useQuizView() {
   const quizId = ref<number | null>(null)
   const quiz = ref({
     id: null,
+    usuario_id: null as number | null,
     titulo: '',
     descricao: '',
     nivel_dificuldade: '',

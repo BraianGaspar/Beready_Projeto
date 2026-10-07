@@ -110,6 +110,24 @@ class ProgressoService
         return $this->find($usuarioId)->toArray();
     }
 
+    public function incrementarQuizes(int $usuarioId, int $quantidade): array
+    {
+        if ($quantidade <= 0) {
+            throw new \InvalidArgumentException('Dados inválidos para incrementar progresso');
+        }
+
+        $this->ensureExists($usuarioId);
+
+        $this->table->updateAll(
+            ['quizes_concluidos = COALESCE(quizes_concluidos, 0) + ' . $quantidade],
+            ['usuario_id' => $usuarioId]
+        );
+
+        $this->atualizarSequencia($usuarioId);
+
+        return $this->find($usuarioId)->toArray();
+    }
+
     public function incrementarTempo(int $usuarioId, int $segundos): array
     {
         if ($segundos <= 0) {

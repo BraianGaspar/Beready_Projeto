@@ -29,6 +29,15 @@
 
     <!-- Estatísticas -->
     <div class="dashboard__stats grid grid-cols-fill-56 gap-4">
+      <!-- Repetição espaçada: acesso direto à fila do dia -->
+      <StatCard
+        :label="$t('revisao.paraRevisarHojeLabel')"
+        :value="paraRevisar"
+        icon="refresh"
+        :variant="paraRevisar > 0 ? 'warning' : 'success'"
+        :hint="paraRevisar > 0 ? $t('revisao.revisarAgora') : $t('revisao.emDia')"
+        :to="paraRevisar > 0 ? '/flashcards/revisao' : '/flashcards'"
+      />
       <StatCard
         :label="$t('dashboard.flashcardsCount')"
         :value="stats.flashcardsCount || 0"
@@ -97,9 +106,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useRevisaoPendentes } from '@/modules/flashcards/composables/useRevisao'
 import {
   BaseBadge,
   BaseButton,
@@ -116,6 +126,9 @@ import { useDashboard } from './DashboardPage'
 const router = useRouter()
 const { t } = useI18n()
 const { userName, stats, motivationalMessage, isAdmin } = useDashboard()
+const { total: paraRevisar, carregar: carregarRevisao } = useRevisaoPendentes()
+
+onMounted(carregarRevisao)
 
 // FUNÇÃO PARA NAVEGAR PARA ADMIN COM TAB ESPECÍFICA
 const goToAdmin = (tab: string) => {

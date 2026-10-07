@@ -7,9 +7,9 @@
       back-to="/quizes"
     />
 
-    <BaseCard>
-      <!-- novalidate: a validação do título é feita em useQuizAdd (mensagem traduzida no campo) -->
-      <form class="quiz-form__form flex flex-col gap-6" novalidate @submit.prevent="handleSubmit">
+    <!-- novalidate: a validação é feita em useQuizAdd (mensagens traduzidas nos campos) -->
+    <form class="quiz-form__form flex flex-col gap-6" novalidate @submit.prevent="handleSubmit">
+      <BaseCard>
         <div class="quiz-form__grid grid grid-cols-fit-56 gap-5">
           <BaseInput
             v-model="form.titulo"
@@ -29,16 +29,7 @@
             class="quiz-form__full col-span-full"
             :label="$t('quizes.descricao')"
             :placeholder="$t('quizes.descricaoPlaceholder')"
-            :rows="4"
-          />
-          <BaseInput
-            :model-value="form.total_questoes"
-            type="number"
-            inputmode="numeric"
-            min="0"
-            :label="$t('quizes.totalQuestoes')"
-            :placeholder="$t('quizes.totalQuestoesPlaceholder')"
-            @update:model-value="form.total_questoes = Number($event) || 0"
+            :rows="3"
           />
           <BaseInput
             :model-value="form.tempo_limite ?? ''"
@@ -51,15 +42,21 @@
           />
           <BaseCheckbox v-model="form.publico" class="quiz-form__full col-span-full" :label="$t('quizes.publico')" />
         </div>
+      </BaseCard>
 
-        <div class="quiz-form__actions flex flex-wrap justify-end gap-3 border-0 border-t border-solid border-border pt-5 *:shrink *:grow *:basis-full sm:*:shrink-0 sm:*:grow-0 sm:*:basis-auto">
-          <BaseButton variant="secondary" to="/quizes">{{ $t('common.cancelar') }}</BaseButton>
-          <BaseButton type="submit" icon="check" :loading="loading">
-            {{ loading ? $t('common.salvando') : $t('quizes.createButton') }}
-          </BaseButton>
-        </div>
-      </form>
-    </BaseCard>
+      <BaseCard>
+        <QuizQuestoesEditor v-model="questoes" :errors="questoesErrors" />
+      </BaseCard>
+
+      <BaseAlert v-if="hasQuestaoErrors" variant="danger" :message="$t('quizEditor.erroRevisar')" />
+
+      <div class="quiz-form__actions flex flex-wrap justify-end gap-3 *:shrink *:grow *:basis-full sm:*:shrink-0 sm:*:grow-0 sm:*:basis-auto">
+        <BaseButton variant="secondary" to="/quizes">{{ $t('common.cancelar') }}</BaseButton>
+        <BaseButton type="submit" icon="check" :loading="loading">
+          {{ loading ? $t('common.salvando') : $t('quizes.createButton') }}
+        </BaseButton>
+      </div>
+    </form>
   </PageContainer>
 </template>
 
@@ -67,6 +64,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  BaseAlert,
   BaseButton,
   BaseCard,
   BaseCheckbox,
@@ -78,10 +76,13 @@ import {
   type SelectOption,
 } from '@/shared/components/ui'
 import { normalizeNivel } from '@/shared/utils/nivelDificuldade'
+import QuizQuestoesEditor from '../components/QuizQuestoesEditor.vue'
 import { useQuizAdd } from './QuizAdd'
 
 const { t } = useI18n()
-const { form, errors, loading, handleSubmit } = useQuizAdd()
+const { form, errors, questoes, questoesErrors, loading, handleSubmit } = useQuizAdd()
+
+const hasQuestaoErrors = computed(() => Object.keys(questoesErrors.value).length > 0)
 
 const nivelOptions = computed<SelectOption[]>(() => [
   { value: 'iniciante', label: t('common.iniciante') },

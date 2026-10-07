@@ -23,6 +23,12 @@ class QuizesTable extends Table
             'className' => 'Users'
         ]);
 
+        $this->hasMany('QuizQuestoes', [
+            'foreignKey' => 'quiz_id',
+            'sort' => ['QuizQuestoes.ordem' => 'ASC', 'QuizQuestoes.id' => 'ASC'],
+            'dependent' => true,
+        ]);
+
         $this->addBehavior('Timestamp', [
             'events' => [
                 'Model.beforeSave' => [

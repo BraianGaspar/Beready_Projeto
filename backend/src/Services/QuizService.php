@@ -38,8 +38,10 @@ class QuizService
         $data['usuario_id'] = $usuarioId;
         $data['tipo_criacao'] = $data['tipo_criacao'] ?? 'manual';
         $data['nivel_dificuldade'] = $data['nivel_dificuldade'] ?? 'iniciante';
-        $data['total_questoes'] = (int)($data['total_questoes'] ?? 0);
+        // total_questoes é a contagem das questões, mantida pelo QuizQuestaoService
+        $data['total_questoes'] = 0;
         $data['publico'] = !empty($data['publico']);
+        unset($data['questoes']);
 
         return $this->quizRepository->create($data);
     }
@@ -49,7 +51,7 @@ class QuizService
      */
     public function updateQuiz(int $id, array $data): array
     {
-        unset($data['usuario_id']);
+        unset($data['usuario_id'], $data['total_questoes'], $data['questoes']);
 
         return $this->quizRepository->update($id, $data);
     }

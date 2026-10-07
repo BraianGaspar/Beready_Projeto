@@ -24,11 +24,16 @@
         <p class="fcard-view__text wrap-anywhere whitespace-pre-line text-lg leading-relaxed text-text">{{ flashcard.verso }}</p>
       </section>
 
-      <template v-if="flashcard.criado_em" #footer>
-        <dl class="fcard-view__meta flex flex-wrap gap-x-2 gap-y-1 text-sm text-text-muted">
-          <dt class="font-semibold after:content-colon">{{ $t('flashcards.criadoEm') }}</dt>
-          <dd>{{ formatDate(flashcard.criado_em) }}</dd>
-        </dl>
+      <template #footer>
+        <div class="fcard-view__footer flex w-full flex-wrap items-center justify-between gap-3">
+          <dl v-if="flashcard.criado_em" class="fcard-view__meta flex flex-wrap gap-x-2 gap-y-1 text-sm text-text-muted">
+            <dt class="font-semibold after:content-colon">{{ $t('flashcards.criadoEm') }}</dt>
+            <dd>{{ formatDate(flashcard.criado_em) }}</dd>
+          </dl>
+          <BaseBadge :variant="proxima.devido ? 'warning' : 'neutral'" icon="clock" wrap class="fcard-view__next">
+            {{ proxima.texto }}
+          </BaseBadge>
+        </div>
       </template>
     </BaseCard>
 
@@ -58,6 +63,7 @@ import {
   PageHeader,
 } from '@/shared/components/ui'
 import { getNivelVariant } from '@/shared/utils/nivelDificuldade'
+import { useProximaRevisao } from '../composables/useRevisao'
 import { useFlashcardView } from './FlashcardView'
 
 const {
@@ -73,5 +79,8 @@ const {
   formatDate,
 } = useFlashcardView()
 
+const { proximaRevisao } = useProximaRevisao()
+
 const nivelVariant = computed(() => getNivelVariant(flashcard.value?.nivel_dificuldade))
+const proxima = computed(() => proximaRevisao(flashcard.value?.proxima_revisao))
 </script>

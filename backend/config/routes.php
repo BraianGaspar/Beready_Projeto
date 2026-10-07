@@ -138,6 +138,14 @@ $routes->connect('/planos/cancelar', [
 ])->setMethods(['POST']);
 
 /**
+ * ROTA: PLANOS - PORTAL DO CLIENTE (Stripe Billing Portal)
+ */
+$routes->connect('/planos/portal', [
+    'controller' => 'Planos',
+    'action' => 'portal'
+])->setMethods(['POST']);
+
+/**
  * STRIPE ROUTES
  */
 $routes->connect('/payments/webhook', [
@@ -307,6 +315,17 @@ $routes->connect('/flashcards/delete/{id}', [
     'action' => 'delete'
 ])->setPatterns(['id' => '\d+'])->setMethods(['DELETE']);
 
+// REPETIÇÃO ESPAÇADA: devidos para revisar e registro da avaliação
+$routes->connect('/flashcards/revisao', [
+    'controller' => 'Flashcards',
+    'action' => 'devidos'
+])->setMethods(['GET']);
+
+$routes->connect('/flashcards/{id}/revisao', [
+    'controller' => 'Flashcards',
+    'action' => 'revisao'
+])->setPatterns(['id' => '\d+'])->setPass(['id'])->setMethods(['POST']);
+
 /**
  * QUIZES (REST) - COMPLETO
  */
@@ -351,6 +370,49 @@ $routes->connect('/quizes/delete/{id}', [
     'controller' => 'Quizes',
     'action' => 'delete'
 ])->setPatterns(['id' => '\d+'])->setMethods(['DELETE']);
+
+// Gerar quiz a partir dos flashcards do usuário (cria um quiz: sujeito ao limite do plano)
+$routes->connect('/quizes/gerar', [
+    'controller' => 'Quizes',
+    'action' => 'gerar'
+])->setMethods(['POST']);
+
+// QUESTÕES DO QUIZ (dono)
+$routes->connect('/quizes/{id}/questoes', [
+    'controller' => 'Quizes',
+    'action' => 'questoes'
+])->setPatterns(['id' => '\d+'])->setPass(['id'])->setMethods(['GET']);
+
+$routes->connect('/quizes/{id}/questoes', [
+    'controller' => 'Quizes',
+    'action' => 'addQuestao'
+])->setPatterns(['id' => '\d+'])->setPass(['id'])->setMethods(['POST']);
+
+$routes->connect('/quizes/{id}/questoes', [
+    'controller' => 'Quizes',
+    'action' => 'substituirQuestoes'
+])->setPatterns(['id' => '\d+'])->setPass(['id'])->setMethods(['PUT']);
+
+$routes->connect('/quizes/{id}/questoes/{questaoId}', [
+    'controller' => 'Quizes',
+    'action' => 'editQuestao'
+])->setPatterns(['id' => '\d+', 'questaoId' => '\d+'])->setPass(['id', 'questaoId'])->setMethods(['PUT']);
+
+$routes->connect('/quizes/{id}/questoes/{questaoId}', [
+    'controller' => 'Quizes',
+    'action' => 'deleteQuestao'
+])->setPatterns(['id' => '\d+', 'questaoId' => '\d+'])->setPass(['id', 'questaoId'])->setMethods(['DELETE']);
+
+// JOGAR (dono ou quiz público): correção sempre no servidor
+$routes->connect('/quizes/{id}/questoes/{questaoId}/verificar', [
+    'controller' => 'Quizes',
+    'action' => 'verificar'
+])->setPatterns(['id' => '\d+', 'questaoId' => '\d+'])->setPass(['id', 'questaoId'])->setMethods(['POST']);
+
+$routes->connect('/quizes/{id}/finalizar', [
+    'controller' => 'Quizes',
+    'action' => 'finalizar'
+])->setPatterns(['id' => '\d+'])->setPass(['id'])->setMethods(['POST']);
 
 /**
  * TAGS (REST) - COMPLETO

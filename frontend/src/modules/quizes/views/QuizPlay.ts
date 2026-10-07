@@ -1,22 +1,26 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { respostaService } from '@/modules/progresso/services/respostaService'
 import { progressoService } from '@/modules/progresso/services/progressoService'
 import { quizService } from '../services/quizService'
 import { getApiErrorMessage } from '@/core/services/api'
 import { useAlert } from '@/shared/composables/useAlert'
 import { useAuthStore } from '@/stores/auth'
-import type { Quiz } from '@/core/types'
+import { usePermissionStore } from '@/stores/permissionStore'
+import type { Quiz, QuizCorrecao, QuizQuestao, QuizRespostaQuestao, QuizResultado } from '@/core/types'
+
+export interface QuestaoRevisada {
+  questao: QuizQuestao
+  correcao: QuizCorrecao
+  suaResposta: string
+  respostaCorreta: string
+}
 
 /**
- * Jogo de quiz com os dados reais do backend.
- *
- * A tabela `quizes` não possui questões/alternativas: cada quiz tem apenas
- * `titulo` e `descricao`. Por isso cada quiz do usuário vira uma pergunta
- * (titulo) com a resposta (descricao); o usuário revela a resposta e marca se
- * acertou. A sessão começa pelo quiz escolhido e segue pelos demais quizzes do
- * usuário. Cada resposta é registrada em POST /respostas com o id real do quiz.
+ * Jogo de quiz com as questões reais, uma por vez. O front não conhece o gabarito:
+ * cada resposta é corrigida no servidor (POST .../verificar, sem gravar) para o feedback
+ * imediato, e ao final POST /quizes/{id}/finalizar recalcula tudo, grava as respostas e
+ * soma o quiz concluído no progresso.
  */
 export function useQuizPlay() {
   const route = useRoute()
@@ -24,44 +28,56 @@ export function useQuizPlay() {
   const { t } = useI18n()
   const { error } = useAlert()
   const authStore = useAuthStore()
+  const permissionStore = usePermissionStore()
 
-  const quizes = ref<Quiz[]>([])
-  const currentIndex = ref(0)
-  const respostaVisivel = ref(false)
-  const acertos = ref(0)
+  const quiz = ref<Quiz | null>(null)
   const loading = ref(true)
+  const currentIndex = ref(0)
+  const alternativaSelecionada = ref<number | null>(null)
+  const respostaTexto = ref('')
+  const correcaoAtual = ref<QuizCorrecao | null>(null)
+  const verificando = ref(false)
+  const finalizando = ref(false)
+  const respostas = ref<QuizRespostaQuestao[]>([])
+  const resultado = ref<QuizResultado | null>(null)
   const sessionStartTime = ref(Date.now())
 
-  const currentQuiz = computed<Quiz | null>(() => quizes.value[currentIndex.value] ?? null)
-  const total = computed(() => quizes.value.length)
-  const isFinished = computed(() => total.value > 0 && currentIndex.value >= total.value)
+  const questoes = computed<QuizQuestao[]>(() => quiz.value?.questoes ?? [])
+  const total = computed(() => questoes.value.length)
+  const questaoAtual = computed<QuizQuestao | null>(() => questoes.value[currentIndex.value] ?? null)
+  const isLast = computed(() => currentIndex.value >= total.value - 1)
+  const isFinished = computed(() => resultado.value !== null)
 
-  const loadQuizes = async () => {
+  // Quiz sem questões: o dono (com permissão de editar) recebe o atalho para o editor
+  const canAddQuestoes = computed(
+    () => !!quiz.value && quiz.value.usuario_id === authStore.user?.id && permissionStore.canEdit('quizes'),
+  )
+
+  const podeResponder = computed(() => {
+    if (!questaoAtual.value || correcaoAtual.value || verificando.value) return false
+    return questaoAtual.value.tipo === 'completar'
+      ? respostaTexto.value.trim() !== ''
+      : alternativaSelecionada.value !== null
+  })
+
+  const focar = async (id: string) => {
+    await nextTick()
+    document.getElementById(id)?.focus()
+  }
+
+  const loadQuiz = async () => {
     const quizId = Number(route.params.id)
     loading.value = true
     try {
-      const response = await quizService.getAll()
-      const lista = response.data.data || []
-      const inicio = lista.findIndex((q) => q.id === quizId)
-
-      if (inicio === -1) {
-        error(t('quizes.errorLoad'))
-        router.push('/quizes')
-        return
-      }
-
-      // Começa pelo quiz escolhido e segue pelos demais
-      quizes.value = [...lista.slice(inicio), ...lista.slice(0, inicio)]
+      await permissionStore.loadPermissions()
+      const response = await quizService.getById(quizId)
+      quiz.value = response.data.data
     } catch (err) {
       error(getApiErrorMessage(err) || t('quizes.errorLoad'))
       router.push('/quizes')
     } finally {
       loading.value = false
     }
-  }
-
-  const mostrarResposta = () => {
-    respostaVisivel.value = true
   }
 
   const registrarTempo = async () => {
@@ -76,37 +92,94 @@ export function useQuizPlay() {
     }
   }
 
-  const responder = async (correto: boolean) => {
-    const quiz = currentQuiz.value
-    const usuarioId = authStore.user?.id
-    if (!quiz || !usuarioId) return
+  const responder = async () => {
+    const questao = questaoAtual.value
+    if (!quiz.value || !questao || !podeResponder.value) return
 
-    if (correto) acertos.value++
+    const resposta: Omit<QuizRespostaQuestao, 'questao_id'> =
+      questao.tipo === 'completar'
+        ? { resposta: respostaTexto.value.trim() }
+        : { alternativa_id: alternativaSelecionada.value ?? undefined }
 
-    respostaService
-      .registrarResposta({
-        usuario_id: usuarioId,
-        tipo: 'quiz',
-        referencia_id: quiz.id,
-        correto,
-      })
-      .catch(() => {
-        // Best-effort: não interrompe o jogo
-      })
-
-    respostaVisivel.value = false
-    currentIndex.value++
-
-    if (isFinished.value) {
-      await registrarTempo()
+    verificando.value = true
+    try {
+      const response = await quizService.verificar(quiz.value.id, questao.id, resposta)
+      correcaoAtual.value = response.data.data
+      respostas.value.push({ questao_id: questao.id, ...resposta })
+      // O feedback é anunciado pelo alerta; o foco vai para "Próxima" (Enter continua)
+      focar('quiz-play-next')
+    } catch (err) {
+      error(getApiErrorMessage(err) || t('quizPlay.errorCheck'))
+    } finally {
+      verificando.value = false
     }
   }
 
+  const finalizar = async () => {
+    if (!quiz.value) return
+
+    finalizando.value = true
+    try {
+      const response = await quizService.finalizar(quiz.value.id, respostas.value)
+      resultado.value = response.data.data
+      await registrarTempo()
+      focar('quiz-play-result')
+    } catch (err) {
+      error(getApiErrorMessage(err) || t('quizPlay.errorFinish'))
+    } finally {
+      finalizando.value = false
+    }
+  }
+
+  const proxima = async () => {
+    if (!correcaoAtual.value) return
+
+    if (isLast.value) {
+      await finalizar()
+      return
+    }
+
+    currentIndex.value++
+    alternativaSelecionada.value = null
+    respostaTexto.value = ''
+    correcaoAtual.value = null
+    focar('quiz-play-question')
+  }
+
+  const textoAlternativa = (questao: QuizQuestao, id: number | null) =>
+    questao.alternativas.find((alternativa) => alternativa.id === id)?.texto ?? ''
+
+  // Revisão das erradas no resultado final
+  const erradas = computed<QuestaoRevisada[]>(() => {
+    if (!resultado.value) return []
+
+    return resultado.value.correcao
+      .filter((correcao) => !correcao.correta)
+      .map((correcao) => {
+        const questao = questoes.value.find((q) => q.id === correcao.questao_id)
+        if (!questao) return null
+
+        const suaResposta =
+          questao.tipo === 'completar' ? correcao.resposta ?? '' : textoAlternativa(questao, correcao.alternativa_id)
+        const respostaCorreta =
+          questao.tipo === 'completar'
+            ? correcao.resposta_esperada ?? ''
+            : textoAlternativa(questao, correcao.alternativa_correta_id)
+
+        return { questao, correcao, suaResposta, respostaCorreta }
+      })
+      .filter((item): item is QuestaoRevisada => item !== null)
+  })
+
   const jogarNovamente = () => {
     currentIndex.value = 0
-    acertos.value = 0
-    respostaVisivel.value = false
+    alternativaSelecionada.value = null
+    respostaTexto.value = ''
+    correcaoAtual.value = null
+    respostas.value = []
+    resultado.value = null
     sessionStartTime.value = Date.now()
+    focar('quiz-play-question')
   }
 
   const voltar = () => {
@@ -115,19 +188,28 @@ export function useQuizPlay() {
 
   onMounted(() => {
     sessionStartTime.value = Date.now()
-    loadQuizes()
+    loadQuiz()
   })
 
   return {
-    currentQuiz,
-    currentIndex,
-    total,
-    acertos,
-    respostaVisivel,
+    quiz,
     loading,
+    total,
+    currentIndex,
+    questaoAtual,
+    alternativaSelecionada,
+    respostaTexto,
+    correcaoAtual,
+    verificando,
+    finalizando,
+    podeResponder,
+    isLast,
     isFinished,
-    mostrarResposta,
+    resultado,
+    erradas,
+    canAddQuestoes,
     responder,
+    proxima,
     jogarNovamente,
     voltar,
   }

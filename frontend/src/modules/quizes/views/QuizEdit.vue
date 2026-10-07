@@ -7,9 +7,20 @@
       back-to="/quizes"
     />
 
-    <BaseCard>
-      <!-- novalidate: a validação do título é feita em useQuizEdit (mensagem traduzida no campo) -->
-      <form class="quiz-form__form flex flex-col gap-6" novalidate @submit.prevent="handleSubmit">
+    <BaseSpinner v-if="loading && !form.id" center size="lg" show-label :label="$t('quizPlay.loading')" />
+
+    <EmptyState
+      v-else-if="!canEdit"
+      icon="lock-closed"
+      :title="$t('common.acessoNegado')"
+      :description="$t('permissions.editDenied', { recurso: $t('common.quizes') })"
+    >
+      <BaseButton to="/quizes" icon="arrow-left">{{ $t('quizPlay.backToList') }}</BaseButton>
+    </EmptyState>
+
+    <!-- novalidate: a validação é feita em useQuizEdit (mensagens traduzidas nos campos) -->
+    <form v-else class="quiz-form__form flex flex-col gap-6" novalidate @submit.prevent="handleSubmit">
+      <BaseCard>
         <div class="quiz-form__grid grid grid-cols-fit-56 gap-5">
           <BaseInput v-model="form.titulo" :label="$t('quizes.titulo')" :error="errors.titulo" required />
           <BaseSelect
@@ -18,15 +29,7 @@
             :options="nivelOptions"
             @update:model-value="form.nivel_dificuldade = normalizeNivel(String($event))"
           />
-          <BaseTextarea v-model="form.descricao" class="quiz-form__full col-span-full" :label="$t('quizes.descricao')" :rows="4" />
-          <BaseInput
-            :model-value="form.total_questoes"
-            type="number"
-            inputmode="numeric"
-            min="0"
-            :label="$t('quizes.totalQuestoes')"
-            @update:model-value="form.total_questoes = Number($event) || 0"
-          />
+          <BaseTextarea v-model="form.descricao" class="quiz-form__full col-span-full" :label="$t('quizes.descricao')" :rows="3" />
           <BaseInput
             :model-value="form.tempo_limite ?? ''"
             type="number"
@@ -37,18 +40,24 @@
           />
           <BaseCheckbox v-model="form.publico" class="quiz-form__full col-span-full" :label="$t('quizes.publicBadge')" />
         </div>
+      </BaseCard>
 
-        <div class="quiz-form__actions flex flex-wrap justify-end gap-3 border-0 border-t border-solid border-border pt-5 *:shrink *:grow *:basis-full sm:*:shrink-0 sm:*:grow-0 sm:*:basis-auto">
-          <BaseButton variant="danger" icon="trash" class="quiz-form__delete sm:me-auto" @click="handleDelete">
-            {{ $t('quizes.deleteQuiz') }}
-          </BaseButton>
-          <BaseButton variant="secondary" to="/quizes">{{ $t('common.cancelar') }}</BaseButton>
-          <BaseButton type="submit" icon="check" :loading="loading">
-            {{ loading ? $t('common.salvando') : $t('quizes.saveChanges') }}
-          </BaseButton>
-        </div>
-      </form>
-    </BaseCard>
+      <BaseCard>
+        <QuizQuestoesEditor v-model="questoes" :errors="questoesErrors" />
+      </BaseCard>
+
+      <BaseAlert v-if="hasQuestaoErrors" variant="danger" :message="$t('quizEditor.erroRevisar')" />
+
+      <div class="quiz-form__actions flex flex-wrap justify-end gap-3 *:shrink *:grow *:basis-full sm:*:shrink-0 sm:*:grow-0 sm:*:basis-auto">
+        <BaseButton variant="danger" icon="trash" class="quiz-form__delete sm:me-auto" @click="handleDelete">
+          {{ $t('quizes.deleteQuiz') }}
+        </BaseButton>
+        <BaseButton variant="secondary" to="/quizes">{{ $t('common.cancelar') }}</BaseButton>
+        <BaseButton type="submit" icon="check" :loading="loading">
+          {{ loading ? $t('common.salvando') : $t('quizes.saveChanges') }}
+        </BaseButton>
+      </div>
+    </form>
 
     <ConfirmModal
       v-model="showDeleteModal"
@@ -66,18 +75,22 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  BaseAlert,
   BaseButton,
   BaseCard,
   BaseCheckbox,
   BaseInput,
   BaseSelect,
+  BaseSpinner,
   BaseTextarea,
   ConfirmModal,
+  EmptyState,
   PageContainer,
   PageHeader,
   type SelectOption,
 } from '@/shared/components/ui'
 import { normalizeNivel } from '@/shared/utils/nivelDificuldade'
+import QuizQuestoesEditor from '../components/QuizQuestoesEditor.vue'
 import { useQuizEdit } from './QuizEdit'
 
 const { t } = useI18n()
@@ -85,13 +98,18 @@ const { t } = useI18n()
 const {
   form,
   errors,
+  questoes,
+  questoesErrors,
   loading,
   deleteLoading,
   showDeleteModal,
+  canEdit,
   handleSubmit,
   handleDelete,
   confirmDelete,
 } = useQuizEdit()
+
+const hasQuestaoErrors = computed(() => Object.keys(questoesErrors.value).length > 0)
 
 const nivelOptions = computed<SelectOption[]>(() => [
   { value: 'iniciante', label: t('common.iniciante') },

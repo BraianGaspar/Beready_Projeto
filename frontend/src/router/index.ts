@@ -98,6 +98,13 @@ const router = createRouter({
           component: FlashcardList,
           meta: { requiresAuth: true },
         },
+        // Revisão espaçada: fila dos cards vencidos (mesma tela do estudo)
+        {
+          path: '/flashcards/revisao',
+          name: 'flashcard-review',
+          component: FlashcardStudy,
+          meta: { requiresAuth: true },
+        },
         {
           path: '/flashcards/:id',
           name: 'flashcard-view',

@@ -106,7 +106,8 @@ export interface Flashcard {
   frente: string
   verso: string
   nivel_dificuldade: NivelDificuldade
-  ultima_revisao?: string
+  // Repetição espaçada (SM-2): calculados pelo backend, nunca enviados
+  ultima_revisao?: string | null
   proxima_revisao?: string
   intervalo_dias?: number
   fator_ease?: number
@@ -115,7 +116,19 @@ export interface Flashcard {
   atualizado_em?: string
 }
 
-export type FlashcardInput = Omit<Flashcard, 'id' | 'criado_em' | 'atualizado_em'>
+export type FlashcardInput = Omit<
+  Flashcard,
+  'id' | 'criado_em' | 'atualizado_em' | 'ultima_revisao' | 'proxima_revisao' | 'intervalo_dias' | 'fator_ease' | 'repeticoes'
+>
+
+// Avaliação do estudo -> nota do SM-2 no backend (1 / 4 / 5)
+export type NotaRevisao = 'errei' | 'bom' | 'facil'
+
+// GET /flashcards/revisao
+export interface FlashcardsDevidos {
+  total: number
+  flashcards: Flashcard[]
+}
 
 export interface FlashcardData {
   frente: string
@@ -136,6 +149,76 @@ export interface Quiz {
   publico: boolean
   criado_em: string
   atualizado_em: string
+  // GET /quizes/{id}: questões sem gabarito
+  questoes?: QuizQuestao[]
+}
+
+export type QuizQuestaoTipo = 'multipla_escolha' | 'completar'
+
+export interface QuizAlternativa {
+  id: number
+  texto: string
+  ordem: number
+  // Só no editor do dono (GET /quizes/{id}/questoes)
+  correta?: boolean
+}
+
+export interface QuizQuestao {
+  id: number
+  quiz_id: number
+  tipo: QuizQuestaoTipo
+  enunciado: string
+  ordem: number
+  alternativas: QuizAlternativa[]
+  // Só no editor do dono
+  resposta_esperada?: string | null
+  explicacao?: string | null
+}
+
+export interface QuizQuestaoInput {
+  tipo: QuizQuestaoTipo
+  enunciado: string
+  resposta_esperada?: string | null
+  explicacao?: string | null
+  alternativas?: { texto: string; correta: boolean }[]
+}
+
+// Resposta de uma questão enviada ao servidor
+export interface QuizRespostaQuestao {
+  questao_id: number
+  alternativa_id?: number
+  resposta?: string
+}
+
+// Correção feita pelo servidor
+export interface QuizCorrecao {
+  questao_id: number
+  tipo: QuizQuestaoTipo
+  correta: boolean
+  respondida: boolean
+  alternativa_id: number | null
+  resposta: string | null
+  alternativa_correta_id: number | null
+  resposta_esperada: string | null
+  explicacao: string | null
+}
+
+// POST /quizes/{id}/finalizar
+export interface QuizResultado {
+  quiz_id: number
+  total: number
+  acertos: number
+  erros: number
+  percentual: number
+  correcao: QuizCorrecao[]
+}
+
+// POST /quizes/gerar
+export interface GerarQuizInput {
+  quantidade: number
+  nivel?: NivelDificuldade
+  tag_id?: number
+  titulo?: string
 }
 
 export interface Progresso {

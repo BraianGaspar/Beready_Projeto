@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Traits;
 
+use App\Exceptions\ValidationException;
 use Cake\ORM\Exception\PersistenceFailedException;
 
 /**
@@ -16,6 +17,10 @@ trait ResourceErrorTrait
     {
         if ($e instanceof PersistenceFailedException) {
             return $this->jsonError($fallbackMessage, 422, $e->getEntity()->getErrors());
+        }
+
+        if ($e instanceof ValidationException) {
+            return $this->jsonError($e->getMessage(), 422, $e->getErrors());
         }
 
         $status = $e instanceof \InvalidArgumentException ? 400 : $this->httpStatusFrom($e);

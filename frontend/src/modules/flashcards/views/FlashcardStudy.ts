@@ -1,20 +1,45 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlert } from '@/shared/composables/useAlert'
-import api, { getApiErrorMessage } from '@/core/services/api'
-import { respostaService } from '@/modules/progresso/services/respostaService'
+import { getApiErrorMessage } from '@/core/services/api'
 import { progressoService } from '@/modules/progresso/services/progressoService'
+import { flashcardService } from '../services/flashcardService'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
 import { getNivelLabelKey } from '@/shared/utils/nivelDificuldade'
+import type { Flashcard, NotaRevisao } from '@/core/types'
 
 interface StudyCard {
   id: number
   pergunta: string
   resposta: string
   nivel_dificuldade: string
+  proxima_revisao?: string
 }
 
+export type StudyRating = 'hard' | 'good' | 'easy'
+
+const NOTAS: Record<StudyRating, NotaRevisao> = {
+  hard: 'errei',
+  good: 'bom',
+  easy: 'facil',
+}
+
+const toStudyCard = (item: Flashcard): StudyCard => ({
+  id: item.id,
+  pergunta: item.frente || '',
+  resposta: item.verso || '',
+  nivel_dificuldade: item.nivel_dificuldade || 'iniciante',
+  proxima_revisao: item.proxima_revisao,
+})
+
+/**
+ * Estudo de flashcards com repetição espaçada. Dois modos, mesma tela (virada 3D, teclado):
+ *  - estudo (/flashcards/:id/study): começa pelo card escolhido e segue pela lista do usuário;
+ *  - revisão (/flashcards/revisao): fila dos cards com revisão vencida, mostrando quantos faltam.
+ * Cada avaliação (Errei/Bom/Fácil) é gravada em POST /flashcards/{id}/revisao, que reagenda o
+ * card e registra resposta + progresso no backend.
+ */
 export function useFlashcardStudy() {
   const sessionStartTime = ref(Date.now())
 
@@ -24,9 +49,12 @@ export function useFlashcardStudy() {
   const { error } = useAlert()
   const { t } = useI18n()
 
+  const isReview = computed(() => route.name === 'flashcard-review')
+
   const flashcards = ref<StudyCard[]>([])
   const currentIndex = ref(0)
   const loading = ref(true)
+  const saving = ref(false)
   const isFlipped = ref(false)
   const showCompletionModal = ref(false)
   const stats = ref({
@@ -38,18 +66,22 @@ export function useFlashcardStudy() {
   const allFlashcardIds = ref<number[]>([])
   const hasNextFlashcard = ref(false)
 
-  const currentFlashcard = computed(
-    () => flashcards.value[currentIndex.value]
-  )
+  const currentFlashcard = computed(() => flashcards.value[currentIndex.value])
 
   const flashcard = computed(() => currentFlashcard.value)
 
+  // Modo revisão: posição na fila e quantos faltam (incluindo o atual)
+  const reviewTotal = computed(() => flashcards.value.length)
+  const reviewPosition = computed(() => Math.min(currentIndex.value + 1, reviewTotal.value))
+  const remaining = computed(() => Math.max(reviewTotal.value - currentIndex.value, 0))
+
   const loadAllFlashcardIds = async () => {
     try {
-      const { data } = await api.get('/flashcards')
+      const { data } = await flashcardService.getAll()
 
       if (data.success && Array.isArray(data.data)) {
-        allFlashcardIds.value = data.data.map((item: { id: number | string }) => Number(item.id))
+        allFlashcardIds.value = data.data.map((item) => Number(item.id))
+        updateHasNextFlashcard()
       }
     } catch (err) {
       console.error('Erro ao carregar lista de flashcards:', err)
@@ -60,11 +92,10 @@ export function useFlashcardStudy() {
     const currentId = Number(route.params.id)
     const idx = allFlashcardIds.value.indexOf(currentId)
 
-    hasNextFlashcard.value =
-      idx !== -1 && idx < allFlashcardIds.value.length - 1
+    hasNextFlashcard.value = idx !== -1 && idx < allFlashcardIds.value.length - 1
   }
 
-  const loadFlashcards = async () => {
+  const loadFlashcard = async () => {
     const id = route.params.id
 
     if (!id) {
@@ -76,20 +107,10 @@ export function useFlashcardStudy() {
     loading.value = true
 
     try {
-      const { data } = await api.get(`/flashcards/${id}`)
+      const { data } = await flashcardService.getById(Number(id))
 
       if (data.success) {
-        const item = data.data
-
-        flashcards.value = [
-          {
-            id: item.id,
-            pergunta: item.pergunta || item.frente || '',
-            resposta: item.resposta || item.verso || '',
-            nivel_dificuldade: item.nivel_dificuldade || 'iniciante',
-          },
-        ]
-
+        flashcards.value = [toStudyCard(data.data)]
         currentIndex.value = 0
         updateHasNextFlashcard()
       } else {
@@ -105,26 +126,29 @@ export function useFlashcardStudy() {
     }
   }
 
+  const loadReviewQueue = async () => {
+    loading.value = true
+
+    try {
+      const { data } = await flashcardService.getDevidos()
+      flashcards.value = (data.data?.flashcards ?? []).map(toStudyCard)
+      currentIndex.value = 0
+    } catch (err) {
+      error(getApiErrorMessage(err) || t('revisao.errorLoad'))
+      router.push('/flashcards')
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const load = () => (isReview.value ? loadReviewQueue() : loadFlashcard())
+
   const goBack = () => {
     router.push('/flashcards')
   }
 
   const flipCard = () => {
     isFlipped.value = !isFlipped.value
-  }
-
-  const nextCard = () => {
-    if (currentIndex.value < flashcards.value.length - 1) {
-      currentIndex.value++
-      isFlipped.value = false
-    }
-  }
-
-  const previousCard = () => {
-    if (currentIndex.value > 0) {
-      currentIndex.value--
-      isFlipped.value = false
-    }
   }
 
   const goToNextFlashcard = () => {
@@ -145,18 +169,8 @@ export function useFlashcardStudy() {
     })
   }
 
-  const incrementarProgresso = async (usuarioId: number) => {
-    try {
-      await progressoService.incrementarFlashcards(usuarioId, 1)
-    } catch (err) {
-      console.error('Erro ao incrementar progresso:', err)
-    }
-  }
-
   const incrementarTempo = async (usuarioId: number) => {
-    const segundos = Math.floor(
-      (Date.now() - sessionStartTime.value) / 1000
-    )
+    const segundos = Math.floor((Date.now() - sessionStartTime.value) / 1000)
 
     if (segundos <= 0) return
 
@@ -167,28 +181,30 @@ export function useFlashcardStudy() {
     }
   }
 
-  const rateCard = async (rating: 'hard' | 'good' | 'easy') => {
-    if (rating === 'hard') stats.value.hard++
-    if (rating === 'good') stats.value.good++
-    if (rating === 'easy') stats.value.easy++
+  const rateCard = async (rating: StudyRating) => {
+    const card = currentFlashcard.value
+    if (!card || saving.value) return
 
-    const userId = authStore.user?.id
+    // A avaliação precisa ser gravada para o agendamento; se falhar, o card fica para tentar de novo
+    saving.value = true
+    try {
+      await flashcardService.revisar(card.id, NOTAS[rating])
+    } catch (err) {
+      error(getApiErrorMessage(err) || t('revisao.errorSave'))
+      return
+    } finally {
+      saving.value = false
+    }
 
-    if (userId && currentFlashcard.value) {
-      const isCorrect = rating !== 'hard'
+    stats.value[rating]++
 
-      respostaService
-        .registrarResposta({
-          usuario_id: userId,
-          tipo: 'flashcard',
-          referencia_id: currentFlashcard.value.id,
-          correto: isCorrect,
-        })
-        .catch(() => {
-          // Registro de resposta é best-effort: não interrompe o estudo
-        })
-
-      incrementarProgresso(userId)
+    if (isReview.value) {
+      isFlipped.value = false
+      currentIndex.value++
+      if (currentIndex.value >= flashcards.value.length) {
+        finishStudy()
+      }
+      return
     }
 
     if (hasNextFlashcard.value) {
@@ -208,18 +224,21 @@ export function useFlashcardStudy() {
     showCompletionModal.value = true
   }
 
-  const studyAgain = () => {
+  const resetSession = () => {
     showCompletionModal.value = false
-
-    stats.value = {
-      hard: 0,
-      good: 0,
-      easy: 0,
-    }
-
+    stats.value = { hard: 0, good: 0, easy: 0 }
     isFlipped.value = false
-
     sessionStartTime.value = Date.now()
+  }
+
+  const studyAgain = () => {
+    resetSession()
+
+    if (isReview.value) {
+      // Busca a fila de novo: os cards em que errou voltam em alguns minutos
+      loadReviewQueue()
+      return
+    }
 
     if (allFlashcardIds.value.length > 0) {
       const firstId = allFlashcardIds.value[0]
@@ -233,17 +252,23 @@ export function useFlashcardStudy() {
 
   const getLevelText = (level: string) => t(getNivelLabelKey(level))
 
+  // A mesma instância atende as duas rotas: troca de card (estudo) ou de modo (estudo <-> revisão)
   watch(
-    () => route.params.id,
-    () => {
-      loadFlashcards()
-    }
+    () => [route.name, route.params.id] as const,
+    ([name], [oldName]) => {
+      if (name !== 'flashcard-study' && name !== 'flashcard-review') return
+      if (name !== oldName) {
+        resetSession()
+        if (name === 'flashcard-study' && allFlashcardIds.value.length === 0) loadAllFlashcardIds()
+      }
+      load()
+    },
   )
 
   onMounted(() => {
     sessionStartTime.value = Date.now()
-    loadAllFlashcardIds()
-    loadFlashcards()
+    if (!isReview.value) loadAllFlashcardIds()
+    load()
   })
 
   return {
@@ -252,14 +277,17 @@ export function useFlashcardStudy() {
     currentIndex,
     currentFlashcard,
     loading,
+    saving,
     isFlipped,
+    isReview,
+    reviewTotal,
+    reviewPosition,
+    remaining,
     showCompletionModal,
     stats,
     hasNextFlashcard,
     goBack,
     flipCard,
-    nextCard,
-    previousCard,
     rateCard,
     finishStudy,
     studyAgain,

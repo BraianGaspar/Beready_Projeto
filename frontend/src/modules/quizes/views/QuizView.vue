@@ -37,6 +37,16 @@
       />
     </div>
 
+    <!-- Quiz sem questões (ex.: criado antes do editor): chamada para adicionar -->
+    <BaseAlert v-if="quiz.id && !quiz.total_questoes" variant="warning" :title="$t('quizPlay.emptyTitle')">
+      <p>{{ canAddQuestoes ? $t('quizPlay.emptyDescriptionOwner') : $t('quizPlay.emptyDescription') }}</p>
+      <div v-if="canAddQuestoes" class="mt-2">
+        <BaseButton variant="ghost" size="sm" icon="plus" :to="`/quizes/edit/${quizId}`">
+          {{ $t('quizPlay.addQuestions') }}
+        </BaseButton>
+      </div>
+    </BaseAlert>
+
     <BaseCard :title="$t('quizes.descricao')">
       <p class="quiz-view__description wrap-anywhere whitespace-pre-line leading-relaxed text-text-muted">{{ quiz.descricao || $t('common.semDescricao') }}</p>
     </BaseCard>
@@ -45,11 +55,19 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BaseBadge, BaseButton, BaseCard, PageContainer, PageHeader, StatCard } from '@/shared/components/ui'
+import { BaseAlert, BaseBadge, BaseButton, BaseCard, PageContainer, PageHeader, StatCard } from '@/shared/components/ui'
 import { getNivelVariant } from '@/shared/utils/nivelDificuldade'
+import { useAuthStore } from '@/stores/auth'
+import { usePermissionStore } from '@/stores/permissionStore'
 import { useQuizView } from './QuizView'
 
 const { quiz, quizId, getLevelText, formatDate } = useQuizView()
+const authStore = useAuthStore()
+const permissionStore = usePermissionStore()
+
+const canAddQuestoes = computed(
+  () => quiz.value.usuario_id === authStore.user?.id && permissionStore.canEdit('quizes'),
+)
 
 const nivelVariant = computed(() => getNivelVariant(quiz.value.nivel_dificuldade))
 </script>

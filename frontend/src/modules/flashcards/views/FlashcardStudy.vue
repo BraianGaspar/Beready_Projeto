@@ -1,12 +1,45 @@
 <template>
   <PageContainer size="sm" class="fcard-study">
-    <PageHeader variant="plain" :title="$t('flashcards.estudar')" back-to="/flashcards">
-      <BaseBadge v-if="flashcard" :variant="nivelVariant" class="fcard-study__level">
-        {{ getLevelText(flashcard.nivel_dificuldade) }}
-      </BaseBadge>
+    <PageHeader
+      variant="plain"
+      :title="isReview ? $t('revisao.titulo') : $t('flashcards.estudar')"
+      :icon="isReview ? 'refresh' : undefined"
+      back-to="/flashcards"
+    >
+      <div v-if="flashcard" class="fcard-study__badges flex flex-wrap gap-2">
+        <BaseBadge :variant="nivelVariant" class="fcard-study__level">
+          {{ getLevelText(flashcard.nivel_dificuldade) }}
+        </BaseBadge>
+        <BaseBadge v-if="!isReview" :variant="proxima.devido ? 'warning' : 'neutral'" icon="clock" class="fcard-study__next">
+          {{ proxima.texto }}
+        </BaseBadge>
+      </div>
+
+      <!-- Revisão: posição na fila e quantos faltam -->
+      <div v-if="isReview && !loading && flashcard" class="fcard-study__progress mt-3 flex flex-col gap-2">
+        <p class="fcard-study__progress-label flex flex-wrap justify-between gap-2 text-sm font-semibold text-text-muted">
+          <span aria-hidden="true">{{ $t('revisao.posicao', { current: reviewPosition, total: reviewTotal }) }}</span>
+          <span class="fcard-study__remaining" aria-live="polite">{{ $t('revisao.faltam', { n: remaining }) }}</span>
+        </p>
+        <BaseProgress
+          :value="reviewPosition"
+          :max="reviewTotal"
+          :label="$t('revisao.titulo')"
+          :value-text="$t('revisao.posicao', { current: reviewPosition, total: reviewTotal })"
+        />
+      </div>
     </PageHeader>
 
-    <BaseSpinner v-if="loading" center size="lg" show-label :label="$t('flashcardStudy.loading')" />
+    <BaseSpinner v-if="loading" center size="lg" show-label :label="isReview ? $t('revisao.loading') : $t('flashcardStudy.loading')" />
+
+    <EmptyState
+      v-else-if="isReview && reviewTotal === 0"
+      icon="check-circle"
+      :title="$t('revisao.emptyTitle')"
+      :description="$t('revisao.emptyDescription')"
+    >
+      <BaseButton icon="arrow-left" @click="goBack">{{ $t('flashcardStudy.backToDecks') }}</BaseButton>
+    </EmptyState>
 
     <section v-else-if="flashcard" class="fcard-study__body flex flex-col gap-6">
       <!-- <button> nativo: Enter/Espaço viram o card; aria-pressed anuncia o lado -->
@@ -44,6 +77,7 @@
         :class="isFlipped ? 'fcard-study__dock--visible visible translate-y-0 opacity-100' : 'invisible translate-y-2 opacity-0'"
         role="group"
         :aria-label="$t('flashcardStudy.rateTitle')"
+        :aria-busy="saving"
       >
         <p class="fcard-study__dock-title mb-3 text-sm font-medium text-text-muted">{{ $t('flashcardStudy.rateTitle') }}</p>
         <div class="fcard-study__rates grid grid-cols-3 gap-2 sm:gap-3">
@@ -52,6 +86,7 @@
             size="lg"
             icon="x-circle"
             stacked
+            :disabled="saving"
             @click.stop="rateCard('hard')"
           >
             {{ $t('flashcardStudy.rateHard') }}
@@ -61,6 +96,7 @@
             size="lg"
             icon="check-circle"
             stacked
+            :disabled="saving"
             @click.stop="rateCard('good')"
           >
             {{ $t('flashcardStudy.rateGood') }}
@@ -70,18 +106,20 @@
             size="lg"
             icon="sparkles"
             stacked
+            :disabled="saving"
             @click.stop="rateCard('easy')"
           >
             {{ $t('flashcardStudy.rateEasy') }}
           </BaseButton>
         </div>
+        <p class="fcard-study__rate-hint mt-3 text-xs text-text-muted">{{ $t('revisao.rateHint') }}</p>
       </div>
     </section>
 
     <BaseModal
       v-model="showCompletionModal"
-      :title="$t('flashcardStudy.completedTitle')"
-      :description="$t('flashcardStudy.completedMessage')"
+      :title="isReview ? $t('revisao.completedTitle') : $t('flashcardStudy.completedTitle')"
+      :description="isReview ? $t('revisao.completedMessage') : $t('flashcardStudy.completedMessage')"
       size="sm"
       hide-close
       :close-on-overlay="false"
@@ -103,7 +141,7 @@
       </div>
       <template #footer>
         <BaseButton variant="secondary" icon="refresh" @click="studyAgain">
-          {{ $t('flashcardStudy.studyAgain') }}
+          {{ isReview ? $t('revisao.checkAgain') : $t('flashcardStudy.studyAgain') }}
         </BaseButton>
         <BaseButton icon="arrow-left" @click="goBack">{{ $t('flashcardStudy.backToDecks') }}</BaseButton>
       </template>
@@ -118,18 +156,26 @@ import {
   BaseButton,
   BaseIcon,
   BaseModal,
+  BaseProgress,
   BaseSpinner,
+  EmptyState,
   PageContainer,
   PageHeader,
   StatCard,
 } from '@/shared/components/ui'
 import { getNivelVariant } from '@/shared/utils/nivelDificuldade'
+import { useProximaRevisao } from '../composables/useRevisao'
 import { useFlashcardStudy } from './FlashcardStudy'
 
 const {
   flashcard,
   loading,
+  saving,
   isFlipped,
+  isReview,
+  reviewTotal,
+  reviewPosition,
+  remaining,
   showCompletionModal,
   stats,
   goBack,
@@ -139,5 +185,8 @@ const {
   getLevelText,
 } = useFlashcardStudy()
 
+const { proximaRevisao } = useProximaRevisao()
+
 const nivelVariant = computed(() => getNivelVariant(flashcard.value?.nivel_dificuldade))
+const proxima = computed(() => proximaRevisao(flashcard.value?.proxima_revisao))
 </script>

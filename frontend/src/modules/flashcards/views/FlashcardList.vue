@@ -50,7 +50,23 @@
       </BaseAlert>
     </template>
 
-    <ul v-else class="fcard-list__grid grid list-none grid-cols-fill gap-6" role="list">
+    <template v-else>
+    <!-- Revisão espaçada: atalho para a fila do dia -->
+    <BaseAlert
+      v-if="revisaoLoaded"
+      :variant="paraRevisar > 0 ? 'info' : 'success'"
+      :title="$t('revisao.alertTitle')"
+      class="fcard-list__review"
+    >
+      <div class="fcard-list__review-row flex flex-wrap items-center justify-between gap-3">
+        <span>{{ paraRevisar > 0 ? $t('revisao.paraRevisarHoje', { n: paraRevisar }) : $t('revisao.emDia') }}</span>
+        <BaseButton v-if="paraRevisar > 0" size="sm" icon="refresh" to="/flashcards/revisao">
+          {{ $t('revisao.revisarAgora') }}
+        </BaseButton>
+      </div>
+    </BaseAlert>
+
+    <ul class="fcard-list__grid grid list-none grid-cols-fill gap-6" role="list">
       <li v-for="flashcard in flashcards" :key="flashcard.id">
         <BaseCard as="article" padding="none" interactive class="fcard-list__card h-full">
           <button
@@ -63,6 +79,16 @@
             <span class="fcard-list__text fcard-list__text--question mb-3 line-clamp-3 wrap-anywhere text-lg font-semibold text-text">{{ flashcard.frente }}</span>
             <span class="fcard-list__label text-xs font-semibold uppercase tracking-wider text-text-muted">{{ $t('flashcards.resposta') }}</span>
             <span class="fcard-list__text line-clamp-3 text-text-muted wrap-anywhere">{{ flashcard.verso }}</span>
+            <span class="fcard-list__next mt-auto pt-3">
+              <BaseBadge
+                :variant="proximaRevisao(flashcard.proxima_revisao).devido ? 'warning' : 'neutral'"
+                size="sm"
+                icon="clock"
+                wrap
+              >
+                {{ proximaRevisao(flashcard.proxima_revisao).texto }}
+              </BaseBadge>
+            </span>
           </button>
 
           <template #footer>
@@ -91,6 +117,7 @@
         </BaseCard>
       </li>
     </ul>
+    </template>
 
     <!-- Modal de criar/editar -->
     <BaseModal
@@ -144,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   BaseAlert,
@@ -162,9 +189,14 @@ import {
   type SelectOption,
 } from '@/shared/components/ui'
 import { normalizeNivel } from '@/shared/utils/nivelDificuldade'
+import { useProximaRevisao, useRevisaoPendentes } from '../composables/useRevisao'
 import { useFlashcardsView } from './Flashcards'
 
 const { t } = useI18n()
+const { proximaRevisao } = useProximaRevisao()
+const { total: paraRevisar, loaded: revisaoLoaded, carregar: carregarRevisao } = useRevisaoPendentes()
+
+onMounted(carregarRevisao)
 
 const {
   flashcards,
