@@ -42,14 +42,23 @@ export interface Plano {
     role?: Role
 }
 
+// Status da Subscription no Stripe (só nas assinaturas recorrentes); o acesso vem de status/data_fim
+export type StripeStatus = 'active' | 'past_due' | 'unpaid' | 'canceled' | 'incomplete' | 'trialing' | 'paused'
+
 export interface Assinatura {
     id: number
     usuario_id: number
     plano_id: number
     status: 'pending' | 'active' | 'canceled' | 'expired' | 'trial'
     data_inicio: string
-    data_fim: string
+    // null = sem vencimento (plano gratuito)
+    data_fim: string | null
     data_cancelamento: string | null
+    // Renovada automaticamente pelo Stripe (Premium recorrente)
+    recorrente?: boolean
+    stripe_status?: StripeStatus | null
+    // Cancelamento agendado: não renova e o acesso vai até data_fim
+    cancelar_no_fim_periodo?: boolean
     plano?: Plano
 }
 
@@ -61,6 +70,25 @@ export interface AssinarPlanoResponse {
         checkout_url: string | null
         assinatura?: Assinatura
     }
+}
+
+// POST /planos/cancelar
+export interface CancelarAssinaturaResponse {
+    success: boolean
+    message?: string
+    data?: {
+        assinatura: Assinatura | null
+        // true = Premium recorrente: vale no fim do período (ativo_ate); false = encerrada na hora
+        cancelamento_agendado: boolean
+        ativo_ate: string | null
+    }
+}
+
+// POST /planos/portal
+export interface PortalResponse {
+    success: boolean
+    message?: string
+    data?: { url: string }
 }
 
 // ============================================
@@ -308,18 +336,28 @@ export const usePermissionStore = defineStore('permissions', () => {
         }
     }
 
-    const cancelarAssinatura = async (): Promise<unknown> => {
+    const cancelarAssinatura = async (): Promise<CancelarAssinaturaResponse> => {
         try {
             const response = await api.post('/planos/cancelar')
             if (response.data.success) {
                 await loadAssinatura()
                 await loadPermissions()
             }
-            return response.data
+            return response.data as CancelarAssinaturaResponse
         } catch (error: unknown) {
             console.error('Erro ao cancelar assinatura:', error)
             throw error
         }
+    }
+
+    // Billing Portal do Stripe (trocar cartão, ver faturas); devolve a URL para redirecionar
+    const abrirPortalPagamento = async (): Promise<string> => {
+        const response = await api.post('/planos/portal')
+        const data = response.data as PortalResponse
+        if (!data.success || !data.data?.url) {
+            throw new Error(data.message || 'Portal indisponível')
+        }
+        return data.data.url
     }
 
     // Limpa todos os dados do usuário (chamado no logout centralizado)
@@ -368,6 +406,7 @@ export const usePermissionStore = defineStore('permissions', () => {
         deletePlano,
         assinarPlano,
         cancelarAssinatura,
+        abrirPortalPagamento,
         reset
     }
 })

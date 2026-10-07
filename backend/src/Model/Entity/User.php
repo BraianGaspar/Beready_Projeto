@@ -9,7 +9,7 @@ use Cake\ORM\Entity;
 /**
  * User Entity
  *
- * senha_hash, uuid, role, status, token e campos de reset não são atribuíveis em massa:
+ * senha_hash, uuid, role, status, token, campos de reset e stripe_customer_id não são atribuíveis em massa:
  * quem precisa deles (registro, troca de senha, admin) define explicitamente.
  */
 class User extends Entity
@@ -37,5 +37,6 @@ class User extends Entity
         'token_expires',
         'reset_token',
         'reset_token_expires',
+        'stripe_customer_id',
     ];
 }

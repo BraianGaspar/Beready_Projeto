@@ -83,19 +83,15 @@ class PermissionService
             }
         }
 
-        // 2. Verificar role da assinatura ativa
-        $assinatura = $this->assinaturasTable->find()
-            ->where([
-                'Assinaturas.usuario_id' => $usuarioId,
-                'Assinaturas.status' => 'active',
-                'Assinaturas.is_ativo' => true,
-                'OR' => [
-                    'Assinaturas.data_fim IS' => null,
-                    'Assinaturas.data_fim >' => date('Y-m-d H:i:s'),
-                ],
-            ])
-            ->contain(['Planos.Roles.Permissoes'])
-            ->first();
+        // 2. Verificar role da assinatura ativa (mesma regra de vigência do AssinaturaService,
+        //    inclusive a carência da renovação automática do Stripe)
+        $ativa = (new AssinaturaService())->getAtiva($usuarioId);
+        $assinatura = $ativa && $ativa->is_ativo
+            ? $this->assinaturasTable->find()
+                ->where(['Assinaturas.id' => $ativa->id])
+                ->contain(['Planos.Roles.Permissoes'])
+                ->first()
+            : null;
 
         if ($assinatura && $assinatura->plano && $assinatura->plano->role) {
             foreach ($assinatura->plano->role->permissoes as $perm) {

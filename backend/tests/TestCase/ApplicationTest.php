@@ -8,6 +8,7 @@ use App\Application;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\CorsMiddleware;
 use App\Middleware\JwtAuthMiddleware;
+use App\Middleware\PlanoLimiteMiddleware;
 use App\Middleware\RateLimitMiddleware;
 use Cake\Core\Configure;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
@@ -33,7 +34,7 @@ class ApplicationTest extends TestCase
 
     /**
      * Ordem importa: CORS antes de tudo (erros também levam os headers) e o
-     * AdminMiddleware depois do JwtAuthMiddleware (precisa do user_id).
+     * AdminMiddleware e PlanoLimiteMiddleware depois do JwtAuthMiddleware (precisam do user_id).
      */
     public function testMiddleware(): void
     {
@@ -47,6 +48,7 @@ class ApplicationTest extends TestCase
             RateLimitMiddleware::class,
             JwtAuthMiddleware::class,
             AdminMiddleware::class,
+            PlanoLimiteMiddleware::class,
             RoutingMiddleware::class,
             AssetMiddleware::class,
         ];

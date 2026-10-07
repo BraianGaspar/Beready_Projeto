@@ -6,7 +6,7 @@ import { useAlert } from '@/shared/composables/useAlert'
 import { useI18n } from 'vue-i18n'
 import { getApiErrorMessage } from '@/core/services/api'
 import { formatRecursoPlano, formatLimitePlano } from '@/shared/utils/planoLabels'
-import { formatCurrency } from '@/shared/utils/intl'
+import { formatCurrency, formatDate } from '@/shared/utils/intl'
 
 export function usePlanosPage() {
     const permissionStore = usePermissionStore()
@@ -23,11 +23,36 @@ export function usePlanosPage() {
     const planoAtual = computed(() => permissionStore.getPlanoAtual)
     const isPlanoAtual = (plano: Plano): boolean => planoAtual.value?.id === plano.id
     // Mesma regra do backend (AssinaturaService::isGratuito): só o plano gratuito não é cancelável
+    // (e o Premium recorrente com cancelamento já agendado)
     const podeCancelar = computed(() => {
         const plano = planoAtual.value
-        if (!plano) return false
+        if (!plano || permissionStore.assinaturaAtiva?.cancelar_no_fim_periodo) return false
         return plano.preco_mensal > 0 || plano.preco_anual > 0 || plano.dias_trial > 0
     })
+
+    const assinatura = computed(() => permissionStore.assinaturaAtiva)
+    // Premium recorrente (Stripe): portal de pagamento e cancelamento no fim do período
+    const isRecorrente = computed(() => Boolean(assinatura.value?.recorrente))
+    const cancelamentoAgendado = computed(() => Boolean(assinatura.value?.cancelar_no_fim_periodo))
+    const pagamentoPendente = computed(() =>
+        isRecorrente.value && ['past_due', 'unpaid'].includes(assinatura.value?.stripe_status ?? ''),
+    )
+    const dataFimFormatada = computed(() => formatDate(assinatura.value?.data_fim))
+    const isLoadingPortal = ref(false)
+
+    // Texto de vigência do plano atual: renovação automática ou "ativo até"
+    const vigenciaPlanoAtual = computed((): string => {
+        const data = dataFimFormatada.value
+        if (!data) return ''
+        if (isRecorrente.value && !cancelamentoAgendado.value) return t('planos.renewsOn', { date: data })
+        return t('planos.activeUntil', { date: data })
+    })
+
+    const cancelConfirmMessage = computed((): string =>
+        isRecorrente.value && dataFimFormatada.value
+            ? t('planos.cancelAtPeriodEndMessage', { date: dataFimFormatada.value })
+            : t('planos.cancelConfirmMessage'),
+    )
 
     const calcularEconomia = (plano: Plano): number => {
         if (plano.preco_mensal === 0 || plano.preco_anual === 0) return 0
@@ -62,13 +87,28 @@ export function usePlanosPage() {
     const handleCancelarAssinatura = async (): Promise<void> => {
         isLoading.value = true
         try {
-            await permissionStore.cancelarAssinatura()
+            const response = await permissionStore.cancelarAssinatura()
             showCancelModal.value = false
-            success(t('planos.canceledSuccess'))
+            const ativoAte = response.data?.ativo_ate
+            if (response.data?.cancelamento_agendado && ativoAte) {
+                success(t('planos.cancelScheduledSuccess', { date: formatDate(ativoAte) }))
+            } else {
+                success(t('planos.canceledSuccess'))
+            }
         } catch (err: unknown) {
             error(getApiErrorMessage(err) || t('planos.errorCancel'))
         } finally {
             isLoading.value = false
+        }
+    }
+
+    const handleGerenciarPagamento = async (): Promise<void> => {
+        isLoadingPortal.value = true
+        try {
+            window.location.href = await permissionStore.abrirPortalPagamento()
+        } catch (err: unknown) {
+            error(getApiErrorMessage(err) || t('planos.errorPortal'))
+            isLoadingPortal.value = false
         }
     }
 
@@ -92,6 +132,13 @@ export function usePlanosPage() {
         isLoadingPlanos,
         showCancelModal,
         podeCancelar,
+        isRecorrente,
+        cancelamentoAgendado,
+        pagamentoPendente,
+        vigenciaPlanoAtual,
+        cancelConfirmMessage,
+        isLoadingPortal,
+        handleGerenciarPagamento,
         isPlanoAtual,
         calcularEconomia,
         formatRecurso,

@@ -59,5 +59,8 @@ ConnectionHelper::addTestAliases();
 // Schema a partir de config/Migrations; ao final todas as tabelas (exceto phinxlog) ficam vazias
 (new Migrator())->run();
 
+// O Migrator pode ter lido o schema antes de aplicar migrations novas: descarta o cache de metadados
+Cache::clear('_cake_model_');
+
 // Dados de referência (roles, permissões, planos): todos os seeds de config/Seeds, na ordem das dependências
 (new Migrations())->seed(['connection' => 'test']);

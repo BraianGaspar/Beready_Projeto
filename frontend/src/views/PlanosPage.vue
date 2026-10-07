@@ -64,6 +64,23 @@
               {{ $t('planos.trialDays', { days: plano.dias_trial }) }}
             </BaseBadge>
 
+            <div v-if="isPlanoAtual(plano) && (vigenciaPlanoAtual || pagamentoPendente)" class="planos__status flex w-full flex-col items-center gap-2">
+              <BaseBadge v-if="cancelamentoAgendado" variant="warning" icon="clock" wrap class="planos__cancel-scheduled">
+                {{ $t('planos.cancelScheduled') }}
+              </BaseBadge>
+              <p v-if="vigenciaPlanoAtual" class="planos__validity flex items-center gap-1 text-sm text-text-muted">
+                <BaseIcon :name="isRecorrente && !cancelamentoAgendado ? 'refresh' : 'clock'" class="size-4" />
+                <span>{{ vigenciaPlanoAtual }}</span>
+              </p>
+              <BaseAlert
+                v-if="pagamentoPendente"
+                variant="warning"
+                class="planos__past-due text-start"
+                :title="$t('planos.paymentPastDue')"
+                :message="$t('planos.paymentPastDueHint')"
+              />
+            </div>
+
             <div class="planos__actions mt-auto flex w-full flex-col gap-2 pt-2">
               <BaseButton v-if="isPlanoAtual(plano)" variant="secondary" icon="check" block disabled>
                 {{ $t('planos.currentPlan') }}
@@ -82,6 +99,18 @@
                       ? $t('planos.startFree')
                       : $t('planos.subscribeNow')
                 }}
+              </BaseButton>
+
+              <BaseButton
+                v-if="isPlanoAtual(plano) && isRecorrente"
+                variant="secondary"
+                icon="credit-card"
+                block
+                :loading="isLoadingPortal"
+                :disabled="isLoading"
+                @click="handleGerenciarPagamento"
+              >
+                {{ $t('planos.managePayment') }}
               </BaseButton>
 
               <BaseButton
@@ -105,7 +134,7 @@
       v-model="showCancelModal"
       type="warning"
       :title="$t('planos.cancelSubscription')"
-      :message="$t('planos.cancelConfirmMessage')"
+      :message="cancelConfirmMessage"
       :confirm-text="$t('planos.cancelSubscription')"
       :loading="isLoading"
       @confirm="handleCancelarAssinatura"
@@ -115,6 +144,7 @@
 
 <script setup lang="ts">
 import {
+  BaseAlert,
   BaseBadge,
   BaseButton,
   BaseCard,
@@ -133,6 +163,13 @@ const {
   isLoadingPlanos,
   showCancelModal,
   podeCancelar,
+  isRecorrente,
+  cancelamentoAgendado,
+  pagamentoPendente,
+  vigenciaPlanoAtual,
+  cancelConfirmMessage,
+  isLoadingPortal,
+  handleGerenciarPagamento,
   isPlanoAtual,
   calcularEconomia,
   formatRecurso,

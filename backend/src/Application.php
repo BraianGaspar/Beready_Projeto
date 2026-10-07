@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Contracts\StripeGatewayInterface;
 use App\Exceptions\SentryExceptionRenderer;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\CorsMiddleware;
 use App\Middleware\JwtAuthMiddleware;
+use App\Middleware\PlanoLimiteMiddleware;
 use App\Middleware\RateLimitMiddleware;
+use App\Services\StripeGateway;
+use Cake\Core\ContainerInterface;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
 use Cake\Http\BaseApplication;
 use Cake\Http\Middleware\BodyParserMiddleware;
@@ -38,6 +42,9 @@ class Application extends BaseApplication
         $middlewareQueue->add(new JwtAuthMiddleware());
         $middlewareQueue->add(new AdminMiddleware());
 
+        // Limites do plano (planos.limites) nos POST de criação de flashcards, quizzes, prompts e tags
+        $middlewareQueue->add(new PlanoLimiteMiddleware());
+
         $middlewareQueue->add(new RoutingMiddleware($this));
 
         $middlewareQueue->add(new AssetMiddleware());
@@ -48,5 +55,11 @@ class Application extends BaseApplication
     public function routes(RouteBuilder $routes): void
     {
         require CONFIG . 'routes.php';
+    }
+
+    public function services(ContainerInterface $container): void
+    {
+        // Injetado nas actions de PlanosController; os testes trocam por um fake (mockService)
+        $container->add(StripeGatewayInterface::class, StripeGateway::class);
     }
 }
