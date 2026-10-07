@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Non siamo riusciti ad addebitare il rinnovo. Aggiorna il metodo di pagamento in Gestisci pagamento per non perdere l\'accesso.',
     managePayment: 'Gestisci pagamento',
     errorPortal: 'Impossibile aprire il portale dei pagamenti. Riprova.',
+    switchBlockedRecurring: 'Per cambiare piano, annulla Premium. Potrai cambiare quando terminerà.',
   },
   permissions: {
     viewDenied: 'Non hai il permesso di visualizzare {recurso}',

@@ -85,6 +85,10 @@
               <BaseButton v-if="isPlanoAtual(plano)" variant="secondary" icon="check" block disabled>
                 {{ $t('planos.currentPlan') }}
               </BaseButton>
+              <!-- Com Premium recorrente a API recusa a troca (a assinatura continuaria cobrando) -->
+              <p v-else-if="isRecorrente" class="planos__switch-blocked text-center text-xs text-text-muted">
+                {{ $t('planos.switchBlockedRecurring') }}
+              </p>
               <BaseButton
                 v-else
                 :variant="plano.preco_mensal > 0 ? 'primary' : 'secondary'"

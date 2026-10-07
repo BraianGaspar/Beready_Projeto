@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Die Verlängerung konnte nicht abgebucht werden. Aktualisiere deine Zahlungsmethode unter Zahlung verwalten, um den Zugang zu behalten.',
     managePayment: 'Zahlung verwalten',
     errorPortal: 'Das Zahlungsportal konnte nicht geöffnet werden. Bitte versuche es erneut.',
+    switchBlockedRecurring: 'Um den Tarif zu wechseln, kündige Premium. Der Wechsel ist möglich, sobald es endet.',
   },
   permissions: {
     viewDenied: 'Sie haben keine Berechtigung, {recurso} anzusehen',

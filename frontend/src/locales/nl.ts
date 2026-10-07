@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'We konden de verlenging niet afschrijven. Werk je betaalmethode bij via Betaling beheren om je toegang te behouden.',
     managePayment: 'Betaling beheren',
     errorPortal: 'Het betaalportaal kon niet worden geopend. Probeer het opnieuw.',
+    switchBlockedRecurring: 'Zeg Premium op om van abonnement te wisselen. Wisselen kan zodra het afloopt.',
   },
   permissions: {
     viewDenied: 'U heeft geen toestemming om {recurso} te bekijken',

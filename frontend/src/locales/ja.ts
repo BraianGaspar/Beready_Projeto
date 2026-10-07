@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: '更新料金を請求できませんでした。アクセスを維持するには「支払いの管理」から支払い方法を更新してください。',
     managePayment: '支払いの管理',
     errorPortal: '支払いポータルを開けませんでした。もう一度お試しください。',
+    switchBlockedRecurring: 'プランを変更するには Premium を解約してください。終了後に変更できます。',
   },
   permissions: {
     viewDenied: '{recurso}を表示する権限がありません',

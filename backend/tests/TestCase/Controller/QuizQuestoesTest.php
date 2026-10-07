@@ -407,6 +407,28 @@ class QuizQuestoesTest extends ApiTestCase
         $this->assertSame(1, $this->responseJson()['data']['quizes_concluidos']);
     }
 
+    public function testFinalizarDeNovoNaoContaOQuizOutraVez(): void
+    {
+        $quiz = $this->quiz($this->userA);
+        $q1 = $this->questao($quiz, $this->multipla('Q1'));
+        $respostas = ['respostas' => [['questao_id' => $q1['id'], 'alternativa_id' => $this->idCorreta($q1)]]];
+
+        $this->postJson("/quizes/{$quiz->id}/finalizar", $respostas);
+        $this->assertResponseOk();
+        $this->assertTrue($this->responseJson()['data']['primeira_conclusao']);
+
+        $this->postJson("/quizes/{$quiz->id}/finalizar", $respostas);
+        $this->assertResponseOk();
+        $this->assertFalse($this->responseJson()['data']['primeira_conclusao']);
+
+        $progresso = $this->getTableLocator()->get('ProgressoUsuario')->find()
+            ->where(['usuario_id' => $this->userA->id])->firstOrFail();
+        $this->assertSame(1, $progresso->quizes_concluidos);
+        // As respostas das duas tentativas continuam registradas
+        $this->assertSame(2, $this->getTableLocator()->get('RespostasUsuario')->find()
+            ->where(['usuario_id' => $this->userA->id, 'referencia_id' => $quiz->id])->count());
+    }
+
     public function testFinalizarQuizSemQuestoesResponde422(): void
     {
         $quiz = $this->quiz($this->userA);

@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'We couldn\'t charge your renewal. Update your payment method in Manage payment to keep your access.',
     managePayment: 'Manage payment',
     errorPortal: 'Couldn\'t open the payment portal. Please try again.',
+    switchBlockedRecurring: 'To switch plans, cancel Premium. You can switch once it ends.',
   },
   permissions: {
     viewDenied: 'You do not have permission to view {recurso}',

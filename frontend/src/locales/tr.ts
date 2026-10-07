@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Yenileme ücretini tahsil edemedik. Erişimini kaybetmemek için Ödemeyi yönet bölümünden ödeme yöntemini güncelle.',
     managePayment: 'Ödemeyi yönet',
     errorPortal: 'Ödeme portalı açılamadı. Lütfen tekrar dene.',
+    switchBlockedRecurring: 'Plan değiştirmek için Premium\'u iptal edin. Sona erdiğinde değiştirebilirsiniz.',
   },
   permissions: {
     viewDenied: '{recurso} görüntüleme izniniz yok',

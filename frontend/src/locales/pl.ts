@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Nie udało się pobrać opłaty za odnowienie. Zaktualizuj metodę płatności w Zarządzaj płatnością, aby nie stracić dostępu.',
     managePayment: 'Zarządzaj płatnością',
     errorPortal: 'Nie udało się otworzyć portalu płatności. Spróbuj ponownie.',
+    switchBlockedRecurring: 'Aby zmienić plan, anuluj Premium. Zmiana będzie możliwa po jego zakończeniu.',
   },
   permissions: {
     viewDenied: 'Nie masz uprawnień do wyświetlania {recurso}',

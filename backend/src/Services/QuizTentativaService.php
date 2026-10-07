@@ -36,9 +36,10 @@ class QuizTentativaService
 
     /**
      * Corrige a tentativa inteira: questões sem resposta contam como erradas. Grava uma linha em
-     * respostas_usuario por questão (tipo 'quiz', referencia_id = quiz) e soma 1 em quizes_concluidos.
+     * respostas_usuario por questão (tipo 'quiz', referencia_id = quiz) e soma 1 em quizes_concluidos
+     * só na primeira vez que o usuário conclui o quiz.
      *
-     * @return array{quiz_id: int, total: int, acertos: int, erros: int, percentual: int, correcao: array}
+     * @return array{quiz_id: int, primeira_conclusao: bool, total: int, acertos: int, erros: int, percentual: int, correcao: array}
      */
     public function finalizar(int $usuarioId, int $quizId, mixed $respostas): array
     {
@@ -69,8 +70,18 @@ class QuizTentativaService
         $acertos = count(array_filter($correcao, fn (array $item) => $item['correta']));
         $total = count($correcao);
 
-        ConnectionManager::get('default')->transactional(function () use ($usuarioId, $quizId, $correcao) {
+        // Por referência: se o callback retornasse false, o transactional() desfaria a transação
+        $primeiraConclusao = false;
+        ConnectionManager::get('default')->transactional(function () use ($usuarioId, $quizId, $correcao, &$primeiraConclusao) {
             $tabela = TableRegistry::getTableLocator()->get('RespostasUsuario');
+
+            // quizes_concluidos conta cada quiz uma vez por usuário; jogar de novo só registra as respostas
+            $jaConcluiu = $tabela->exists([
+                'usuario_id' => $usuarioId,
+                'tipo' => 'quiz',
+                'referencia_id' => $quizId,
+            ]);
+
             foreach ($correcao as $item) {
                 $tabela->saveOrFail($tabela->newEntity([
                     'usuario_id' => $usuarioId,
@@ -80,11 +91,15 @@ class QuizTentativaService
                 ]));
             }
 
-            (new ProgressoService())->incrementarQuizes($usuarioId, 1);
+            if (!$jaConcluiu) {
+                (new ProgressoService())->incrementarQuizes($usuarioId, 1);
+            }
+            $primeiraConclusao = !$jaConcluiu;
         });
 
         return [
             'quiz_id' => $quizId,
+            'primeira_conclusao' => $primeiraConclusao,
             'total' => $total,
             'acertos' => $acertos,
             'erros' => $total - $acertos,

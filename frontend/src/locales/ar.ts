@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'لم نتمكن من تحصيل رسوم التجديد. حدّث طريقة الدفع من «إدارة الدفع» حتى لا تفقد إمكانية الوصول.',
     managePayment: 'إدارة الدفع',
     errorPortal: 'تعذر فتح بوابة الدفع. حاول مرة أخرى.',
+    switchBlockedRecurring: 'لتغيير الخطة، ألغِ اشتراك Premium. يمكنك التغيير عند انتهائه.',
   },
   permissions: {
     viewDenied: 'ليس لديك إذن لعرض {recurso}',

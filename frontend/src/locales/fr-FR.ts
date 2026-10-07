@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Nous n\'avons pas pu prélever le renouvellement. Mettez à jour votre moyen de paiement dans Gérer le paiement pour conserver votre accès.',
     managePayment: 'Gérer le paiement',
     errorPortal: 'Impossible d\'ouvrir le portail de paiement. Veuillez réessayer.',
+    switchBlockedRecurring: 'Pour changer de forfait, annulez Premium. Le changement sera possible à sa fin.',
   },
   permissions: {
     viewDenied: 'Vous n\'avez pas la permission de voir {recurso}',

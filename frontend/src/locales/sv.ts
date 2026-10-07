@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Vi kunde inte debitera förnyelsen. Uppdatera din betalningsmetod under Hantera betalning för att behålla åtkomsten.',
     managePayment: 'Hantera betalning',
     errorPortal: 'Det gick inte att öppna betalningsportalen. Försök igen.',
+    switchBlockedRecurring: 'Avsluta Premium för att byta plan. Du kan byta när den har löpt ut.',
   },
   permissions: {
     viewDenied: 'Du har inte behörighet att visa {recurso}',

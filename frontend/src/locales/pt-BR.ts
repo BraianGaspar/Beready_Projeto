@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: 'Não conseguimos cobrar a renovação. Atualize a forma de pagamento em Gerenciar pagamento para não perder o acesso.',
     managePayment: 'Gerenciar pagamento',
     errorPortal: 'Não foi possível abrir o portal de pagamentos. Tente novamente.',
+    switchBlockedRecurring: 'Para trocar de plano, cancele o Premium. A troca fica disponível quando ele terminar.',
   },
   permissions: {
     viewDenied: 'Você não tem permissão para visualizar {recurso}',

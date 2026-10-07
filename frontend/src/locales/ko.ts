@@ -682,6 +682,7 @@ export default {
     paymentPastDueHint: '갱신 요금을 결제하지 못했습니다. 이용 권한을 유지하려면 결제 관리에서 결제 수단을 업데이트하세요.',
     managePayment: '결제 관리',
     errorPortal: '결제 포털을 열 수 없습니다. 다시 시도해 주세요.',
+    switchBlockedRecurring: '플랜을 변경하려면 Premium을 해지하세요. 종료된 후에 변경할 수 있습니다.',
   },
   permissions: {
     viewDenied: '{recurso}을(를) 볼 수 있는 권한이 없습니다',
